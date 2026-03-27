@@ -5,8 +5,10 @@
     --bg-card: #ffffff;
     --text-main: #1a2030;
     --text-muted: #4a5568;
-    --glass-bg: rgba(0, 0, 0, 0.04);
-    --glass-border: rgba(0, 0, 0, 0.1);
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(0, 0, 0, 0.06);
+    --shadow-soft: 0 12px 32px rgba(0, 0, 0, 0.06);
+    --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.09);
 }
 
 * {
@@ -27,7 +29,7 @@ body {
 .hero {
     height: 100vh;
     width: 100%;
-    background: radial-gradient(circle at center, rgba(10, 11, 13, 0.4) 0%, var(--bg-deep) 100%), 
+    background: radial-gradient(circle   at center, rgba(255, 255, 255, 0.9) 0%, rgba(245, 246, 248, 0.97) 100%), 
                 url('/static/core/images/hero_garage_new.png');
     background-size: cover;
     background-position: center;
@@ -105,16 +107,18 @@ body {
 
 .feature-card {
     background: var(--bg-card);
-    padding: 3rem 2rem;
-    border-radius: 20px;
+    padding: 3rem 2.5rem;
+    border-radius: 24px;
     border: 1px solid var(--glass-border);
-    transition: transform 0.3s ease, border-color 0.3s ease;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.4s ease;
     text-align: left;
+    box-shadow: var(--shadow-soft);
 }
 
 .feature-card:hover {
-    transform: translateY(-10px);
+    transform: translateY(-12px);
     border-color: var(--primary-color);
+    box-shadow: var(--shadow-hover);
 }
 
 .feature-card i {
@@ -132,6 +136,19 @@ body {
 .feature-card p {
     color: var(--text-muted);
 }
+
+/* Card General Enhancements */
+.card {
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+    box-shadow: var(--shadow-soft);
+    border-radius: 20px;
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-hover);
+}
+
 
 /* Footer */
 footer {
