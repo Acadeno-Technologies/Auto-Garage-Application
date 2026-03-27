@@ -1,12 +1,12 @@
 :root {
     --primary-color: #007BFF;
     --primary-hover: #0056b3;
-    --bg-dark: #121212;
-    --bg-card: #1E1E1E;
-    --text-main: #FFFFFF;
-    --text-muted: #B0B0B0;
-    --glass-bg: rgba(255, 255, 255, 0.1);
-    --glass-border: rgba(255, 255, 255, 0.1);
+    --bg-dark: #f5f6f8;
+    --bg-card: #ffffff;
+    --text-main: #1a2030;
+    --text-muted: #4a5568;
+    --glass-bg: rgba(0, 0, 0, 0.04);
+    --glass-border: rgba(0, 0, 0, 0.1);
 }
 
 * {
@@ -54,7 +54,7 @@ body {
     margin-bottom: 1.5rem;
     line-height: 1;
     letter-spacing: -0.04em;
-    color: #fff;
+    color: var(--text-1);
     text-transform: uppercase;
 }
 
