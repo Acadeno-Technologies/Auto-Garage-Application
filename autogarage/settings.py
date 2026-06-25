@@ -61,12 +61,21 @@ WSGI_APPLICATION = 'autogarage.wsgi.application'
 # }
 
 
-DATABASES = {
-    'default': dj_database_url.config(
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-}
+db_from_env = dj_database_url.config(
+    conn_max_age=600,
+    conn_health_checks=True,
+)
+if db_from_env:
+    DATABASES = {
+        'default': db_from_env
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 AUTH_PASSWORD_VALIDATORS = []
 
