@@ -3,7 +3,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 from .models import (
     UserProfile, Customer, Vehicle, JobCard,
-    SparePart, PartCategory, Supplier, StockTransaction, JobPartUsage, Invoice
+    SparePart, PartCategory, Supplier, StockTransaction, JobPartUsage, Invoice,
+    AMCPlan, CustomerAMC, AMCServiceSchedule, WhatsAppLog
 )
 
 ROLE_CHOICES = [
@@ -188,3 +189,30 @@ class InvoiceForm(forms.ModelForm):
             'due_date': forms.DateInput(attrs={'class': 'form-input', 'type': 'date'}),
             'notes': forms.Textarea(attrs={'class': 'form-input', 'rows': 2}),
         }
+
+
+class AMCPlanForm(forms.ModelForm):
+    class Meta:
+        model = AMCPlan
+        fields = ['name', 'description', 'price', 'duration_months', 'services_included']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-input'}),
+            'description': forms.Textarea(attrs={'class': 'form-input', 'rows': 3}),
+            'price': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01'}),
+            'duration_months': forms.NumberInput(attrs={'class': 'form-input'}),
+            'services_included': forms.NumberInput(attrs={'class': 'form-input'}),
+        }
+
+
+class CustomerAMCForm(forms.ModelForm):
+    class Meta:
+        model = CustomerAMC
+        fields = ['vehicle', 'plan', 'start_date', 'amount_paid', 'notes']
+        widgets = {
+            'vehicle': forms.Select(attrs={'class': 'form-input'}),
+            'plan': forms.Select(attrs={'class': 'form-input'}),
+            'start_date': forms.DateInput(attrs={'class': 'form-input', 'type': 'date'}),
+            'amount_paid': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01'}),
+            'notes': forms.Textarea(attrs={'class': 'form-input', 'rows': 2}),
+        }
+

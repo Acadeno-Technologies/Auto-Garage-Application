@@ -1,0 +1,26 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ title }} — Krishna Auto Care{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 650px; margin: 0 auto;">
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label style="display:block; margin-bottom:0.35rem; font-weight:600;">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<small class="text-muted">{{ field.help_text }}</small>{% endif %}
+        {% for error in field.errors %}<div style="color:red; font-size:0.85rem;">{{ error }}</div>{% endfor %}
+      </div>
+      {% endfor %}
+      <div class="flex-between" style="margin-top: 1.5rem;">
+        <a href="{% url 'amc_list' %}" class="btn btn-light">Cancel</a>
+        <button type="submit" class="btn btn-primary">Create Contract</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

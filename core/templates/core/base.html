@@ -67,6 +67,9 @@
         <a href="{% url 'invoice_list' %}" class="nav-link {% if 'invoice' in request.resolver_match.url_name %}active{% endif %}">
           <span class="icon">🧾</span><span>Invoices</span>
         </a>
+        <a href="{% url 'amc_list' %}" class="nav-link {% if 'amc' in request.resolver_match.url_name %}active{% endif %}">
+          <span class="icon">🛡️</span><span>AMC Contracts</span>
+        </a>
       </div>
       <div class="nav-section">
         <div class="nav-section-label">Inventory</div>
@@ -101,6 +104,9 @@
         </a>
         <a href="{% url 'invoice_list' %}" class="nav-link {% if 'invoice' in request.resolver_match.url_name %}active{% endif %}">
           <span class="icon">🧾</span><span>Invoices</span>
+        </a>
+        <a href="{% url 'amc_list' %}" class="nav-link {% if 'amc' in request.resolver_match.url_name %}active{% endif %}">
+          <span class="icon">🛡️</span><span>AMC Contracts</span>
         </a>
       </div>
 

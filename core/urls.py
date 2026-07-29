@@ -57,4 +57,14 @@ urlpatterns = [
 
     # Reports
     path('reports/', views.reports, name='reports'),
+
+    # AMC Management
+    path('amc/', views.amc_list, name='amc_list'),
+    path('amc/plans/add/', views.amc_plan_create, name='amc_plan_create'),
+    path('amc/add/', views.amc_create, name='amc_create'),
+    path('amc/<int:pk>/', views.amc_detail, name='amc_detail'),
+
+    # WhatsApp Notifications
+    path('send-whatsapp/', views.send_whatsapp_view, name='send_whatsapp'),
 ]
+

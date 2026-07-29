@@ -1,0 +1,92 @@
+{% extends 'core/base.html' %}
+
+{% block title %}AMC Contract {{ amc.contract_number }} — Krishna Auto Care{% endblock %}
+{% block page_title %}AMC Contract: {{ amc.contract_number }}{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'send_whatsapp' %}?type=amc_renewal&amc_id={{ amc.id }}&phone={{ amc.vehicle.customer.phone }}&name={{ amc.vehicle.customer.name }}" target="_blank" class="btn btn-success" style="background:#25D366; color:white;">
+    📱 Send Renewal WhatsApp
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-3 mb-6">
+  <!-- AMC DETAILS CARD -->
+  <div class="card col-span-1">
+    <div class="card-header">
+      <h3>🛡️ Contract Information</h3>
+    </div>
+    <div class="card-body">
+      <p><strong>Customer:</strong> {{ amc.vehicle.customer.name }}</p>
+      <p><strong>Phone:</strong> {{ amc.vehicle.customer.phone }}</p>
+      <p><strong>Vehicle:</strong> {{ amc.vehicle.make }} {{ amc.vehicle.model }} ({{ amc.vehicle.license_plate }})</p>
+      <p><strong>Plan Name:</strong> {{ amc.plan.name }}</p>
+      <p><strong>Amount Paid:</strong> ₹{{ amc.amount_paid }}</p>
+      <p><strong>Start Date:</strong> {{ amc.start_date }}</p>
+      <p><strong>End Date:</strong> {{ amc.end_date }}</p>
+      <p><strong>Status:</strong> 
+        {% if amc.status == 'active' %}
+          <span class="badge badge-success">Active</span>
+        {% else %}
+          <span class="badge badge-danger">{{ amc.get_status_display }}</span>
+        {% endif %}
+      </p>
+      {% if amc.notes %}<p><strong>Notes:</strong> {{ amc.notes }}</p>{% endif %}
+    </div>
+  </div>
+
+  <!-- SERVICE SCHEDULES -->
+  <div class="card col-span-2" style="grid-column: span 2;">
+    <div class="card-header flex-between">
+      <h3>🗓️ Scheduled Periodic Services</h3>
+      <span>{{ amc.plan.services_included }} Services Total</span>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Service #</th>
+              <th>Scheduled Date</th>
+              <th>Status</th>
+              <th>Job Card</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in schedules %}
+            <tr>
+              <td><strong>Service #{{ s.service_number }}</strong></td>
+              <td>{{ s.scheduled_date }}</td>
+              <td>
+                {% if s.status == 'completed' %}
+                  <span class="badge badge-success">Completed</span>
+                {% elif s.status == 'scheduled' %}
+                  <span class="badge badge-primary">Scheduled</span>
+                {% else %}
+                  <span class="badge badge-secondary">{{ s.get_status_display }}</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if s.job_card %}
+                  <a href="{% url 'job_detail' s.job_card.pk %}">{{ s.job_card.job_number }}</a>
+                {% else %}
+                  <span class="text-muted">Not linked</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if s.status == 'scheduled' %}
+                  <a href="{% url 'send_whatsapp' %}?type=amc_reminder&schedule_id={{ s.id }}&phone={{ amc.vehicle.customer.phone }}&name={{ amc.vehicle.customer.name }}" target="_blank" class="btn btn-sm btn-outline-success" style="color:#25D366; border-color:#25D366;">
+                    📱 WhatsApp Reminder
+                  </a>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

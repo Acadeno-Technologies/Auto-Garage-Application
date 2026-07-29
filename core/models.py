@@ -200,3 +200,87 @@ class Invoice(models.Model):
 
     def __str__(self):
         return f"{self.invoice_number} - {self.job_card.vehicle.customer.name}"
+
+
+class AMCPlan(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    duration_months = models.PositiveIntegerField(default=12)
+    services_included = models.PositiveIntegerField(default=4)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.duration_months} Months / {self.services_included} Services)"
+
+
+class CustomerAMC(models.Model):
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('expired', 'Expired'),
+        ('cancelled', 'Cancelled'),
+    ]
+    contract_number = models.CharField(max_length=30, unique=True, blank=True)
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='amc_contracts')
+    plan = models.ForeignKey(AMCPlan, on_delete=models.PROTECT)
+    start_date = models.DateField(default=timezone.now)
+    end_date = models.DateField()
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='active')
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.contract_number:
+            last = CustomerAMC.objects.order_by('-id').first()
+            num = (last.id + 1) if last else 1
+            self.contract_number = f"AMC-{num:05d}"
+        super().save(*args, **kwargs)
+
+    @property
+    def is_expiring_soon(self):
+        if self.status != 'active':
+            return False
+        days_left = (self.end_date - date.today()).days
+        return 0 <= days_left <= 30
+
+    def __str__(self):
+        return f"{self.contract_number} - {self.vehicle}"
+
+
+class AMCServiceSchedule(models.Model):
+    STATUS_CHOICES = [
+        ('scheduled', 'Scheduled'),
+        ('completed', 'Completed'),
+        ('overdue', 'Overdue'),
+        ('cancelled', 'Cancelled'),
+    ]
+    amc = models.ForeignKey(CustomerAMC, on_delete=models.CASCADE, related_name='schedules')
+    service_number = models.PositiveIntegerField()
+    scheduled_date = models.DateField()
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='scheduled')
+    job_card = models.ForeignKey(JobCard, on_delete=models.SET_NULL, null=True, blank=True, related_name='amc_service')
+    notes = models.TextField(blank=True)
+
+    @property
+    def is_due_soon(self):
+        if self.status != 'scheduled':
+            return False
+        days = (self.scheduled_date - date.today()).days
+        return -7 <= days <= 7
+
+    def __str__(self):
+        return f"Service #{self.service_number} for {self.amc.contract_number}"
+
+
+class WhatsAppLog(models.Model):
+    recipient_name = models.CharField(max_length=100)
+    phone = models.CharField(max_length=20)
+    message_type = models.CharField(max_length=50) # service_completion, amc_reminder, amc_renewal
+    message_body = models.TextField()
+    sent_at = models.DateTimeField(auto_now_add=True)
+    sent_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return f"{self.message_type} to {self.recipient_name} ({self.sent_at.strftime('%Y-%m-%d %H:%M')})"
+

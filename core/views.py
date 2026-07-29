@@ -10,12 +10,14 @@ from functools import wraps
 
 from .models import (
     UserProfile, Customer, Vehicle, JobCard,
-    SparePart, PartCategory, Supplier, StockTransaction, JobPartUsage, Invoice
+    SparePart, PartCategory, Supplier, StockTransaction, JobPartUsage, Invoice,
+    AMCPlan, CustomerAMC, AMCServiceSchedule, WhatsAppLog
 )
 from .forms import (
     LoginForm, StaffCreationForm, CustomerForm, VehicleForm, JobCardForm,
     JobStatusForm, SparePartForm, PartCategoryForm, SupplierForm,
-    StockTransactionForm, JobPartUsageForm, InvoiceForm
+    StockTransactionForm, JobPartUsageForm, InvoiceForm,
+    AMCPlanForm, CustomerAMCForm
 )
 
 
@@ -570,3 +572,143 @@ def reports(request):
         'low_stock': SparePart.objects.filter(stock_quantity__lte=5),
     }
     return render(request, 'core/reports.html', ctx)
+
+
+# ─── AMC Management ───────────────────────────────────────────────────────────
+
+@login_required
+@role_required('owner', 'advisor')
+def amc_list(request):
+    amcs = CustomerAMC.objects.select_related('vehicle__customer', 'plan').all().order_by('-created_at')
+    plans = AMCPlan.objects.all()
+    
+    # Upcoming services in next 15 days or overdue
+    today = date.today()
+    upcoming_services = AMCServiceSchedule.objects.filter(
+        status='scheduled',
+        scheduled_date__lte=today + timedelta(days=15)
+    ).select_related('amc__vehicle__customer').order_by('scheduled_date')
+
+    return render(request, 'core/amc_list.html', {
+        'amcs': amcs,
+        'plans': plans,
+        'upcoming_services': upcoming_services
+    })
+
+
+@login_required
+@role_required('owner', 'advisor')
+def amc_plan_create(request):
+    form = AMCPlanForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, "AMC Plan created successfully.")
+        return redirect('amc_list')
+    return render(request, 'core/amc_plan_form.html', {'form': form, 'title': 'Create AMC Plan'})
+
+
+@login_required
+@role_required('owner', 'advisor')
+def amc_create(request):
+    form = CustomerAMCForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        amc = form.save(commit=False)
+        start = amc.start_date
+        plan = amc.plan
+        
+        # Calculate end date
+        end = start + timedelta(days=plan.duration_months * 30)
+        amc.end_date = end
+        amc.save()
+
+        # Generate service schedule
+        interval_days = (plan.duration_months * 30) // plan.services_included
+        for i in range(1, plan.services_included + 1):
+            scheduled_d = start + timedelta(days=interval_days * i)
+            AMCServiceSchedule.objects.create(
+                amc=amc,
+                service_number=i,
+                scheduled_date=scheduled_d,
+                status='scheduled'
+            )
+
+        messages.success(request, f"AMC Contract {amc.contract_number} created with {plan.services_included} scheduled services.")
+        return redirect('amc_detail', pk=amc.pk)
+    return render(request, 'core/amc_form.html', {'form': form, 'title': 'Create Customer AMC'})
+
+
+@login_required
+def amc_detail(request, pk):
+    amc = get_object_or_404(CustomerAMC, pk=pk)
+    schedules = amc.schedules.all().order_by('service_number')
+    return render(request, 'core/amc_detail.html', {'amc': amc, 'schedules': schedules})
+
+
+# ─── WhatsApp Integration ──────────────────────────────────────────────────────
+
+@login_required
+def send_whatsapp_view(request):
+    msg_type = request.GET.get('type')
+    recipient_phone = request.GET.get('phone', '').replace(' ', '').replace('-', '')
+    recipient_name = request.GET.get('name', 'Customer')
+    
+    if not recipient_phone:
+        messages.error(request, "Invalid recipient phone number.")
+        return redirect('dashboard')
+
+    # Format phone with country code default (assuming India +91 if length 10)
+    if len(recipient_phone) == 10:
+        clean_phone = '91' + recipient_phone
+    else:
+        clean_phone = recipient_phone.lstrip('+')
+
+    message_text = ""
+
+    if msg_type == 'job_completed':
+        job_id = request.GET.get('job_id')
+        job = get_object_or_404(JobCard, pk=job_id)
+        cost = job.total_cost()
+        message_text = (
+            f"🚗 *Auto Garage Service Update*\n\n"
+            f"Dear *{recipient_name}*,\n\n"
+            f"Good news! Your vehicle *{job.vehicle.make} {job.vehicle.model}* ({job.vehicle.license_plate}) service is *COMPLETED* and ready for pickup! 🎉\n\n"
+            f"📋 *Job Card:* {job.job_number}\n"
+            f"💰 *Total Amount:* ₹{cost:.2f}\n\n"
+            f"Thank you for choosing Auto Garage! Drive safe! 🚘✨"
+        )
+    elif msg_type == 'amc_reminder':
+        schedule_id = request.GET.get('schedule_id')
+        schedule = get_object_or_404(AMCServiceSchedule, pk=schedule_id)
+        message_text = (
+            f"🛠️ *Auto Garage - AMC Service Due Reminder*\n\n"
+            f"Dear *{recipient_name}*,\n\n"
+            f"This is a friendly reminder that your AMC Service #{schedule.service_number} for vehicle *{schedule.amc.vehicle.make} {schedule.amc.vehicle.model}* ({schedule.amc.vehicle.license_plate}) is due on *{schedule.scheduled_date}*.\n\n"
+            f"📜 *AMC Contract:* {schedule.amc.contract_number}\n\n"
+            f"Please reply or call us to book your convenient service slot! 🚘"
+        )
+    elif msg_type == 'amc_renewal':
+        amc_id = request.GET.get('amc_id')
+        amc = get_object_or_404(CustomerAMC, pk=amc_id)
+        message_text = (
+            f"📋 *Auto Garage - AMC Renewal Reminder*\n\n"
+            f"Dear *{recipient_name}*,\n\n"
+            f"Your Annual Maintenance Contract (*{amc.contract_number}*) for *{amc.vehicle.make} {amc.vehicle.model}* ({amc.vehicle.license_plate}) expires on *{amc.end_date}*.\n\n"
+            f"Renew today to continue enjoying priority service and special discounts!\n"
+            f"Contact us to extend your coverage. 🚗"
+        )
+
+    import urllib.parse
+    encoded_text = urllib.parse.quote(message_text)
+    wa_url = f"https://api.whatsapp.com/send?phone={clean_phone}&text={encoded_text}"
+
+    # Log WhatsApp dispatch
+    WhatsAppLog.objects.create(
+        recipient_name=recipient_name,
+        phone=recipient_phone,
+        message_type=msg_type or 'custom',
+        message_body=message_text,
+        sent_by=request.user
+    )
+
+    return redirect(wa_url)
+
