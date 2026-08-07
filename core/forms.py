@@ -109,6 +109,30 @@ class MultipleFileField(forms.FileField):
 
 
 class JobCardForm(forms.ModelForm):
+    customer = forms.ModelChoiceField(
+        queryset=Customer.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-input'}),
+        label='Customer',
+        required=True
+    )
+    vehicle_number = forms.CharField(
+        max_length=20,
+        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. KA-01-AB-1234'}),
+        label='Vehicle Number / License Plate',
+        required=True
+    )
+    vehicle_model = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Toyota Corolla / Honda City'}),
+        label='Vehicle Make & Model',
+        required=True
+    )
+    vehicle_color = forms.CharField(
+        max_length=50,
+        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Black / Silver / Red'}),
+        label='Vehicle Colour',
+        required=False
+    )
     photos = MultipleFileField(
         required=False,
         help_text='Upload vehicle/inspection photos (JPEG, PNG). Select multiple files if needed.'
@@ -116,9 +140,8 @@ class JobCardForm(forms.ModelForm):
 
     class Meta:
         model = JobCard
-        fields = ['vehicle', 'mechanic', 'problem_description', 'repair_instructions', 'estimated_completion_time', 'labour_cost', 'notes']
+        fields = ['mechanic', 'problem_description', 'repair_instructions', 'estimated_completion_time', 'labour_cost', 'notes']
         widgets = {
-            'vehicle': forms.Select(attrs={'class': 'form-input'}),
             'mechanic': forms.Select(attrs={'class': 'form-input'}),
             'problem_description': forms.Textarea(attrs={'class': 'form-input', 'rows': 4}),
             'repair_instructions': forms.Textarea(attrs={'class': 'form-input', 'rows': 3}),
@@ -132,6 +155,14 @@ class JobCardForm(forms.ModelForm):
         mechanics = User.objects.filter(profile__role='mechanic')
         self.fields['mechanic'].queryset = mechanics
         self.fields['mechanic'].required = False
+        
+        if self.instance and self.instance.pk and getattr(self.instance, 'vehicle', None):
+            v = self.instance.vehicle
+            self.initial['customer'] = v.customer_id
+            self.initial['vehicle_number'] = v.license_plate
+            self.initial['vehicle_model'] = f"{v.make} {v.model}".strip()
+            self.initial['vehicle_color'] = v.color
+
         if self.instance and self.instance.estimated_completion_time:
             self.initial['estimated_completion_time'] = self.instance.estimated_completion_time.strftime('%Y-%m-%dT%H:%M')
 

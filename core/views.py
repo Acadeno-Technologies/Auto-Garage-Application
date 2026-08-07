@@ -280,14 +280,43 @@ def job_create(request):
     form = JobCardForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and form.is_valid():
         job = form.save(commit=False)
+        customer = form.cleaned_data['customer']
+        v_num = form.cleaned_data['vehicle_number'].strip().upper()
+        v_model_raw = form.cleaned_data['vehicle_model'].strip()
+        v_color = form.cleaned_data.get('vehicle_color', '').strip()
+        
+        # Split model string into make and model if space separated (e.g. "Toyota Camry")
+        model_parts = v_model_raw.split()
+        v_make = model_parts[0] if model_parts else "Vehicle"
+        v_model = ' '.join(model_parts[1:]) if len(model_parts) > 1 else v_model_raw
+
+        # Get or create Vehicle record dynamically
+        vehicle, _ = Vehicle.objects.get_or_create(
+            license_plate=v_num,
+            defaults={
+                'customer': customer,
+                'make': v_make,
+                'model': v_model,
+                'color': v_color,
+                'year': timezone.now().year
+            }
+        )
+        # Update vehicle details if existing
+        vehicle.customer = customer
+        if v_make: vehicle.make = v_make
+        if v_model: vehicle.model = v_model
+        if v_color: vehicle.color = v_color
+        vehicle.save()
+
+        job.vehicle = vehicle
         job.advisor = request.user
         job.save()
+
         images = request.FILES.getlist('photos')
         for img in images:
             JobCardPhoto.objects.create(job_card=job, image=img)
         
         # Trigger SMS Notification on Job Card Creation
-        customer = job.vehicle.customer
         est_str = job.estimated_completion_time.strftime('%d %b %Y %H:%M') if job.estimated_completion_time else 'Not specified'
         sms_body = (
             f"Dear {customer.name}, your Job Card {job.job_number} for {job.vehicle.make} {job.vehicle.model} "
