@@ -152,9 +152,14 @@
   <!-- MAIN -->
   <div class="main">
     <div class="topbar">
-      <div class="page-title">
-        {% block page_title %}Dashboard{% endblock %}
-        <span class="breadcrumb">{% block breadcrumb %}{% endblock %}</span>
+      <div class="flex items-center" style="gap:0.5rem;">
+        <button id="mobile-menu-toggle" class="btn btn-secondary btn-sm mobile-only" style="display:none; padding:0.4rem 0.65rem; font-size:1.1rem; border-radius:6px;" aria-label="Toggle Navigation Menu">
+          ☰
+        </button>
+        <div class="page-title">
+          {% block page_title %}Dashboard{% endblock %}
+          <span class="breadcrumb">{% block breadcrumb %}{% endblock %}</span>
+        </div>
       </div>
       <div class="topbar-actions">
         {% block topbar_actions %}{% endblock %}
@@ -177,6 +182,29 @@
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const toggleBtn = document.getElementById('mobile-menu-toggle');
+  const sidebar = document.querySelector('.sidebar');
+  
+  if (toggleBtn && sidebar) {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'sidebar-backdrop';
+    document.body.appendChild(backdrop);
+    
+    toggleBtn.addEventListener('click', function() {
+      sidebar.classList.toggle('open');
+      backdrop.classList.toggle('active');
+    });
+    
+    backdrop.addEventListener('click', function() {
+      sidebar.classList.remove('open');
+      backdrop.classList.remove('active');
+    });
+  }
+});
+</script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

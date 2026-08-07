@@ -791,18 +791,58 @@ tr.low-stock:hover { background: rgba(239,68,68,0.08); }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .sidebar { width: 60px; }
+  .mobile-only {
+    display: inline-flex !important;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -260px;
+    width: 250px;
+    height: 100vh;
+    z-index: 999;
+    box-shadow: 5px 0 25px rgba(0,0,0,0.5);
+    transition: left 0.3s ease;
+  }
+
+  .sidebar.open {
+    left: 0 !important;
+  }
+
   .sidebar-brand .logo-text,
   .sidebar-brand .logo-sub,
   .sidebar-user .user-name,
   .sidebar-user .user-role,
   .nav-link span:not(.icon),
-  .nav-section-label { display: none; }
-  .nav-link { justify-content: center; padding: 0.75rem; border-left: none; }
+  .nav-section-label { 
+    display: block !important; 
+  }
+
+  .nav-link { 
+    justify-content: flex-start !important; 
+    padding: 0.75rem 1.25rem !important; 
+  }
+
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.6);
+    z-index: 998;
+    backdrop-filter: blur(3px);
+  }
+
+  .sidebar-backdrop.active {
+    display: block !important;
+  }
+
   .content { padding: 0.75rem; }
   .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
   .grid-2, .grid-3, .report-grid { grid-template-columns: 1fr; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.75rem !important; }
+  .stat-card { padding: 0.85rem !important; }
+  .stat-value { font-size: 1.4rem !important; }
 
   /* Touch-friendly inputs & prevent phone auto-zoom */
   .form-input, select, input, textarea {
@@ -833,7 +873,7 @@ tr.low-stock:hover { background: rgba(239,68,68,0.08); }
 
   .topbar-actions .btn {
     flex: 1;
-    min-width: 130px;
+    min-width: 120px;
     font-size: 0.8rem;
     text-align: center;
   }
@@ -857,6 +897,10 @@ tr.low-stock:hover { background: rgba(239,68,68,0.08); }
 }
 
 @media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
   .job-meta-grid {
     grid-template-columns: 1fr !important;
   }
