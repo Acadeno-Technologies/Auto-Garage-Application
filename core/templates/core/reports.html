@@ -54,7 +54,7 @@
       {% for stat in mechanic_performance %}
       <div class="mb-3">
         <div class="flex-between mb-1">
-          <span style="font-weight:500;">{{ stat.mechanic.get_full_name|default:stat.mechanic.username }}</span>
+          <span style="font-weight:500;">{% if stat.mechanic %}{{ stat.mechanic.get_full_name|default:stat.mechanic.username }}{% else %}Unassigned{% endif %}</span>
           <span class="text-mono text-accent">{{ stat.completed }}/{{ stat.total }}</span>
         </div>
         {% if stat.total > 0 %}

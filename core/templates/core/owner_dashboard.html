@@ -131,7 +131,7 @@
       {% for stat in mechanic_stats %}
       <div class="flex-between mb-2">
         <div>
-          <div style="font-weight:500;font-size:0.9rem;">{{ stat.mechanic.get_full_name|default:stat.mechanic.username }}</div>
+          <div style="font-weight:500;font-size:0.9rem;">{% if stat.mechanic %}{{ stat.mechanic.get_full_name|default:stat.mechanic.username }}{% else %}Unassigned{% endif %}</div>
           <div class="text-muted">{{ stat.completed }} jobs completed</div>
         </div>
         <div class="text-accent font-bold text-mono">{{ stat.completed }}</div>
