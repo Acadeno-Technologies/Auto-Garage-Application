@@ -39,6 +39,55 @@
   {% endif %}
 </div>
 
+<!-- Vehicle Photos -->
+<div class="card mb-3">
+  <div class="card-header flex justify-between items-center">
+    <span class="card-title">📷 Vehicle & Inspection Photos ({{ photos|length }})</span>
+  </div>
+  <div class="card-body">
+    {% if photos %}
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:1rem;" class="mb-3">
+      {% for photo in photos %}
+      <div class="photo-card" style="border:1px solid var(--border); border-radius:8px; overflow:hidden; background:var(--bg-card); position:relative;">
+        <a href="{{ photo.image.url }}" onclick="openPhotoModal('{{ photo.image.url }}', '{{ photo.caption|escapejs }}'); return false;">
+          <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Vehicle Photo' }}" style="width:100%; height:140px; object-fit:cover; display:block;">
+        </a>
+        <div style="padding:0.5rem; font-size:0.8rem;">
+          {% if photo.caption %}<div style="font-weight:600; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">{{ photo.caption }}</div>{% endif %}
+          <div class="text-muted" style="font-size:0.75rem;">{{ photo.uploaded_at|date:"d M Y H:i" }}</div>
+        </div>
+        {% if request.user.profile.role == "owner" or request.user.profile.role == "advisor" %}
+        <form method="post" action="{% url 'job_delete_photo' job.pk photo.pk %}" style="position:absolute; top:5px; right:5px;" onsubmit="return confirm('Delete this photo?');">
+          {% csrf_token %}
+          <button type="submit" style="background:rgba(239,68,68,0.85); color:white; border:none; padding:2px 6px; border-radius:4px; font-size:0.75rem; cursor:pointer;" title="Delete Photo">🗑️</button>
+        </form>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted text-center py-3" style="font-size:0.9rem;">No photos uploaded for this job card yet.</p>
+    {% endif %}
+
+    <!-- Upload Additional Photo Form -->
+    <div style="border-top:1px solid var(--border); padding-top:1rem; margin-top:0.5rem;">
+      <p class="text-muted mb-2" style="font-size:0.85rem; font-weight:600;">Upload Additional Photo</p>
+      <form method="post" action="{% url 'job_add_photo' job.pk %}" enctype="multipart/form-data" style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:flex-end;">
+        {% csrf_token %}
+        <div class="form-group" style="flex:2; min-width:180px;">
+          <label style="font-size:0.8rem;">Select Photo</label>
+          {{ photo_form.image }}
+        </div>
+        <div class="form-group" style="flex:3; min-width:200px;">
+          <label style="font-size:0.8rem;">Caption / Description</label>
+          {{ photo_form.caption }}
+        </div>
+        <button type="submit" class="btn btn-primary" style="height:38px;">📤 Upload</button>
+      </form>
+    </div>
+  </div>
+</div>
+
 <!-- Parts Used -->
 <div class="card mb-3">
   <div class="card-header"><span class="card-title">⚙️ Parts Used</span>
@@ -104,5 +153,29 @@
   <div class="card-body"><p>{{ job.notes }}</p></div>
 </div>
 {% endif %}
+
+<!-- Lightbox Modal -->
+<div id="photoModal" style="display:none; position:fixed; z-index:9999; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); align-items:center; justify-content:center; padding:1rem;">
+  <div style="position:relative; max-width:90vw; max-height:90vh; text-align:center;">
+    <span onclick="closePhotoModal()" style="position:absolute; top:-35px; right:0; color:white; font-size:2.5rem; cursor:pointer; font-weight:bold; line-height:1;">&times;</span>
+    <img id="modalPhotoImg" src="" style="max-width:90vw; max-height:80vh; border-radius:8px; box-shadow:0 10px 25px rgba(0,0,0,0.5); object-fit:contain;">
+    <div id="modalPhotoCaption" style="color:white; margin-top:10px; font-size:1rem; font-weight:500;"></div>
+  </div>
+</div>
+
+<script>
+function openPhotoModal(url, caption) {
+  document.getElementById('modalPhotoImg').src = url;
+  document.getElementById('modalPhotoCaption').textContent = caption || '';
+  const modal = document.getElementById('photoModal');
+  modal.style.display = 'flex';
+}
+function closePhotoModal() {
+  document.getElementById('photoModal').style.display = 'none';
+}
+document.getElementById('photoModal').addEventListener('click', function(e) {
+  if (e.target === this) closePhotoModal();
+});
+</script>
 
 {% endblock %}

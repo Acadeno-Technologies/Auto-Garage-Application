@@ -9,12 +9,12 @@ from datetime import date, timedelta
 from functools import wraps
 
 from .models import (
-    UserProfile, Customer, Vehicle, JobCard,
+    UserProfile, Customer, Vehicle, JobCard, JobCardPhoto,
     SparePart, PartCategory, Supplier, StockTransaction, JobPartUsage, Invoice,
     AMCPlan, CustomerAMC, AMCServiceSchedule, WhatsAppLog
 )
 from .forms import (
-    LoginForm, StaffCreationForm, CustomerForm, VehicleForm, JobCardForm,
+    LoginForm, StaffCreationForm, CustomerForm, VehicleForm, JobCardForm, JobCardPhotoForm,
     JobStatusForm, SparePartForm, PartCategoryForm, SupplierForm,
     StockTransactionForm, JobPartUsageForm, InvoiceForm,
     AMCPlanForm, CustomerAMCForm
@@ -277,12 +277,15 @@ def job_list(request):
 @login_required
 @role_required('owner', 'advisor')
 def job_create(request):
-    form = JobCardForm(request.POST or None)
+    form = JobCardForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and form.is_valid():
         job = form.save(commit=False)
         job.advisor = request.user
         job.save()
-        messages.success(request, f"Job card {job.job_number} created.")
+        images = request.FILES.getlist('photos')
+        for img in images:
+            JobCardPhoto.objects.create(job_card=job, image=img)
+        messages.success(request, f"Job card {job.job_number} created with {len(images)} photo(s).")
         return redirect('job_detail', pk=job.pk)
     return render(request, 'core/job_form.html', {'form': form, 'title': 'Create Job Card'})
 
@@ -291,10 +294,40 @@ def job_create(request):
 def job_detail(request, pk):
     job = get_object_or_404(JobCard, pk=pk)
     parts_used = job.parts_used.select_related('part').all()
+    photos = job.photos.all().order_by('-uploaded_at')
     part_form = JobPartUsageForm()
+    photo_form = JobCardPhotoForm()
     return render(request, 'core/job_detail.html', {
-        'job': job, 'parts_used': parts_used, 'part_form': part_form
+        'job': job, 'parts_used': parts_used, 'photos': photos,
+        'part_form': part_form, 'photo_form': photo_form
     })
+
+
+@login_required
+@role_required('owner', 'advisor', 'mechanic')
+def job_add_photo(request, pk):
+    job = get_object_or_404(JobCard, pk=pk)
+    if request.method == 'POST':
+        photo_form = JobCardPhotoForm(request.POST, request.FILES)
+        if photo_form.is_valid():
+            photo = photo_form.save(commit=False)
+            photo.job_card = job
+            photo.save()
+            messages.success(request, "Photo uploaded successfully.")
+        else:
+            messages.error(request, "Failed to upload photo. Please check the file.")
+    return redirect('job_detail', pk=pk)
+
+
+@login_required
+@role_required('owner', 'advisor')
+def job_delete_photo(request, pk, photo_pk):
+    job = get_object_or_404(JobCard, pk=pk)
+    photo = get_object_or_404(JobCardPhoto, pk=photo_pk, job_card=job)
+    photo.image.delete(save=False)
+    photo.delete()
+    messages.success(request, "Photo removed.")
+    return redirect('job_detail', pk=pk)
 
 
 @login_required

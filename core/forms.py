@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 from .models import (
-    UserProfile, Customer, Vehicle, JobCard,
+    UserProfile, Customer, Vehicle, JobCard, JobCardPhoto,
     SparePart, PartCategory, Supplier, StockTransaction, JobPartUsage, Invoice,
     AMCPlan, CustomerAMC, AMCServiceSchedule, WhatsAppLog
 )
@@ -83,7 +83,37 @@ class VehicleForm(forms.ModelForm):
         }
 
 
+class MultipleFileInput(forms.FileInput):
+    allow_multiple_selected = True
+
+    def __init__(self, attrs=None):
+        super().__init__(attrs)
+        if attrs and 'multiple' in attrs:
+            self.attrs['multiple'] = attrs['multiple']
+        else:
+            self.attrs['multiple'] = True
+
+
+class MultipleFileField(forms.FileField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", MultipleFileInput(attrs={'class': 'form-input', 'accept': 'image/*'}))
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+        if isinstance(data, (list, tuple)):
+            result = [single_file_clean(d, initial) for d in data]
+        else:
+            result = single_file_clean(data, initial)
+        return result
+
+
 class JobCardForm(forms.ModelForm):
+    photos = MultipleFileField(
+        required=False,
+        help_text='Upload vehicle/inspection photos (JPEG, PNG). Select multiple files if needed.'
+    )
+
     class Meta:
         model = JobCard
         fields = ['vehicle', 'mechanic', 'problem_description', 'repair_instructions', 'labour_cost', 'notes']
@@ -101,6 +131,16 @@ class JobCardForm(forms.ModelForm):
         mechanics = User.objects.filter(profile__role='mechanic')
         self.fields['mechanic'].queryset = mechanics
         self.fields['mechanic'].required = False
+
+
+class JobCardPhotoForm(forms.ModelForm):
+    class Meta:
+        model = JobCardPhoto
+        fields = ['image', 'caption']
+        widgets = {
+            'image': forms.FileInput(attrs={'class': 'form-input', 'accept': 'image/*'}),
+            'caption': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Optional photo caption/notes'}),
+        }
 
 
 class JobStatusForm(forms.ModelForm):

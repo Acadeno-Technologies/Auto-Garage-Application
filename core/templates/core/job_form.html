@@ -5,17 +5,20 @@
 <div class="card" style="max-width:800px;">
   <div class="card-header"><span class="card-title">{{ title }}</span></div>
   <div class="card-body">
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
       {% for field in form %}
       <div class="form-group mb-2">
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
         {{ field }}
+        {% if field.name == 'photos' %}
+        <div id="photo-preview-container" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; margin-top: 0.5rem;"></div>
+        {% endif %}
         {% if field.errors %}
         <span style="color:var(--red);font-size:0.78rem;">{{ field.errors.0 }}</span>
         {% endif %}
         {% if field.help_text %}
-        <span class="text-muted" style="font-size:0.78rem;">{{ field.help_text }}</span>
+        <span class="text-muted" style="font-size:0.78rem; display:block;">{{ field.help_text }}</span>
         {% endif %}
       </div>
       {% endfor %}
@@ -27,4 +30,40 @@
     </form>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const photoInput = document.querySelector('input[type="file"][name="photos"]');
+    const previewContainer = document.getElementById('photo-preview-container');
+    if (photoInput && previewContainer) {
+      photoInput.addEventListener('change', function(e) {
+        previewContainer.innerHTML = '';
+        const files = Array.from(e.target.files);
+        files.forEach(file => {
+          if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+              const div = document.createElement('div');
+              div.style.position = 'relative';
+              div.style.borderRadius = '8px';
+              div.style.overflow = 'hidden';
+              div.style.border = '1px solid var(--border)';
+              div.style.aspectRatio = '1 / 1';
+              
+              const img = document.createElement('img');
+              img.src = evt.target.result;
+              img.style.width = '100%';
+              img.style.height = '100%';
+              img.style.objectFit = 'cover';
+              
+              div.appendChild(img);
+              previewContainer.appendChild(div);
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      });
+    }
+  });
+</script>
 {% endblock %}
