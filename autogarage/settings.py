@@ -4,13 +4,19 @@ import dj_database_url
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(os.path.join(BASE_DIR, '.env'), override=True)
+
+# Load .env without overriding system/Vercel environment variables
+env_file = os.path.join(BASE_DIR, '.env')
+if os.path.exists(env_file):
+    load_dotenv(env_file, override=False)
+
 CSRF_TRUSTED_ORIGINS = [
-    "https://*.onrender.com"
+    "https://*.onrender.com",
+    "https://*.vercel.app",
 ]
-# SECRET_KEY = 'django-insecure-autogarage-secret-key-change-in-production'
+
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-key')
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -53,15 +59,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'autogarage.wsgi.application'
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-
-use_local_db = os.environ.get('USE_LOCAL_DB', 'False').lower() in ('true', '1', 'yes')
+IS_VERCEL = 'VERCEL' in os.environ or 'VERCEL_ENV' in os.environ
+use_local_db = os.environ.get('USE_LOCAL_DB', 'False' if IS_VERCEL else 'True').lower() in ('true', '1', 'yes')
 
 db_from_env = dj_database_url.config(
     conn_max_age=600,
