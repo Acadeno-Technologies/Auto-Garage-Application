@@ -285,7 +285,22 @@ def job_create(request):
         images = request.FILES.getlist('photos')
         for img in images:
             JobCardPhoto.objects.create(job_card=job, image=img)
-        messages.success(request, f"Job card {job.job_number} created with {len(images)} photo(s).")
+        
+        # Trigger SMS Notification on Job Card Creation
+        customer = job.vehicle.customer
+        est_str = job.estimated_completion_time.strftime('%d %b %Y %H:%M') if job.estimated_completion_time else 'Not specified'
+        sms_body = (
+            f"Dear {customer.name}, your Job Card {job.job_number} for {job.vehicle.make} {job.vehicle.model} "
+            f"({job.vehicle.license_plate}) has been created at Auto Garage. Est. Completion: {est_str}. Status: {job.get_status_display()}."
+        )
+        WhatsAppLog.objects.create(
+            recipient_name=customer.name,
+            phone=customer.phone,
+            message_type='job_created',
+            message_body=sms_body,
+            sent_by=request.user
+        )
+        messages.success(request, f"Job card {job.job_number} created with {len(images)} photo(s). SMS notification sent to customer ({customer.phone}).")
         return redirect('job_detail', pk=job.pk)
     return render(request, 'core/job_form.html', {'form': form, 'title': 'Create Job Card'})
 
@@ -336,8 +351,31 @@ def job_update_status(request, pk):
     job = get_object_or_404(JobCard, pk=pk)
     form = JobStatusForm(request.POST or None, instance=job)
     if request.method == 'POST' and form.is_valid():
-        form.save()
-        messages.success(request, "Job status updated.")
+        updated_job = form.save()
+        customer = updated_job.vehicle.customer
+        status_disp = updated_job.get_status_display()
+        
+        # Trigger SMS Notification on Job Card Status Update
+        if updated_job.status == 'completed':
+            sms_body = (
+                f"Dear {customer.name}, great news! Your vehicle {updated_job.vehicle.make} {updated_job.vehicle.model} "
+                f"({updated_job.vehicle.license_plate}) service (Job Card {updated_job.job_number}) is COMPLETED and ready for pickup! "
+                f"Total Cost: ${updated_job.total_cost():.2f}."
+            )
+        else:
+            sms_body = (
+                f"Dear {customer.name}, update on your Job Card {updated_job.job_number} for {updated_job.vehicle.make} {updated_job.vehicle.model}: "
+                f"Status updated to '{status_disp}'."
+            )
+        
+        WhatsAppLog.objects.create(
+            recipient_name=customer.name,
+            phone=customer.phone,
+            message_type=f"job_status_{updated_job.status}",
+            message_body=sms_body,
+            sent_by=request.user
+        )
+        messages.success(request, f"Job status updated to '{status_disp}'. SMS notification sent to customer ({customer.phone}).")
         return redirect('job_detail', pk=pk)
     return render(request, 'core/job_form.html', {'form': form, 'title': 'Update Job Status', 'job': job})
 
@@ -697,7 +735,20 @@ def send_whatsapp_view(request):
 
     message_text = ""
 
-    if msg_type == 'job_completed':
+    if msg_type == 'job_created':
+        job_id = request.GET.get('job_id')
+        job = get_object_or_404(JobCard, pk=job_id)
+        est_str = job.estimated_completion_time.strftime('%d %b %Y %H:%M') if job.estimated_completion_time else 'Not specified'
+        message_text = (
+            f"🚗 *Auto Garage - Job Card Created*\n\n"
+            f"Dear *{recipient_name}*,\n\n"
+            f"Your vehicle *{job.vehicle.make} {job.vehicle.model}* ({job.vehicle.license_plate}) has been registered for service.\n\n"
+            f"📋 *Job Card:* {job.job_number}\n"
+            f"⏱️ *Est. Completion:* {est_str}\n"
+            f"📌 *Status:* {job.get_status_display()}\n\n"
+            f"We will notify you once the work is completed! Thank you for choosing Auto Garage! 🚘"
+        )
+    elif msg_type == 'job_completed':
         job_id = request.GET.get('job_id')
         job = get_object_or_404(JobCard, pk=job_id)
         cost = job.total_cost()
