@@ -40,7 +40,7 @@
       <tr>
         <td class="text-mono text-accent">{{ job.job_number }}</td>
         <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ job.problem_description }}</td>
-        <td>{{ job.mechanic.get_full_name|default:job.mechanic.username|default:"—" }}</td>
+        <td>{% if job.mechanic %}{{ job.mechanic.get_full_name|default:job.mechanic.username }}{% else %}Unassigned{% endif %}</td>
         <td><span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span></td>
         <td class="text-muted">{{ job.created_at|date:"d M Y" }}</td>
         <td><a href="{% url 'job_detail' job.pk %}" class="btn btn-secondary btn-sm">View</a></td>

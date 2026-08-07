@@ -24,7 +24,7 @@
         <td><a href="{% url 'job_detail' job.pk %}" class="text-accent text-mono">{{ job.job_number }}</a></td>
         <td>{{ job.vehicle.make }} {{ job.vehicle.model }}<br><span class="text-muted" style="font-size:0.78rem;">{{ job.vehicle.license_plate }}</span></td>
         <td>{{ job.vehicle.customer.name }}</td>
-        <td>{{ job.mechanic.get_full_name|default:job.mechanic.username|default:"Unassigned" }}</td>
+        <td>{% if job.mechanic %}{{ job.mechanic.get_full_name|default:job.mechanic.username }}{% else %}Unassigned{% endif %}</td>
         <td class="text-mono">${{ job.labour_cost }}</td>
         <td><span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span></td>
         <td class="text-muted">{{ job.created_at|date:"d M Y" }}</td>
