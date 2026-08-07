@@ -109,22 +109,28 @@ class MultipleFileField(forms.FileField):
 
 
 class JobCardForm(forms.ModelForm):
-    customer = forms.ModelChoiceField(
-        queryset=Customer.objects.all(),
-        widget=forms.Select(attrs={'class': 'form-input'}),
-        label='Customer',
+    customer_name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Customer Name'}),
+        label='Customer Name',
+        required=True
+    )
+    customer_phone = forms.CharField(
+        max_length=20,
+        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Customer Phone Number (e.g. 9876543210)'}),
+        label='Customer Phone Number',
         required=True
     )
     vehicle_number = forms.CharField(
         max_length=20,
         widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. KA-01-AB-1234'}),
-        label='Vehicle Number / License Plate',
+        label='Vehicle Number',
         required=True
     )
     vehicle_model = forms.CharField(
         max_length=100,
         widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Toyota Corolla / Honda City'}),
-        label='Vehicle Make & Model',
+        label='Vehicle Model',
         required=True
     )
     vehicle_color = forms.CharField(
@@ -158,7 +164,8 @@ class JobCardForm(forms.ModelForm):
         
         if self.instance and self.instance.pk and getattr(self.instance, 'vehicle', None):
             v = self.instance.vehicle
-            self.initial['customer'] = v.customer_id
+            self.initial['customer_name'] = v.customer.name
+            self.initial['customer_phone'] = v.customer.phone
             self.initial['vehicle_number'] = v.license_plate
             self.initial['vehicle_model'] = f"{v.make} {v.model}".strip()
             self.initial['vehicle_color'] = v.color

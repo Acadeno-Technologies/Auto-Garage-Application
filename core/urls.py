@@ -33,6 +33,7 @@ urlpatterns = [
     # Job Cards
     path('jobs/', views.job_list, name='job_list'),
     path('jobs/create/', views.job_create, name='job_create'),
+    path('api/search-records/', views.job_search_records, name='job_search_records'),
     path('jobs/<int:pk>/', views.job_detail, name='job_detail'),
     path('jobs/<int:pk>/status/', views.job_update_status, name='job_update_status'),
     path('jobs/<int:pk>/add-part/', views.job_add_part, name='job_add_part'),

@@ -5,6 +5,19 @@
 <div class="card" style="max-width:800px;">
   <div class="card-header"><span class="card-title">{{ title }}</span></div>
   <div class="card-body">
+
+    <!-- Quick Search Box for Existing Customer/Vehicle Records -->
+    <div style="background:var(--bg-hover, #1e293b); padding:1rem; border-radius:8px; margin-bottom:1.5rem; border:1px solid var(--border);">
+      <label style="font-weight:600; font-size:0.9rem; display:block; margin-bottom:0.4rem; color:var(--teal, #14b8a6);">
+        🔍 Quick Search Existing Customer / Vehicle
+      </label>
+      <div style="position:relative;">
+        <input type="text" id="quick-search-input" class="form-input" placeholder="Type Customer Name, Phone, or Vehicle Number to auto-fill..." autocomplete="off">
+        <div id="quick-search-results" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:100; background:var(--bg-card, #0f172a); border:1px solid var(--teal, #14b8a6); border-radius:6px; max-height:220px; overflow-y:auto; box-shadow:0 10px 25px rgba(0,0,0,0.5); margin-top:4px;"></div>
+      </div>
+      <span class="text-muted" style="font-size:0.78rem; display:block; margin-top:0.3rem;">Type 2+ characters to search and auto-populate existing customer and vehicle details.</span>
+    </div>
+
     <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
       {% for field in form %}
@@ -33,6 +46,75 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // Quick Search & Auto-fill logic
+    const searchInput = document.getElementById('quick-search-input');
+    const searchResults = document.getElementById('quick-search-results');
+    
+    const nameInput = document.querySelector('[name="customer_name"]');
+    const phoneInput = document.querySelector('[name="customer_phone"]');
+    const numInput = document.querySelector('[name="vehicle_number"]');
+    const modelInput = document.querySelector('[name="vehicle_model"]');
+    const colorInput = document.querySelector('[name="vehicle_color"]');
+
+    if (searchInput && searchResults) {
+      let timeout = null;
+      searchInput.addEventListener('input', function() {
+        clearTimeout(timeout);
+        const query = this.value.trim();
+        if (query.length < 2) {
+          searchResults.style.display = 'none';
+          return;
+        }
+        timeout = setTimeout(() => {
+          fetch(`{% url 'job_search_records' %}?q=${encodeURIComponent(query)}`)
+            .then(res => res.json())
+            .then(data => {
+              searchResults.innerHTML = '';
+              if (data.results && data.results.length > 0) {
+                data.results.forEach(item => {
+                  const div = document.createElement('div');
+                  div.style.padding = '0.6rem 1rem';
+                  div.style.cursor = 'pointer';
+                  div.style.borderBottom = '1px solid var(--border)';
+                  div.style.fontSize = '0.88rem';
+
+                  const title = item.vehicle_number ? `🚘 ${item.vehicle_number} (${item.vehicle_model})` : `👤 ${item.customer_name}`;
+                  const details = `👤 ${item.customer_name} | 📞 ${item.customer_phone}` + (item.vehicle_color ? ` | 🎨 ${item.vehicle_color}` : '');
+                  
+                  div.innerHTML = `<strong>${title}</strong><div style="font-size:0.78rem; color:var(--text-muted, #94a3b8);">${details}</div>`;
+                  
+                  div.addEventListener('mouseenter', () => div.style.background = 'var(--bg-hover, #334155)');
+                  div.addEventListener('mouseleave', () => div.style.background = 'transparent');
+                  
+                  div.addEventListener('click', function() {
+                    if (nameInput && item.customer_name) nameInput.value = item.customer_name;
+                    if (phoneInput && item.customer_phone) phoneInput.value = item.customer_phone;
+                    if (numInput && item.vehicle_number) numInput.value = item.vehicle_number;
+                    if (modelInput && item.vehicle_model) modelInput.value = item.vehicle_model;
+                    if (colorInput && item.vehicle_color) colorInput.value = item.vehicle_color;
+                    
+                    searchResults.style.display = 'none';
+                    searchInput.value = `${item.customer_name} (${item.vehicle_number || item.customer_phone})`;
+                  });
+                  searchResults.appendChild(div);
+                });
+                searchResults.style.display = 'block';
+              } else {
+                searchResults.innerHTML = '<div style="padding:0.6rem 1rem; color:var(--text-muted); font-size:0.85rem;">No matching record found</div>';
+                searchResults.style.display = 'block';
+              }
+            });
+        }, 200);
+      });
+      
+      document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+          searchResults.style.display = 'none';
+        }
+      });
+    }
+
+    // Photo Preview logic
     const photoInput = document.querySelector('input[type="file"][name="photos"]');
     const previewContainer = document.getElementById('photo-preview-container');
     if (photoInput && previewContainer) {

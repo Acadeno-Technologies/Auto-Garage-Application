@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -275,17 +276,66 @@ def job_list(request):
 
 
 @login_required
+def job_search_records(request):
+    q = request.GET.get('q', '').strip()
+    results = []
+    if len(q) >= 2:
+        vehicles = Vehicle.objects.filter(
+            Q(license_plate__icontains=q) |
+            Q(model__icontains=q) |
+            Q(make__icontains=q) |
+            Q(customer__name__icontains=q) |
+            Q(customer__phone__icontains=q)
+        ).select_related('customer')[:10]
+        
+        for v in vehicles:
+            results.append({
+                'customer_name': v.customer.name,
+                'customer_phone': v.customer.phone,
+                'vehicle_number': v.license_plate,
+                'vehicle_model': f"{v.make} {v.model}".strip(),
+                'vehicle_color': v.color
+            })
+            
+        if len(results) < 5:
+            existing_phones = {r['customer_phone'] for r in results}
+            customers = Customer.objects.filter(
+                Q(name__icontains=q) | Q(phone__icontains=q)
+            ).exclude(phone__in=existing_phones)[:5]
+            for c in customers:
+                results.append({
+                    'customer_name': c.name,
+                    'customer_phone': c.phone,
+                    'vehicle_number': '',
+                    'vehicle_model': '',
+                    'vehicle_color': ''
+                })
+                
+    return JsonResponse({'results': results})
+
+
+@login_required
 @role_required('owner', 'advisor')
 def job_create(request):
     form = JobCardForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and form.is_valid():
         job = form.save(commit=False)
-        customer = form.cleaned_data['customer']
+        c_name = form.cleaned_data['customer_name'].strip()
+        c_phone = form.cleaned_data['customer_phone'].strip()
         v_num = form.cleaned_data['vehicle_number'].strip().upper()
         v_model_raw = form.cleaned_data['vehicle_model'].strip()
         v_color = form.cleaned_data.get('vehicle_color', '').strip()
-        
-        # Split model string into make and model if space separated (e.g. "Toyota Camry")
+
+        # Find or create customer by phone number
+        customer, _ = Customer.objects.get_or_create(
+            phone=c_phone,
+            defaults={'name': c_name, 'created_by': request.user}
+        )
+        if customer.name != c_name:
+            customer.name = c_name
+            customer.save()
+
+        # Split model string into make and model if space separated
         model_parts = v_model_raw.split()
         v_make = model_parts[0] if model_parts else "Vehicle"
         v_model = ' '.join(model_parts[1:]) if len(model_parts) > 1 else v_model_raw
