@@ -23,6 +23,7 @@
   <div class="job-meta-item"><div class="job-meta-label">Advisor</div><div class="job-meta-value">{{ job.advisor.get_full_name|default:job.advisor.username|default:"—" }}</div></div>
   <div class="job-meta-item"><div class="job-meta-label">Mechanic</div><div class="job-meta-value">{{ job.mechanic.get_full_name|default:job.mechanic.username|default:"Unassigned" }}</div></div>
   <div class="job-meta-item"><div class="job-meta-label">Created</div><div class="job-meta-value">{{ job.created_at|date:"d M Y H:i" }}</div></div>
+  <div class="job-meta-item"><div class="job-meta-label">Est. Completion</div><div class="job-meta-value text-accent font-semibold">{{ job.estimated_completion_time|date:"d M Y H:i"|default:"Not specified" }}</div></div>
   <div class="job-meta-item"><div class="job-meta-label">Labour Cost</div><div class="job-meta-value text-green text-mono">${{ job.labour_cost }}</div></div>
 </div>
 
