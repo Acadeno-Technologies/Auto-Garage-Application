@@ -70,7 +70,7 @@ class CustomerForm(forms.ModelForm):
 class VehicleForm(forms.ModelForm):
     class Meta:
         model = Vehicle
-        fields = ['customer', 'make', 'model', 'year', 'license_plate', 'vin', 'color', 'mileage']
+        fields = ['customer', 'make', 'model', 'year', 'license_plate', 'vin', 'color', 'mileage', 'image']
         widgets = {
             'customer': forms.Select(attrs={'class': 'form-input'}),
             'make': forms.TextInput(attrs={'class': 'form-input'}),
@@ -80,6 +80,7 @@ class VehicleForm(forms.ModelForm):
             'vin': forms.TextInput(attrs={'class': 'form-input'}),
             'color': forms.TextInput(attrs={'class': 'form-input'}),
             'mileage': forms.NumberInput(attrs={'class': 'form-input'}),
+            'image': forms.FileInput(attrs={'class': 'form-input', 'accept': 'image/*'}),
         }
 
 

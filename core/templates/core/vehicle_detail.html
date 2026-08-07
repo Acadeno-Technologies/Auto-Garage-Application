@@ -3,9 +3,19 @@
 {% block page_title %}{{ vehicle.make }} {{ vehicle.model }}{% endblock %}
 {% block breadcrumb %}<a href="{% url 'vehicle_list' %}" style="color:var(--text-3);">Vehicles</a> / {{ vehicle.license_plate }}{% endblock %}
 {% block topbar_actions %}
+<a href="{% url 'vehicle_edit' vehicle.pk %}" class="btn btn-secondary btn-sm">✏️ Edit Vehicle</a>
 <a href="{% url 'job_create' %}" class="btn btn-primary btn-sm">+ New Job Card</a>
 {% endblock %}
 {% block content %}
+
+{% if vehicle.image %}
+<div class="card mb-3" style="overflow:hidden;">
+  <div style="max-height:300px; width:100%; overflow:hidden; position:relative; background:var(--bg-panel);">
+    <img src="{{ vehicle.image.url }}" alt="{{ vehicle }}" style="width:100%; height:300px; object-fit:cover; display:block;">
+  </div>
+</div>
+{% endif %}
+
 <div class="card mb-3">
   <div class="card-header"><span class="card-title">🚗 Vehicle Info</span></div>
   <div class="card-body">
@@ -20,6 +30,7 @@
     </div>
   </div>
 </div>
+
 <div class="card">
   <div class="card-header"><span class="card-title">📋 Service History</span></div>
   <div class="table-wrap"><table>

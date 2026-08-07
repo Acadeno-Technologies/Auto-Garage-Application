@@ -246,12 +246,24 @@ def vehicle_list(request):
 @login_required
 @role_required('owner', 'advisor')
 def vehicle_create(request):
-    form = VehicleForm(request.POST or None)
+    form = VehicleForm(request.POST or None, request.FILES or None)
+    if request.method == 'POST' and form.is_valid():
+        vehicle = form.save()
+        messages.success(request, f"Vehicle '{vehicle.license_plate}' added successfully.")
+        return redirect('vehicle_detail', pk=vehicle.pk)
+    return render(request, 'core/vehicle_form.html', {'form': form, 'title': 'Add Vehicle'})
+
+
+@login_required
+@role_required('owner', 'advisor')
+def vehicle_edit(request, pk):
+    vehicle = get_object_or_404(Vehicle, pk=pk)
+    form = VehicleForm(request.POST or None, request.FILES or None, instance=vehicle)
     if request.method == 'POST' and form.is_valid():
         form.save()
-        messages.success(request, "Vehicle added.")
-        return redirect('vehicle_list')
-    return render(request, 'core/vehicle_form.html', {'form': form, 'title': 'Add Vehicle'})
+        messages.success(request, f"Vehicle '{vehicle.license_plate}' updated successfully.")
+        return redirect('vehicle_detail', pk=pk)
+    return render(request, 'core/vehicle_form.html', {'form': form, 'title': 'Edit Vehicle', 'vehicle': vehicle})
 
 
 @login_required

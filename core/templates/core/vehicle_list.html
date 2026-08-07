@@ -6,19 +6,29 @@
 <div class="card">
   <div class="card-header"><span class="card-title">🚗 All Vehicles</span></div>
   <div class="table-wrap"><table>
-    <thead><tr><th>Vehicle</th><th>Owner</th><th>Plate</th><th>Year</th><th>Color</th><th>Mileage</th><th></th></tr></thead>
+    <thead><tr><th>Photo</th><th>Vehicle</th><th>Owner</th><th>Plate</th><th>Year</th><th>Color</th><th>Mileage</th><th></th></tr></thead>
     <tbody>
       {% for v in vehicles %}
       <tr>
-        <td>{{ v.make }} {{ v.model }}</td>
+        <td style="width:50px;">
+          {% if v.image %}
+          <img src="{{ v.image.url }}" alt="{{ v }}" style="width:40px; height:40px; border-radius:6px; object-fit:cover; border:1px solid var(--border);">
+          {% else %}
+          <div style="width:40px; height:40px; border-radius:6px; background:var(--bg-panel); display:grid; place-items:center; font-size:1.1rem; border:1px solid var(--border);">🚗</div>
+          {% endif %}
+        </td>
+        <td><strong>{{ v.make }} {{ v.model }}</strong></td>
         <td><a href="{% url 'customer_detail' v.customer.pk %}" style="color:var(--teal);">{{ v.customer.name }}</a></td>
         <td class="text-mono text-accent">{{ v.license_plate }}</td>
         <td>{{ v.year }}</td>
         <td>{{ v.color|default:"—" }}</td>
         <td class="text-mono">{{ v.mileage|default:"—" }} km</td>
-        <td><a href="{% url 'vehicle_detail' v.pk %}" class="btn btn-secondary btn-sm">View</a></td>
+        <td>
+          <a href="{% url 'vehicle_detail' v.pk %}" class="btn btn-secondary btn-sm">View</a>
+          <a href="{% url 'vehicle_edit' v.pk %}" class="btn btn-primary btn-sm">Edit</a>
+        </td>
       </tr>
-      {% empty %}<tr><td colspan="7" class="text-center text-muted">No vehicles registered</td></tr>
+      {% empty %}<tr><td colspan="8" class="text-center text-muted">No vehicles registered</td></tr>
       {% endfor %}
     </tbody>
   </table></div>

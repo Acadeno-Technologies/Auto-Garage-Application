@@ -41,6 +41,7 @@ class Vehicle(models.Model):
     vin = models.CharField(max_length=50, blank=True)
     color = models.CharField(max_length=30, blank=True)
     mileage = models.PositiveIntegerField(default=0)
+    image = models.ImageField(upload_to='vehicles/', null=True, blank=True, verbose_name="Vehicle Photo")
 
     def __str__(self):
         return f"{self.year} {self.make} {self.model} ({self.license_plate})"
