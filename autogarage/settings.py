@@ -33,11 +33,12 @@ if CLOUDINARY_CLOUD_NAME or CLOUDINARY_URL:
         'cloudinary',
         'core',
     ]
-    CLOUDINARY_STORAGE = {
-        'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
-        'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
-        'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
-    }
+    if CLOUDINARY_CLOUD_NAME:
+        CLOUDINARY_STORAGE = {
+            'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+            'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
+            'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
+        }
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 else:
     INSTALLED_APPS = [
