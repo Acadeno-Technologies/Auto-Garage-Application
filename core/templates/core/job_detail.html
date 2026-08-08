@@ -2,207 +2,422 @@
 {% block title %}{{ job.job_number }}{% endblock %}
 {% block page_title %}<span class="job-number">{{ job.job_number }}</span>{% endblock %}
 {% block breadcrumb %}<a href="{% url 'job_list' %}" style="color:var(--text-3);">Job Cards</a> / Detail{% endblock %}
+
 {% block topbar_actions %}
-<a href="{% url 'send_whatsapp' %}?type=job_created&job_id={{ job.id }}&phone={{ job.vehicle.customer.phone }}&name={{ job.vehicle.customer.name }}" target="_blank" class="btn btn-teal btn-sm">
-  📱 Send Creation WA
-</a>
-<a href="{% url 'send_whatsapp' %}?type=job_status&job_id={{ job.id }}&phone={{ job.vehicle.customer.phone }}&name={{ job.vehicle.customer.name }}" target="_blank" class="btn btn-sm" style="background:#25D366; color:white;">
-  📱 Send WA Status ({{ job.get_status_display }})
-</a>
-<form method="post" action="{% url 'job_update_status' job.pk %}" style="display:inline-flex; align-items:center; gap:0.4rem;">
-  {% csrf_token %}
-  <select name="quick_status" class="form-input" style="padding:0.35rem 0.6rem; font-size:0.83rem; border-radius:6px; font-weight:600; cursor:pointer;" onchange="this.form.submit();">
-    <option value="" disabled>⚡ Change Status...</option>
-    {% for val, label in status_choices %}
-    <option value="{{ val }}" {% if job.status == val %}selected{% endif %}>⚡ {{ label }}</option>
-    {% endfor %}
-  </select>
-</form>
-<a href="{% url 'job_update_status' job.pk %}" class="btn btn-secondary btn-sm" title="Edit full job card details">✏️ Full Edit</a>
 {% if not job.invoice %}
-<a href="{% url 'invoice_create' job.pk %}" class="btn btn-primary btn-sm">🧾 Create Invoice</a>
+<a href="{% url 'invoice_create' job.pk %}" class="btn btn-primary btn-sm" style="background:#ea580c; color:white; border-radius:8px; font-weight:600; padding:0.5rem 1.2rem; border:none; box-shadow:0 3px 10px rgba(234,88,12,0.3);">
+  🧾 Create Invoice
+</a>
 {% else %}
-<a href="{% url 'invoice_detail' job.invoice.pk %}" class="btn btn-teal btn-sm">🧾 View Invoice</a>
+<a href="{% url 'invoice_detail' job.invoice.pk %}" class="btn btn-teal btn-sm" style="border-radius:8px; font-weight:600; padding:0.5rem 1.2rem;">
+  🧾 View Invoice
+</a>
 {% endif %}
 {% endblock %}
+
 {% block content %}
 
-<div class="job-meta-grid mb-3">
-  <div class="job-meta-item">
-    <div class="job-meta-label">Status</div>
-    <div class="job-meta-value" style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-      <span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span>
-      <form method="post" action="{% url 'job_update_status' job.pk %}" style="display:inline-flex; margin:0;">
-        {% csrf_token %}
-        <select name="quick_status" style="font-size:0.75rem; padding:0.15rem 0.4rem; border-radius:4px; border:1px solid var(--border); background:var(--bg-panel); color:var(--text-1); cursor:pointer;" onchange="this.form.submit();">
-          {% for val, label in status_choices %}
-          <option value="{{ val }}" {% if job.status == val %}selected{% endif %}>{{ label }}</option>
-          {% endfor %}
-        </select>
-      </form>
+<style>
+.job-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem !important;
+}
+
+@media (max-width: 1200px) {
+  .job-summary-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .job-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.job-summary-card {
+  background: #ffffff;
+  border: 1px solid #e1e5eb;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 95px;
+}
+
+.job-summary-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.job-summary-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e293b;
+  word-break: break-word;
+}
+
+.problem-repair-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem !important;
+}
+
+@media (max-width: 768px) {
+  .problem-repair-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.parts-layout-grid {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem !important;
+}
+
+@media (max-width: 900px) {
+  .parts-layout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<!-- 2. Job Summary Cards Grid -->
+<div class="job-summary-grid">
+  
+  <!-- Status -->
+  <div class="job-summary-card">
+    <div class="job-summary-label">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+      STATUS
+    </div>
+    <div class="job-summary-value">
+      <span class="badge badge-{{ job.status }}" style="font-weight:700; font-size:0.8rem; padding:0.35rem 0.75rem; border-radius:12px; text-transform:uppercase;">
+        {{ job.get_status_display }}
+      </span>
     </div>
   </div>
-  <div class="job-meta-item"><div class="job-meta-label">Vehicle</div><div class="job-meta-value">{{ job.vehicle.make }} {{ job.vehicle.model }}</div></div>
-  <div class="job-meta-item"><div class="job-meta-label">License Plate / No.</div><div class="job-meta-value text-mono text-accent">{{ job.vehicle.license_plate }}</div></div>
-  <div class="job-meta-item"><div class="job-meta-label">Colour</div><div class="job-meta-value">{{ job.vehicle.color|default:"—" }}</div></div>
-  <div class="job-meta-item"><div class="job-meta-label">Customer</div><div class="job-meta-value"><a href="{% url 'customer_detail' job.vehicle.customer.pk %}" style="color:var(--teal);">{{ job.vehicle.customer.name }}</a></div></div>
-  <div class="job-meta-item"><div class="job-meta-label">Phone Number</div><div class="job-meta-value text-mono">{{ job.vehicle.customer.phone }}</div></div>
-  <div class="job-meta-item"><div class="job-meta-label">Advisor</div><div class="job-meta-value">{% if job.advisor %}{{ job.advisor.get_full_name|default:job.advisor.username }}{% else %}—{% endif %}</div></div>
-  <div class="job-meta-item"><div class="job-meta-label">Mechanic</div><div class="job-meta-value">{% if job.mechanic %}{{ job.mechanic.get_full_name|default:job.mechanic.username }}{% else %}Unassigned{% endif %}</div></div>
-  <div class="job-meta-item"><div class="job-meta-label">Created</div><div class="job-meta-value">{{ job.created_at|date:"d M Y H:i" }}</div></div>
-  <div class="job-meta-item"><div class="job-meta-label">Est. Completion</div><div class="job-meta-value text-accent font-semibold">{{ job.estimated_completion_time|date:"d M Y H:i"|default:"Not specified" }}</div></div>
-  <div class="job-meta-item"><div class="job-meta-label">Labour Cost</div><div class="job-meta-value text-green text-mono">${{ job.labour_cost }}</div></div>
+
+  <!-- Vehicle -->
+  <div class="job-summary-card">
+    <div class="job-summary-label">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><path d="M9 17h6"></path><circle cx="17" cy="17" r="2"></circle></svg>
+      VEHICLE
+    </div>
+    <div class="job-summary-value">{{ job.vehicle.make }} {{ job.vehicle.model }}</div>
+  </div>
+
+  <!-- License Plate -->
+  <div class="job-summary-card">
+    <div class="job-summary-label">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="6" cy="12" r="1"></circle><circle cx="18" cy="12" r="1"></circle><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+      LICENSE PLATE / NO.
+    </div>
+    <div class="job-summary-value font-mono" style="color:#ea580c; font-weight:800;">{{ job.vehicle.license_plate }}</div>
+  </div>
+
+  <!-- Colour -->
+  <div class="job-summary-card">
+    <div class="job-summary-label">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9333ea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.92 0 1.7-.72 1.7-1.65 0-.43-.17-.83-.45-1.14-.29-.32-.45-.73-.45-1.21 0-.93.75-1.68 1.68-1.68h2.02c2.48 0 4.5-2.02 4.5-4.5 0-5.52-4.48-10-10-10z"></path></svg>
+      COLOUR
+    </div>
+    <div class="job-summary-value">{{ job.vehicle.color|default:"—" }}</div>
+  </div>
+
+  <!-- Customer -->
+  <div class="job-summary-card">
+    <div class="job-summary-label">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      CUSTOMER
+    </div>
+    <div class="job-summary-value">
+      <a href="{% url 'customer_detail' job.vehicle.customer.pk %}" style="color:#0284c7; text-decoration:none;">{{ job.vehicle.customer.name }}</a>
+    </div>
+  </div>
+
+  <!-- Phone Number -->
+  <div class="job-summary-card">
+    <div class="job-summary-label">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+      PHONE NUMBER
+    </div>
+    <div class="job-summary-value font-mono">{{ job.vehicle.customer.phone }}</div>
+  </div>
+
+  <!-- Advisor -->
+  <div class="job-summary-card">
+    <div class="job-summary-label">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle></svg>
+      ADVISOR
+    </div>
+    <div class="job-summary-value">{% if job.advisor %}{{ job.advisor.get_full_name|default:job.advisor.username }}{% else %}—{% endif %}</div>
+  </div>
+
+  <!-- Mechanic -->
+  <div class="job-summary-card">
+    <div class="job-summary-label">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9333ea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+      MECHANIC
+    </div>
+    <div class="job-summary-value">{% if job.mechanic %}{{ job.mechanic.get_full_name|default:job.mechanic.username }}{% else %}Unassigned{% endif %}</div>
+  </div>
+
+  <!-- Created -->
+  <div class="job-summary-card">
+    <div class="job-summary-label">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+      CREATED
+    </div>
+    <div class="job-summary-value">{{ job.created_at|date:"d M Y H:i" }}</div>
+  </div>
+
+  <!-- Est. Completion -->
+  <div class="job-summary-card">
+    <div class="job-summary-label">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+      EST. COMPLETION
+    </div>
+    <div class="job-summary-value" style="color:#ea580c;">{{ job.estimated_completion_time|date:"d M Y H:i"|default:"Not specified" }}</div>
+  </div>
+
+  <!-- Labour Cost -->
+  <div class="job-summary-card">
+    <div class="job-summary-label">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 6v12"></path></svg>
+      LABOUR COST
+    </div>
+    <div class="job-summary-value font-mono" style="color:#16a34a; font-weight:800;">${{ job.labour_cost }}</div>
+  </div>
+
 </div>
 
-<div class="grid-2 mb-3">
-  <div class="card">
-    <div class="card-header"><span class="card-title">🔍 Problem Description</span></div>
-    <div class="card-body"><p>{{ job.problem_description }}</p></div>
+<!-- 3. Problem Description + Repair Instructions (Side-by-Side) -->
+<div class="problem-repair-grid">
+  <!-- Problem Description Card -->
+  <div class="card" style="border-radius:14px; border:1px solid #e1e5eb; box-shadow:0 4px 15px rgba(0,0,0,0.02);">
+    <div class="card-header" style="padding:1rem 1.25rem; border-bottom:1px solid #e1e5eb; display:flex; align-items:center; gap:0.6rem;">
+      <div style="width:32px; height:32px; border-radius:8px; background:#eff6ff; color:#2563eb; display:grid; place-items:center; flex-shrink:0;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </div>
+      <span class="card-title" style="font-weight:700; color:#1e293b; font-size:1.05rem;">Problem Description</span>
+    </div>
+    <div class="card-body" style="padding:1.25rem;">
+      <p style="margin:0; color:#1e293b; font-size:0.95rem; line-height:1.5;">{{ job.problem_description }}</p>
+    </div>
   </div>
-  {% if job.repair_instructions %}
-  <div class="card">
-    <div class="card-header"><span class="card-title">🛠 Repair Instructions</span></div>
-    <div class="card-body"><p>{{ job.repair_instructions }}</p></div>
+
+  <!-- Repair Instructions Card -->
+  <div class="card" style="border-radius:14px; border:1px solid #e1e5eb; box-shadow:0 4px 15px rgba(0,0,0,0.02);">
+    <div class="card-header" style="padding:1rem 1.25rem; border-bottom:1px solid #e1e5eb; display:flex; align-items:center; gap:0.6rem;">
+      <div style="width:32px; height:32px; border-radius:8px; background:#f3e8ff; color:#9333ea; display:grid; place-items:center; flex-shrink:0;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+      </div>
+      <span class="card-title" style="font-weight:700; color:#1e293b; font-size:1.05rem;">Repair Instructions</span>
+    </div>
+    <div class="card-body" style="padding:1.25rem;">
+      <p style="margin:0; color:#1e293b; font-size:0.95rem; line-height:1.5;">{{ job.repair_instructions|default:"No specific repair instructions provided." }}</p>
+    </div>
   </div>
-  {% endif %}
 </div>
 
-<!-- Vehicle Photos -->
-<div class="card mb-3">
-  <div class="card-header flex justify-between items-center">
-    <span class="card-title">📷 Vehicle & Inspection Photos ({{ photos|length }})</span>
+<!-- 4. Vehicle & Inspection Photos -->
+<div class="card mb-4" style="border-radius:14px; border:1px solid #e1e5eb; box-shadow:0 4px 15px rgba(0,0,0,0.02); margin-bottom:1.5rem !important;">
+  <div class="card-header flex justify-between items-center" style="padding:1rem 1.25rem; border-bottom:1px solid #e1e5eb;">
+    <div style="display:flex; align-items:center; gap:0.6rem;">
+      <div style="width:32px; height:32px; border-radius:8px; background:#f3e8ff; color:#9333ea; display:grid; place-items:center;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+      </div>
+      <span class="card-title" style="font-weight:700; color:#1e293b; font-size:1.05rem;">Vehicle & Inspection Photos ({{ photos|length }})</span>
+    </div>
   </div>
-  <div class="card-body">
+  <div class="card-body" style="padding:1.25rem;">
     {% if photos %}
-    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:1rem;" class="mb-3">
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:1rem;" class="mb-4">
       {% for photo in photos %}
-      <div class="photo-card" style="border:1px solid var(--border); border-radius:8px; overflow:hidden; background:var(--bg-card); position:relative;">
+      <div style="border:1px solid #e1e5eb; border-radius:12px; overflow:hidden; background:#ffffff; position:relative; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
         <a href="{{ photo.image.url }}" onclick="openPhotoModal('{{ photo.image.url }}', '{{ photo.caption|escapejs }}'); return false;">
-          <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Vehicle Photo' }}" style="width:100%; height:140px; object-fit:cover; display:block;">
+          <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Vehicle Photo' }}" style="width:100%; height:150px; object-fit:cover; display:block;">
         </a>
-        <div style="padding:0.5rem; font-size:0.8rem;">
-          {% if photo.caption %}<div style="font-weight:600; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">{{ photo.caption }}</div>{% endif %}
-          <div class="text-muted" style="font-size:0.75rem;">{{ photo.uploaded_at|date:"d M Y H:i" }}</div>
+        <div style="padding:0.6rem; font-size:0.8rem; background:#ffffff;">
+          {% if photo.caption %}<div style="font-weight:600; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; color:#1e293b;">{{ photo.caption }}</div>{% endif %}
+          <div style="font-size:0.75rem; color:#64748b;">{{ photo.uploaded_at|date:"d M Y H:i" }}</div>
         </div>
+        
+        <!-- Red Circular Delete Button Top-Right -->
         {% if request.user.profile.role == "owner" or request.user.profile.role == "advisor" %}
-        <form method="post" action="{% url 'job_delete_photo' job.pk photo.pk %}" style="position:absolute; top:5px; right:5px;" onsubmit="return confirm('Delete this photo?');">
+        <form method="post" action="{% url 'job_delete_photo' job.pk photo.pk %}" style="position:absolute; top:8px; right:8px; margin:0;" onsubmit="return confirm('Delete this photo?');">
           {% csrf_token %}
-          <button type="submit" style="background:rgba(239,68,68,0.85); color:white; border:none; padding:2px 6px; border-radius:4px; font-size:0.75rem; cursor:pointer;" title="Delete Photo">🗑️</button>
+          <button type="submit" style="width:26px; height:26px; border-radius:50%; background:#ef4444; color:white; border:none; display:grid; place-items:center; cursor:pointer; box-shadow:0 2px 6px rgba(239,68,68,0.4);" title="Delete Photo">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
         </form>
         {% endif %}
       </div>
       {% endfor %}
     </div>
     {% else %}
-    <p class="text-muted text-center py-3" style="font-size:0.9rem;">No photos uploaded for this job card yet.</p>
+    <p class="text-muted text-center py-3" style="font-size:0.9rem;">No inspection photos uploaded for this job card yet.</p>
     {% endif %}
 
-    <!-- Upload Additional Photo Form -->
-    <div style="border-top:1px solid var(--border); padding-top:1rem; margin-top:0.5rem;">
-      <p class="text-muted mb-2" style="font-size:0.85rem; font-weight:600;">Upload Additional Photo</p>
-      <form method="post" action="{% url 'job_add_photo' job.pk %}" enctype="multipart/form-data" style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:flex-end;">
+    <!-- Upload Additional Photo Section -->
+    <div style="border-top:1px solid #e1e5eb; padding-top:1.25rem; margin-top:0.5rem;">
+      <h4 style="font-size:0.95rem; font-weight:700; color:#1e293b; margin:0 0 0.85rem 0; display:flex; align-items:center; gap:0.4rem;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+        Upload Additional Photo
+      </h4>
+      <form method="post" action="{% url 'job_add_photo' job.pk %}" enctype="multipart/form-data" style="display:grid; grid-template-columns: 2fr 3fr auto; gap:1rem; align-items:end;">
         {% csrf_token %}
-        <div class="form-group" style="flex:2; min-width:180px;">
-          <label style="font-size:0.8rem;">Select Photo</label>
+        <div>
+          <label style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; margin-bottom:0.3rem; display:block;">SELECT PHOTO</label>
           {{ photo_form.image }}
         </div>
-        <div class="form-group" style="flex:3; min-width:200px;">
-          <label style="font-size:0.8rem;">Caption / Description</label>
+        <div>
+          <label style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; margin-bottom:0.3rem; display:block;">CAPTION / DESCRIPTION (OPTIONAL)</label>
           {{ photo_form.caption }}
         </div>
-        <button type="submit" class="btn btn-primary" style="height:38px;">📤 Upload</button>
+        <div>
+          <button type="submit" class="btn btn-primary" style="background:#ea580c; border:none; border-radius:8px; padding:0.6rem 1.4rem; font-weight:600; color:white; font-size:0.9rem; cursor:pointer;">
+            📤 Upload
+          </button>
+        </div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- Parts Used -->
-<div class="card mb-3">
-  <div class="card-header"><span class="card-title">⚙️ Parts Used</span>
-    <span class="text-mono text-green">Total Parts: ${{ job.total_parts_cost }}</span>
-  </div>
-  <div class="table-wrap"><table>
-    <thead>
-      <tr>
-        <th>Part</th>
-        <th>Part #</th>
-        <th>Qty</th>
-        <th>Unit Price</th>
-        <th>Total</th>
-        <th style="width:140px; text-align:right;">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for usage in parts_used %}
-      <tr>
-        <td><strong>{{ usage.part.name }}</strong></td>
-        <td class="text-mono" style="font-size:0.78rem;">{{ usage.part.part_number }}</td>
-        <td>
-          <div style="display:inline-flex; align-items:center; gap:0.4rem; background:var(--bg-panel); padding:0.2rem 0.5rem; border-radius:6px; border:1px solid var(--border);">
-            <a href="{% url 'job_update_part_qty' job.pk usage.pk 'decrease' %}" class="btn btn-secondary btn-sm" style="padding:0.1rem 0.45rem; font-size:0.78rem; font-weight:700; line-height:1;" title="Decrease Quantity">-</a>
-            <span class="text-mono" style="font-weight:700; min-width:18px; text-align:center;">{{ usage.quantity }}</span>
-            <a href="{% url 'job_update_part_qty' job.pk usage.pk 'increase' %}" class="btn btn-secondary btn-sm" style="padding:0.1rem 0.45rem; font-size:0.78rem; font-weight:700; line-height:1;" title="Increase Quantity">+</a>
-          </div>
-        </td>
-        <td class="text-mono">${{ usage.unit_price }}</td>
-        <td class="text-mono text-green" style="font-weight:700;">${{ usage.total_price }}</td>
-        <td class="text-right">
-          <form method="post" action="{% url 'job_update_part_qty' job.pk usage.pk 'delete' %}" onsubmit="return confirm('Remove {{ usage.part.name }} from this job?');" style="display:inline; margin:0;">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger btn-sm" style="padding:0.25rem 0.5rem; font-size:0.78rem;" title="Delete Part">
-              🗑️ Remove
-            </button>
-          </form>
-        </td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="6" class="text-center text-muted p-3">No parts recorded for this job card yet.</td></tr>
-      {% endfor %}
-    </tbody>
-    {% if parts_used %}
-    <tfoot>
-      <tr style="border-top:2px solid var(--border);">
-        <td colspan="4" class="text-right font-bold" style="padding:0.75rem 1rem;">Total Job Cost:</td>
-        <td colspan="2" class="text-mono text-green font-bold" style="padding:0.75rem 1rem;">${{ job.total_cost }}</td>
-      </tr>
-    </tfoot>
-    {% endif %}
-  </table></div>
-
-  <!-- Add Part Form -->
-  <div class="card-body" style="border-top:1px solid var(--border);">
-    <p class="text-muted mb-2" style="font-size:0.85rem;">Add Part to Job</p>
-
-    {% if request.user.profile.role == "owner" or request.user.profile.role == "advisor" %}
+<!-- 5. Parts Section (Side-by-Side on Desktop) -->
+<div class="parts-layout-grid">
   
-    <form method="post" action="{% url 'job_add_part' job.pk %}" style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:flex-end;">
-        {% csrf_token %}
-        <div class="form-group" style="flex:2;min-width:160px;">
-          <label>Part</label>{{ part_form.part }}
+  <!-- Left Card: Parts Used -->
+  <div class="card" style="border-radius:14px; border:1px solid #e1e5eb; box-shadow:0 4px 15px rgba(0,0,0,0.02);">
+    <div class="card-header flex justify-between items-center" style="padding:1rem 1.25rem; border-bottom:1px solid #e1e5eb;">
+      <div style="display:flex; align-items:center; gap:0.6rem;">
+        <div style="width:32px; height:32px; border-radius:8px; background:#f3e8ff; color:#9333ea; display:grid; place-items:center;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         </div>
-
-        <div class="form-group" style="flex:1;min-width:80px;">
-          <label>Qty</label>{{ part_form.quantity }}
-        </div>
-
-        <div class="form-group" style="flex:1;min-width:100px;">
-          <label>Unit Price</label>{{ part_form.unit_price }}
-        </div>
-
-        <button type="submit" class="btn btn-primary">+ Add Part</button>
-    </form>
-    {% else %}
-    <div style="padding:10px;color:#f59e0b;font-size:0.9rem;">
-        ⚠️ Only Owner or Service Advisor can add parts to this job.
+        <span class="card-title" style="font-weight:700; color:#1e293b; font-size:1.05rem;">Parts Used</span>
+      </div>
+      <span style="color:#16a34a; font-weight:700; font-size:0.95rem;" class="font-mono">Total Parts: ${{ job.total_parts_cost }}</span>
     </div>
-    {% endif %}
+    
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Part</th>
+            <th>Part #</th>
+            <th>Qty</th>
+            <th>Unit Price</th>
+            <th>Total</th>
+            <th style="width:110px; text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for usage in parts_used %}
+          <tr>
+            <td><strong>{{ usage.part.name }}</strong></td>
+            <td class="text-mono" style="font-size:0.78rem;">{{ usage.part.part_number }}</td>
+            <td>
+              <div style="display:inline-flex; align-items:center; gap:0.4rem; background:#f8fafc; padding:0.2rem 0.5rem; border-radius:6px; border:1px solid #e1e5eb;">
+                <a href="{% url 'job_update_part_qty' job.pk usage.pk 'decrease' %}" class="btn btn-secondary btn-sm" style="padding:0.1rem 0.45rem; font-size:0.78rem; font-weight:700; line-height:1;" title="Decrease Quantity">-</a>
+                <span class="text-mono" style="font-weight:700; min-width:18px; text-align:center;">{{ usage.quantity }}</span>
+                <a href="{% url 'job_update_part_qty' job.pk usage.pk 'increase' %}" class="btn btn-secondary btn-sm" style="padding:0.1rem 0.45rem; font-size:0.78rem; font-weight:700; line-height:1;" title="Increase Quantity">+</a>
+              </div>
+            </td>
+            <td class="text-mono">${{ usage.unit_price }}</td>
+            <td class="text-mono" style="color:#16a34a; font-weight:700;">${{ usage.total_price }}</td>
+            <td class="text-right">
+              <form method="post" action="{% url 'job_update_part_qty' job.pk usage.pk 'delete' %}" onsubmit="return confirm('Remove {{ usage.part.name }} from this job?');" style="display:inline; margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger btn-sm" style="border:1px solid #fca5a5; color:#ef4444; background:transparent; padding:0.25rem 0.5rem; font-size:0.78rem; border-radius:6px; font-weight:600; cursor:pointer;" title="Delete Part">
+                  🗑️ Remove
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center text-muted p-4">No parts recorded for this job card yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div style="padding:1rem 1.25rem; border-top:2px solid #e1e5eb; display:flex; justify-content:space-between; align-items:center; background:#ffffff; border-bottom-left-radius:14px; border-bottom-right-radius:14px;">
+      <span style="font-weight:700; color:#1e293b; font-size:1rem;">Total Job Cost:</span>
+      <span style="color:#16a34a; font-weight:800; font-size:1.15rem;" class="font-mono">${{ job.total_cost }}</span>
+    </div>
   </div>
+
+  <!-- Right Card: Add Part to Job -->
+  <div class="card" style="border-radius:14px; border:1px solid #e1e5eb; box-shadow:0 4px 15px rgba(0,0,0,0.02); height:fit-content;">
+    <div class="card-header" style="padding:1rem 1.25rem; border-bottom:1px solid #e1e5eb; display:flex; align-items:center; gap:0.6rem;">
+      <div style="width:32px; height:32px; border-radius:8px; background:#eff6ff; color:#2563eb; display:grid; place-items:center;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      </div>
+      <span class="card-title" style="font-weight:700; color:#1e293b; font-size:1.05rem;">Add Part to Job</span>
+    </div>
+
+    <div class="card-body" style="padding:1.25rem;">
+      {% if request.user.profile.role == "owner" or request.user.profile.role == "advisor" or request.user.profile.role == "mechanic" or request.user.is_superuser %}
+      <form method="post" action="{% url 'job_add_part' job.pk %}" style="display:flex; flex-direction:column; gap:1rem;">
+        {% csrf_token %}
+        <div>
+          <label style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; margin-bottom:0.3rem; display:block;">PART</label>
+          {{ part_form.part }}
+        </div>
+
+        <div>
+          <label style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; margin-bottom:0.3rem; display:block;">QTY</label>
+          {{ part_form.quantity }}
+        </div>
+
+        <div>
+          <label style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; margin-bottom:0.3rem; display:block;">UNIT PRICE</label>
+          {{ part_form.unit_price }}
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="background:#ea580c; border:none; border-radius:8px; padding:0.65rem 1.2rem; font-weight:600; color:white; font-size:0.9rem; cursor:pointer; width:100%; margin-top:0.25rem;">
+          + Add Part
+        </button>
+      </form>
+      {% else %}
+      <div style="padding:1rem; color:#f59e0b; font-size:0.88rem; background:#fffbeb; border-radius:8px;">
+        ⚠️ Only authorized staff can add parts to this job card.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
 </div>
 
+<!-- 6. Notes Section -->
 {% if job.notes %}
-<div class="card">
-  <div class="card-header"><span class="card-title">📝 Notes</span></div>
-  <div class="card-body"><p>{{ job.notes }}</p></div>
+<div class="card" style="border-radius:14px; border:1px solid #e1e5eb; box-shadow:0 4px 15px rgba(0,0,0,0.02); margin-bottom:1.5rem !important;">
+  <div class="card-header" style="padding:1rem 1.25rem; border-bottom:1px solid #e1e5eb; display:flex; align-items:center; gap:0.6rem;">
+    <div style="width:32px; height:32px; border-radius:8px; background:#fff7ed; color:#ea580c; display:grid; place-items:center;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+    </div>
+    <span class="card-title" style="font-weight:700; color:#1e293b; font-size:1.05rem;">Notes</span>
+  </div>
+  <div class="card-body" style="padding:1.25rem;">
+    <div style="background:#f8fafc; border:1px solid #e1e5eb; border-radius:8px; padding:1rem; color:#1e293b; font-size:0.95rem; line-height:1.5;">
+      {{ job.notes }}
+    </div>
+  </div>
 </div>
 {% endif %}
 
