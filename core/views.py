@@ -10,7 +10,7 @@ from datetime import date, timedelta
 from functools import wraps
 
 from .models import (
-    UserProfile, Customer, Vehicle, JobCard, JobCardPhoto,
+    UserProfile, RoleCustomization, Customer, Vehicle, JobCard, JobCardPhoto,
     SparePart, PartCategory, Supplier, StockTransaction, JobPartUsage, Invoice,
     AMCPlan, CustomerAMC, AMCServiceSchedule, WhatsAppLog, Expense
 )
