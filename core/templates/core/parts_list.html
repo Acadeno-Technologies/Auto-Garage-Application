@@ -521,7 +521,8 @@
       <div class="pagination-controls">
         <div style="display:flex; gap:0.25rem;" id="cat-pagination-btns"></div>
         <select id="cat-per-page" class="per-page-select" onchange="changePerPage('cat', this.value)">
-          <option value="10" selected>10 / page</option>
+          <option value="4" selected>4 / page</option>
+          <option value="10">10 / page</option>
           <option value="25">25 / page</option>
           <option value="10000">All</option>
         </select>
@@ -590,7 +591,8 @@
       <div class="pagination-controls">
         <div style="display:flex; gap:0.25rem;" id="sup-pagination-btns"></div>
         <select id="sup-per-page" class="per-page-select" onchange="changePerPage('sup', this.value)">
-          <option value="10" selected>10 / page</option>
+          <option value="4" selected>4 / page</option>
+          <option value="10">10 / page</option>
           <option value="25">25 / page</option>
           <option value="10000">All</option>
         </select>
@@ -618,8 +620,8 @@
 <script>
 const pagState = {
   parts: { page: 1, perPage: 10 },
-  cat: { page: 1, perPage: 10 },
-  sup: { page: 1, perPage: 10 }
+  cat: { page: 1, perPage: 4 },
+  sup: { page: 1, perPage: 4 }
 };
 
 function renderTablePagination(prefix) {
