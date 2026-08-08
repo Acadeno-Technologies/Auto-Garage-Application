@@ -883,14 +883,33 @@ def category_create(request):
         form.save()
         messages.success(request, "Category created.")
         return redirect('category_list')
-    return render(request, 'core/category_form.html', {'form': form, 'title': 'Add Category'})
+@login_required
+@role_required('owner', 'store_manager')
+def category_edit(request, pk):
+    cat = get_object_or_404(PartCategory, pk=pk)
+    form = PartCategoryForm(request.POST or None, instance=cat)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, "Category updated.")
+        return redirect('parts_list')
+    return render(request, 'core/category_form.html', {'form': form, 'title': 'Edit Category'})
+
+
+@login_required
+@role_required('owner', 'store_manager')
+def category_delete(request, pk):
+    cat = get_object_or_404(PartCategory, pk=pk)
+    if request.method == 'POST':
+        name = cat.name
+        cat.delete()
+        messages.success(request, f"Category '{name}' deleted.")
+    return redirect('parts_list')
 
 
 @login_required
 @role_required('owner', 'store_manager')
 def supplier_list(request):
-    suppliers = Supplier.objects.all()
-    return render(request, 'core/supplier_list.html', {'suppliers': suppliers})
+    return redirect('parts_list')
 
 
 @login_required
@@ -900,8 +919,31 @@ def supplier_create(request):
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, "Supplier added.")
-        return redirect('supplier_list')
+        return redirect('parts_list')
     return render(request, 'core/supplier_form.html', {'form': form, 'title': 'Add Supplier'})
+
+
+@login_required
+@role_required('owner', 'store_manager')
+def supplier_edit(request, pk):
+    sup = get_object_or_404(Supplier, pk=pk)
+    form = SupplierForm(request.POST or None, instance=sup)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, "Supplier updated.")
+        return redirect('parts_list')
+    return render(request, 'core/supplier_form.html', {'form': form, 'title': 'Edit Supplier'})
+
+
+@login_required
+@role_required('owner', 'store_manager')
+def supplier_delete(request, pk):
+    sup = get_object_or_404(Supplier, pk=pk)
+    if request.method == 'POST':
+        name = sup.name
+        sup.delete()
+        messages.success(request, f"Supplier '{name}' deleted.")
+    return redirect('parts_list')
 
 
 # ─── Billing / Invoices ───────────────────────────────────────────────────────
