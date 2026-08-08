@@ -9,7 +9,16 @@
 <a href="{% url 'send_whatsapp' %}?type=job_status&job_id={{ job.id }}&phone={{ job.vehicle.customer.phone }}&name={{ job.vehicle.customer.name }}" target="_blank" class="btn btn-sm" style="background:#25D366; color:white;">
   📱 Send WA Status ({{ job.get_status_display }})
 </a>
-<a href="{% url 'job_update_status' job.pk %}" class="btn btn-secondary btn-sm">✏️ Update Status</a>
+<form method="post" action="{% url 'job_update_status' job.pk %}" style="display:inline-flex; align-items:center; gap:0.4rem;">
+  {% csrf_token %}
+  <select name="quick_status" class="form-input" style="padding:0.35rem 0.6rem; font-size:0.83rem; border-radius:6px; font-weight:600; cursor:pointer;" onchange="this.form.submit();">
+    <option value="" disabled>⚡ Change Status...</option>
+    {% for val, label in status_choices %}
+    <option value="{{ val }}" {% if job.status == val %}selected{% endif %}>⚡ {{ label }}</option>
+    {% endfor %}
+  </select>
+</form>
+<a href="{% url 'job_update_status' job.pk %}" class="btn btn-secondary btn-sm" title="Edit full job card details">✏️ Full Edit</a>
 {% if not job.invoice %}
 <a href="{% url 'invoice_create' job.pk %}" class="btn btn-primary btn-sm">🧾 Create Invoice</a>
 {% else %}
@@ -19,7 +28,20 @@
 {% block content %}
 
 <div class="job-meta-grid mb-3">
-  <div class="job-meta-item"><div class="job-meta-label">Status</div><div class="job-meta-value"><span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span></div></div>
+  <div class="job-meta-item">
+    <div class="job-meta-label">Status</div>
+    <div class="job-meta-value" style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+      <span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span>
+      <form method="post" action="{% url 'job_update_status' job.pk %}" style="display:inline-flex; margin:0;">
+        {% csrf_token %}
+        <select name="quick_status" style="font-size:0.75rem; padding:0.15rem 0.4rem; border-radius:4px; border:1px solid var(--border); background:var(--bg-panel); color:var(--text-1); cursor:pointer;" onchange="this.form.submit();">
+          {% for val, label in status_choices %}
+          <option value="{{ val }}" {% if job.status == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+  </div>
   <div class="job-meta-item"><div class="job-meta-label">Vehicle</div><div class="job-meta-value">{{ job.vehicle.make }} {{ job.vehicle.model }}</div></div>
   <div class="job-meta-item"><div class="job-meta-label">License Plate / No.</div><div class="job-meta-value text-mono text-accent">{{ job.vehicle.license_plate }}</div></div>
   <div class="job-meta-item"><div class="job-meta-label">Colour</div><div class="job-meta-value">{{ job.vehicle.color|default:"—" }}</div></div>

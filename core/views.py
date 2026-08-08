@@ -481,9 +481,11 @@ def job_detail(request, pk):
     photos = job.photos.all().order_by('-uploaded_at')
     part_form = JobPartUsageForm()
     photo_form = JobCardPhotoForm()
+    status_choices = JobCard.STATUS_CHOICES
     return render(request, 'core/job_detail.html', {
         'job': job, 'parts_used': parts_used, 'photos': photos,
-        'part_form': part_form, 'photo_form': photo_form
+        'part_form': part_form, 'photo_form': photo_form,
+        'status_choices': status_choices
     })
 
 
@@ -518,6 +520,37 @@ def job_delete_photo(request, pk, photo_pk):
 @role_required('owner', 'advisor', 'mechanic')
 def job_update_status(request, pk):
     job = get_object_or_404(JobCard, pk=pk)
+
+    # Check for instant inline quick status change from job_detail page
+    if request.method == 'POST' and 'quick_status' in request.POST:
+        new_status = request.POST.get('quick_status', '').strip()
+        if new_status in dict(JobCard.STATUS_CHOICES):
+            job.status = new_status
+            job.save()
+            customer = job.vehicle.customer
+            status_disp = job.get_status_display()
+
+            if job.status == 'completed':
+                sms_body = (
+                    f"Dear {customer.name}, great news! Your vehicle {job.vehicle.make} {job.vehicle.model} "
+                    f"({job.vehicle.license_plate}) service (Job Card {job.job_number}) is COMPLETED and ready for pickup! "
+                    f"Total Cost: ${job.total_cost():.2f}."
+                )
+            else:
+                sms_body = (
+                    f"Dear {customer.name}, update on your Job Card {job.job_number} for {job.vehicle.make} {job.vehicle.model}: "
+                    f"Status updated to '{status_disp}'."
+                )
+            WhatsAppLog.objects.create(
+                recipient_name=customer.name,
+                phone=customer.phone,
+                message_type=f"job_status_{job.status}",
+                message_body=sms_body,
+                sent_by=request.user
+            )
+            messages.success(request, f"Job card status changed to '{status_disp}'. SMS notification logged.")
+            return redirect('job_detail', pk=pk)
+
     form = JobStatusForm(request.POST or None, instance=job)
     if request.method == 'POST' and form.is_valid():
         updated_job = form.save(commit=False)
