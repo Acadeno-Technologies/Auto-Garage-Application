@@ -187,11 +187,9 @@ class JobCardForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        mechanics = User.objects.filter(
-            Q(profile__role='mechanic') | Q(is_staff=True) | Q(profile__role='owner')
-        ).distinct()
+        mechanics = User.objects.filter(profile__role='mechanic')
         if not mechanics.exists():
-            mechanics = User.objects.all()
+            mechanics = User.objects.exclude(profile__role='owner').exclude(is_superuser=True)
         self.fields['mechanic'].queryset = mechanics
         self.fields['mechanic'].required = False
         
@@ -231,11 +229,9 @@ class JobStatusForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        mechanics = User.objects.filter(
-            Q(profile__role='mechanic') | Q(is_staff=True) | Q(profile__role='owner')
-        ).distinct()
+        mechanics = User.objects.filter(profile__role='mechanic')
         if not mechanics.exists():
-            mechanics = User.objects.all()
+            mechanics = User.objects.exclude(profile__role='owner').exclude(is_superuser=True)
         self.fields['mechanic'].queryset = mechanics
         self.fields['mechanic'].required = False
         self.fields['mechanic'].label = "Assign Mechanic"
