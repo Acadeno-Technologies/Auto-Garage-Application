@@ -191,6 +191,8 @@ class Invoice(models.Model):
     issue_date = models.DateField(auto_now_add=True)
     due_date = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='unpaid')
+    is_pickup_service = models.BooleanField(default=False, verbose_name="Vehicle Pickup & Drop Service")
+    pickup_charge = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), verbose_name="Pickup & Drop Charge")
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     payment_method = models.CharField(max_length=50, blank=True)
     notes = models.TextField(blank=True)
@@ -203,12 +205,18 @@ class Invoice(models.Model):
         super().save(*args, **kwargs)
 
     @property
-    def total_amount(self):
+    def subtotal(self):
         return self.job_card.total_cost()
 
     @property
+    def total_amount(self):
+        if self.is_pickup_service and self.pickup_charge:
+            return self.subtotal + self.pickup_charge
+        return self.subtotal
+
+    @property
     def balance_due(self):
-        return self.total_amount - self.amount_paid
+        return self.grand_total - self.amount_paid
 
     @property
     def tax_amount(self):

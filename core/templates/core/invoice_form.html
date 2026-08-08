@@ -21,7 +21,7 @@
     <form method="post">
       {% csrf_token %}
       {% for field in form %}
-      <div class="form-group mb-2">
+      <div class="form-group mb-2" id="group_{{ field.name }}">
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
         {{ field }}
         {% if field.errors %}<span style="color:var(--red);font-size:0.78rem;">{{ field.errors.0 }}</span>{% endif %}
@@ -35,4 +35,25 @@
     </form>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const pickupCheck = document.getElementById('id_is_pickup_service');
+  const pickupGroup = document.getElementById('group_pickup_charge');
+
+  function togglePickup() {
+    if (!pickupCheck || !pickupGroup) return;
+    if (pickupCheck.checked) {
+      pickupGroup.style.display = 'block';
+    } else {
+      pickupGroup.style.display = 'none';
+    }
+  }
+
+  if (pickupCheck) {
+    pickupCheck.addEventListener('change', togglePickup);
+    togglePickup();
+  }
+});
+</script>
 {% endblock %}

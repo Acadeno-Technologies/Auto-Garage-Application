@@ -296,11 +296,13 @@ class JobPartUsageForm(forms.ModelForm):
 class InvoiceForm(forms.ModelForm):
     class Meta:
         model = Invoice
-        fields = ['status', 'amount_paid', 'payment_method', 'due_date', 'notes']
+        fields = ['status', 'is_pickup_service', 'pickup_charge', 'amount_paid', 'payment_method', 'due_date', 'notes']
         widgets = {
             'status': forms.Select(attrs={'class': 'form-input'}),
+            'is_pickup_service': forms.CheckboxInput(attrs={'class': 'form-checkbox', 'id': 'id_is_pickup_service', 'style': 'width:18px; height:18px; accent-color:var(--primary); cursor:pointer;'}),
+            'pickup_charge': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01', 'id': 'id_pickup_charge', 'placeholder': 'e.g. 250.00'}),
             'amount_paid': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01'}),
-            'payment_method': forms.TextInput(attrs={'class': 'form-input'}),
+            'payment_method': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. UPI, Cash, Card'}),
             'due_date': forms.DateInput(attrs={'class': 'form-input', 'type': 'date'}),
             'notes': forms.Textarea(attrs={'class': 'form-input', 'rows': 2}),
         }
