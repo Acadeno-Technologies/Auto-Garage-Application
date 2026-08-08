@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.http import JsonResponse
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
@@ -548,8 +549,9 @@ def job_update_status(request, pk):
                 message_body=sms_body,
                 sent_by=request.user
             )
-            messages.success(request, f"Job card status changed to '{status_disp}'. SMS notification logged.")
-            return redirect('job_detail', pk=pk)
+            messages.success(request, f"Status updated to '{status_disp}'. Opening WhatsApp to notify customer ({customer.phone})...")
+            wa_redirect_url = reverse('send_whatsapp') + f"?type=job_status&job_id={job.pk}&phone={customer.phone}&name={customer.name}"
+            return redirect(wa_redirect_url)
 
     form = JobStatusForm(request.POST or None, instance=job)
     if request.method == 'POST' and form.is_valid():
