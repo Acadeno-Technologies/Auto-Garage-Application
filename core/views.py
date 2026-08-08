@@ -882,7 +882,8 @@ def category_create(request):
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, "Category created.")
-        return redirect('category_list')
+        return redirect('parts_list')
+    return render(request, 'core/category_form.html', {'form': form, 'title': 'Add Category'})
 @login_required
 @role_required('owner', 'store_manager')
 def category_edit(request, pk):
