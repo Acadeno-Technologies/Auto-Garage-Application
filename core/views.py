@@ -12,13 +12,13 @@ from functools import wraps
 from .models import (
     UserProfile, Customer, Vehicle, JobCard, JobCardPhoto,
     SparePart, PartCategory, Supplier, StockTransaction, JobPartUsage, Invoice,
-    AMCPlan, CustomerAMC, AMCServiceSchedule, WhatsAppLog
+    AMCPlan, CustomerAMC, AMCServiceSchedule, WhatsAppLog, Expense
 )
 from .forms import (
     LoginForm, StaffCreationForm, StaffEditForm, CustomerForm, VehicleForm, JobCardForm, JobCardPhotoForm,
     JobStatusForm, SparePartForm, PartCategoryForm, SupplierForm,
     StockTransactionForm, JobPartUsageForm, InvoiceForm,
-    AMCPlanForm, CustomerAMCForm
+    AMCPlanForm, CustomerAMCForm, ExpenseForm
 )
 
 
@@ -759,6 +759,104 @@ def reports(request):
         'low_stock': SparePart.objects.filter(stock_quantity__lte=5),
     }
     return render(request, 'core/reports.html', ctx)
+
+
+@login_required
+@role_required('owner')
+def incentive_calculator(request):
+    """
+    Admin-only view for Incentive Calculation based on Bill Amount minus Expenses.
+    """
+    period = request.GET.get('period', 'this_month')
+    rate_str = request.GET.get('rate', '10')
+    from decimal import Decimal
+    try:
+        incentive_rate = Decimal(rate_str)
+    except:
+        incentive_rate = Decimal('10')
+
+    today = date.today()
+    if period == 'this_month':
+        start_date = today.replace(day=1)
+        end_date = today
+    elif period == 'last_month':
+        first_this_month = today.replace(day=1)
+        end_date = first_this_month - timedelta(days=1)
+        start_date = end_date.replace(day=1)
+    else:
+        start_date = None
+        end_date = None
+
+    # Bill Amount (Total Invoices Paid)
+    invoices = Invoice.objects.filter(status='paid')
+    if start_date and end_date:
+        invoices = invoices.filter(issue_date__range=[start_date, end_date])
+    
+    total_bill_amount = invoices.aggregate(t=Sum('amount_paid'))['t'] or Decimal('0.00')
+
+    # Overhead Expenses
+    expenses_qs = Expense.objects.all()
+    if start_date and end_date:
+        expenses_qs = expenses_qs.filter(expense_date__range=[start_date, end_date])
+    
+    overhead_expenses = expenses_qs.aggregate(t=Sum('amount'))['t'] or Decimal('0.00')
+
+    # Parts Used Expenses
+    parts_usages = JobPartUsage.objects.all()
+    if start_date and end_date:
+        parts_usages = parts_usages.filter(job_card__created_at__date__range=[start_date, end_date])
+    
+    parts_expenses = sum(u.total_price for u in parts_usages)
+
+    total_expenses = overhead_expenses + parts_expenses
+    net_profit = total_bill_amount - total_expenses
+    total_incentive_pool = max(Decimal('0.00'), net_profit * (incentive_rate / Decimal('100')))
+
+    # Mechanic Breakdown
+    mechanics = User.objects.filter(profile__role='mechanic')
+    mechanic_breakdown = []
+    for m in mechanics:
+        m_jobs = JobCard.objects.filter(mechanic=m, status='completed')
+        if start_date and end_date:
+            m_jobs = m_jobs.filter(created_at__date__range=[start_date, end_date])
+        
+        m_labour = sum(j.labour_cost for j in m_jobs)
+        m_parts_cost = sum(j.total_parts_cost() for j in m_jobs)
+        m_net_profit = max(Decimal('0.00'), m_labour - m_parts_cost)
+        m_incentive = m_net_profit * (incentive_rate / Decimal('100'))
+
+        mechanic_breakdown.append({
+            'mechanic': m,
+            'completed_jobs': m_jobs.count(),
+            'labour_revenue': m_labour,
+            'parts_cost': m_parts_cost,
+            'net_profit': m_net_profit,
+            'incentive': m_incentive,
+        })
+
+    # Expense Form handling
+    expense_form = ExpenseForm(request.POST or None)
+    if request.method == 'POST' and 'add_expense' in request.POST and expense_form.is_valid():
+        exp = expense_form.save(commit=False)
+        exp.created_by = request.user
+        exp.save()
+        messages.success(request, f"Expense '{exp.title}' of ₹{exp.amount} added successfully.")
+        return redirect('incentive_calculator')
+
+    context = {
+        'period': period,
+        'rate': incentive_rate,
+        'total_bill_amount': total_bill_amount,
+        'overhead_expenses': overhead_expenses,
+        'parts_expenses': parts_expenses,
+        'total_expenses': total_expenses,
+        'net_profit': net_profit,
+        'total_incentive_pool': total_incentive_pool,
+        'mechanic_breakdown': mechanic_breakdown,
+        'expenses_list': expenses_qs.order_by('-expense_date')[:15],
+        'expense_form': expense_form,
+    }
+    return render(request, 'core/incentive_calculator.html', context)
 
 
 # ─── AMC Management ───────────────────────────────────────────────────────────

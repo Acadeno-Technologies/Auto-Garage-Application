@@ -312,3 +312,24 @@ class WhatsAppLog(models.Model):
     def __str__(self):
         return f"{self.message_type} to {self.recipient_name} ({self.sent_at.strftime('%Y-%m-%d %H:%M')})"
 
+
+class Expense(models.Model):
+    CATEGORY_CHOICES = [
+        ('utilities', 'Electricity & Utilities'),
+        ('rent', 'Garage Rent'),
+        ('tools', 'Tools & Equipment'),
+        ('salary', 'Staff Salary / Advance'),
+        ('parts_purchase', 'Parts Purchase'),
+        ('other', 'Other Expenses'),
+    ]
+    title = models.CharField(max_length=150)
+    category = models.CharField(max_length=30, choices=CATEGORY_CHOICES, default='other')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    expense_date = models.DateField(default=timezone.now)
+    notes = models.TextField(blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title} - ₹{self.amount} ({self.expense_date})"
+

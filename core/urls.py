@@ -60,8 +60,9 @@ urlpatterns = [
     path('invoices/<int:pk>/', views.invoice_detail, name='invoice_detail'),
     path('invoices/<int:pk>/edit/', views.invoice_edit, name='invoice_edit'),
 
-    # Reports
+    # Reports & Incentives (Admin Only)
     path('reports/', views.reports, name='reports'),
+    path('incentives/', views.incentive_calculator, name='incentive_calculator'),
 
     # AMC Management
     path('amc/', views.amc_list, name='amc_list'),

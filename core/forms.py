@@ -4,7 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from .models import (
     UserProfile, Customer, Vehicle, JobCard, JobCardPhoto,
     SparePart, PartCategory, Supplier, StockTransaction, JobPartUsage, Invoice,
-    AMCPlan, CustomerAMC, AMCServiceSchedule, WhatsAppLog
+    AMCPlan, CustomerAMC, AMCServiceSchedule, WhatsAppLog, Expense
 )
 
 ROLE_CHOICES = [
@@ -331,5 +331,18 @@ class CustomerAMCForm(forms.ModelForm):
             'start_date': forms.DateInput(attrs={'class': 'form-input', 'type': 'date'}),
             'amount_paid': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01'}),
             'notes': forms.Textarea(attrs={'class': 'form-input', 'rows': 2}),
+        }
+
+
+class ExpenseForm(forms.ModelForm):
+    class Meta:
+        model = Expense
+        fields = ['title', 'category', 'amount', 'expense_date', 'notes']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Electricity Bill, Shop Rent, Tools'}),
+            'category': forms.Select(attrs={'class': 'form-input'}),
+            'amount': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01', 'placeholder': 'Amount in ₹'}),
+            'expense_date': forms.DateInput(attrs={'class': 'form-input', 'type': 'date'}),
+            'notes': forms.Textarea(attrs={'class': 'form-input', 'rows': 2, 'placeholder': 'Optional details'}),
         }
 
