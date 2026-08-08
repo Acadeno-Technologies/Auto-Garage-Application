@@ -104,7 +104,7 @@
   <!-- Status -->
   <div class="job-summary-card">
     <div class="job-summary-label" style="color:#334155; font-weight:700; font-size:0.8rem;">
-      <span style="color:#ea580c; font-size:1.1rem; line-height:1; font-weight:700; margin-right:0.2rem;">$</span>
+      <span style="color:#ea580c; font-size:1.1rem; line-height:1; font-weight:700; margin-right:0.2rem;">₹</span>
       STATUS
     </div>
     <div class="job-summary-value" style="margin-top:0.4rem;">
@@ -216,7 +216,7 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 6v12"></path></svg>
       LABOUR COST
     </div>
-    <div class="job-summary-value font-mono" style="color:#16a34a; font-weight:800;">${{ job.labour_cost }}</div>
+    <div class="job-summary-value font-mono" style="color:#16a34a; font-weight:800;">₹{{ job.labour_cost }}</div>
   </div>
 
 </div>
@@ -327,7 +327,7 @@
         </div>
         <span class="card-title" style="font-weight:700; color:#1e293b; font-size:1.05rem;">Parts Used</span>
       </div>
-      <span style="color:#16a34a; font-weight:700; font-size:0.95rem;" class="font-mono">Total Parts: ${{ job.total_parts_cost }}</span>
+      <span style="color:#16a34a; font-weight:700; font-size:0.95rem;" class="font-mono">Total Parts: ₹{{ job.total_parts_cost }}</span>
     </div>
     
     <div class="table-wrap">
@@ -354,8 +354,8 @@
                 <a href="{% url 'job_update_part_qty' job.pk usage.pk 'increase' %}" class="btn btn-secondary btn-sm" style="padding:0.1rem 0.45rem; font-size:0.78rem; font-weight:700; line-height:1;" title="Increase Quantity">+</a>
               </div>
             </td>
-            <td class="text-mono">${{ usage.unit_price }}</td>
-            <td class="text-mono" style="color:#16a34a; font-weight:700;">${{ usage.total_price }}</td>
+            <td class="text-mono">₹{{ usage.unit_price }}</td>
+            <td class="text-mono" style="color:#16a34a; font-weight:700;">₹{{ usage.total_price }}</td>
             <td class="text-right">
               <form method="post" action="{% url 'job_update_part_qty' job.pk usage.pk 'delete' %}" onsubmit="return confirm('Remove {{ usage.part.name }} from this job?');" style="display:inline; margin:0;">
                 {% csrf_token %}
@@ -374,7 +374,7 @@
 
     <div style="padding:1rem 1.25rem; border-top:2px solid #e1e5eb; display:flex; justify-content:space-between; align-items:center; background:#ffffff; border-bottom-left-radius:14px; border-bottom-right-radius:14px;">
       <span style="font-weight:700; color:#1e293b; font-size:1rem;">Total Job Cost:</span>
-      <span style="color:#16a34a; font-weight:800; font-size:1.15rem;" class="font-mono">${{ job.total_cost }}</span>
+      <span style="color:#16a34a; font-weight:800; font-size:1.15rem;" class="font-mono">₹{{ job.total_cost }}</span>
     </div>
   </div>
 

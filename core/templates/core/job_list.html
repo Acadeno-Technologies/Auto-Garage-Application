@@ -25,7 +25,7 @@
         <td>{{ job.vehicle.make }} {{ job.vehicle.model }}<br><span class="text-muted" style="font-size:0.78rem;">{{ job.vehicle.license_plate }}</span></td>
         <td>{{ job.vehicle.customer.name }}</td>
         <td>{% if job.mechanic %}{{ job.mechanic.get_full_name|default:job.mechanic.username }}{% else %}Unassigned{% endif %}</td>
-        <td class="text-mono">${{ job.labour_cost }}</td>
+        <td class="text-mono">₹{{ job.labour_cost }}</td>
         <td><span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span></td>
         <td class="text-muted">{{ job.created_at|date:"d M Y" }}</td>
         <td class="text-muted" style="font-size:0.8rem;">{{ job.estimated_completion_time|date:"d M H:i"|default:"—" }}</td>

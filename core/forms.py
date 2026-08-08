@@ -348,7 +348,7 @@ class JobPartUsageForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['unit_price'].required = False
-        self.fields['unit_price'].label = "Unit Price ($) - Optional"
+        self.fields['unit_price'].label = "Unit Price (₹) - Optional"
 
 
 class InvoiceForm(forms.ModelForm):

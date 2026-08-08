@@ -535,7 +535,7 @@ def job_update_status(request, pk):
                 sms_body = (
                     f"Dear {customer.name}, great news! Your vehicle {job.vehicle.make} {job.vehicle.model} "
                     f"({job.vehicle.license_plate}) service (Job Card {job.job_number}) is COMPLETED and ready for pickup! "
-                    f"Total Cost: ${job.total_cost():.2f}."
+                    f"Total Cost: ₹{job.total_cost():.2f}."
                 )
             else:
                 sms_body = (
@@ -590,7 +590,7 @@ def job_update_status(request, pk):
             sms_body = (
                 f"Dear {customer.name}, great news! Your vehicle {updated_job.vehicle.make} {updated_job.vehicle.model} "
                 f"({updated_job.vehicle.license_plate}) service (Job Card {updated_job.job_number}) is COMPLETED and ready for pickup! "
-                f"Total Cost: ${updated_job.total_cost():.2f}."
+                f"Total Cost: ₹{updated_job.total_cost():.2f}."
             )
         else:
             sms_body = (
@@ -638,7 +638,7 @@ def job_add_part(request, pk):
             part = usage.part
             part.stock_quantity = max(0, part.stock_quantity - usage.quantity)
             part.save()
-            messages.success(request, f"Part '{part.name}' added to job (${usage.unit_price} each).")
+            messages.success(request, f"Part '{part.name}' added to job (₹{usage.unit_price} each).")
     return redirect('job_detail', pk=pk)
 
 

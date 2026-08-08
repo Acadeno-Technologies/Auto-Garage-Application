@@ -44,7 +44,7 @@
   </div>
   <div class="stat-card green">
     <div class="stat-icon">💰</div>
-    <div class="stat-value" style="font-size:1.4rem;">${{ monthly_revenue|floatformat:0 }}</div>
+    <div class="stat-value" style="font-size:1.4rem;">₹{{ monthly_revenue|floatformat:0 }}</div>
     <div class="stat-label">Monthly Revenue</div>
   </div>
 </div>
@@ -153,7 +153,7 @@
           <tr>
             <td><a href="{% url 'invoice_detail' inv.pk %}" class="text-accent text-mono">{{ inv.invoice_number }}</a></td>
             <td>{{ inv.job_card.vehicle.customer.name }}</td>
-            <td class="text-mono">${{ inv.total_amount|floatformat:2 }}</td>
+            <td class="text-mono">₹{{ inv.total_amount|floatformat:2 }}</td>
             <td><span class="badge badge-{{ inv.status }}">{{ inv.get_status_display }}</span></td>
           </tr>
           {% empty %}

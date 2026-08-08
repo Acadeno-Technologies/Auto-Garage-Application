@@ -13,7 +13,7 @@
       <div class="job-meta-item"><div class="job-meta-label">Job #</div><div class="job-meta-value text-mono text-accent">{{ job.job_number }}</div></div>
       <div class="job-meta-item"><div class="job-meta-label">Vehicle</div><div class="job-meta-value">{{ job.vehicle.make }} {{ job.vehicle.model }}</div></div>
       <div class="job-meta-item"><div class="job-meta-label">Customer</div><div class="job-meta-value">{{ job.vehicle.customer.name }}</div></div>
-      <div class="job-meta-item"><div class="job-meta-label">Estimated Total</div><div class="job-meta-value text-green text-mono">${{ job.total_cost }}</div></div>
+      <div class="job-meta-item"><div class="job-meta-label">Estimated Total</div><div class="job-meta-value text-green text-mono">₹{{ job.total_cost }}</div></div>
     </div>
   </div>
   {% endif %}

@@ -12,9 +12,9 @@
         <td class="text-mono text-accent">{{ inv.invoice_number }}</td>
         <td>{{ inv.job_card.vehicle.customer.name }}</td>
         <td class="text-mono"><a href="{% url 'job_detail' inv.job_card.pk %}" style="color:var(--teal);">{{ inv.job_card.job_number }}</a></td>
-        <td class="text-mono">${{ inv.total_amount|floatformat:2 }}</td>
-        <td class="text-mono text-green">${{ inv.amount_paid|floatformat:2 }}</td>
-        <td class="text-mono {% if inv.balance_due > 0 %}text-red{% else %}text-green{% endif %}">${{ inv.balance_due|floatformat:2 }}</td>
+        <td class="text-mono">₹{{ inv.total_amount|floatformat:2 }}</td>
+        <td class="text-mono text-green">₹{{ inv.amount_paid|floatformat:2 }}</td>
+        <td class="text-mono {% if inv.balance_due > 0 %}text-red{% else %}text-green{% endif %}">₹{{ inv.balance_due|floatformat:2 }}</td>
         <td><span class="badge badge-{{ inv.status }}">{{ inv.get_status_display }}</span></td>
         <td>
           <a href="{% url 'invoice_detail' inv.pk %}" class="btn btn-secondary btn-sm">View</a>
