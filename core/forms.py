@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models import Q
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 from .models import (
@@ -186,7 +187,11 @@ class JobCardForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        mechanics = User.objects.filter(profile__role='mechanic')
+        mechanics = User.objects.filter(
+            Q(profile__role='mechanic') | Q(is_staff=True) | Q(profile__role='owner')
+        ).distinct()
+        if not mechanics.exists():
+            mechanics = User.objects.all()
         self.fields['mechanic'].queryset = mechanics
         self.fields['mechanic'].required = False
         
@@ -215,9 +220,10 @@ class JobCardPhotoForm(forms.ModelForm):
 class JobStatusForm(forms.ModelForm):
     class Meta:
         model = JobCard
-        fields = ['status', 'estimated_completion_time', 'repair_instructions', 'notes']
+        fields = ['status', 'mechanic', 'estimated_completion_time', 'repair_instructions', 'notes']
         widgets = {
             'status': forms.Select(attrs={'class': 'form-input'}),
+            'mechanic': forms.Select(attrs={'class': 'form-input'}),
             'estimated_completion_time': forms.DateTimeInput(attrs={'class': 'form-input', 'type': 'datetime-local'}),
             'repair_instructions': forms.Textarea(attrs={'class': 'form-input', 'rows': 3}),
             'notes': forms.Textarea(attrs={'class': 'form-input', 'rows': 2}),
@@ -225,6 +231,14 @@ class JobStatusForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        mechanics = User.objects.filter(
+            Q(profile__role='mechanic') | Q(is_staff=True) | Q(profile__role='owner')
+        ).distinct()
+        if not mechanics.exists():
+            mechanics = User.objects.all()
+        self.fields['mechanic'].queryset = mechanics
+        self.fields['mechanic'].required = False
+        self.fields['mechanic'].label = "Assign Mechanic"
         if self.instance and self.instance.estimated_completion_time:
             self.initial['estimated_completion_time'] = self.instance.estimated_completion_time.strftime('%Y-%m-%dT%H:%M')
 
