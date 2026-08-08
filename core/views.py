@@ -761,17 +761,31 @@ def parts_list(request):
     all_parts = SparePart.objects.select_related('category', 'supplier').all()
     parts = all_parts
     if q:
-        parts = parts.filter(Q(name__icontains=q) | Q(part_number__icontains=q) | Q(category__name__icontains=q))
+        parts = parts.filter(
+            Q(name__icontains=q) |
+            Q(part_number__icontains=q) |
+            Q(category__name__icontains=q) |
+            Q(supplier__name__icontains=q)
+        )
     if cat_id:
         parts = parts.filter(category_id=cat_id)
 
     categories = PartCategory.objects.annotate(parts_count=Count('sparepart')).all()
     suppliers = Supplier.objects.annotate(parts_count=Count('sparepart')).all()
 
+    if q:
+        categories = categories.filter(Q(name__icontains=q) | Q(description__icontains=q))
+        suppliers = suppliers.filter(
+            Q(name__icontains=q) |
+            Q(contact_person__icontains=q) |
+            Q(phone__icontains=q) |
+            Q(email__icontains=q)
+        )
+
     total_parts_count = all_parts.count()
     low_stock_count = sum(1 for p in all_parts if p.is_low_stock)
-    total_categories_count = categories.count()
-    total_suppliers_count = suppliers.count()
+    total_categories_count = PartCategory.objects.count()
+    total_suppliers_count = Supplier.objects.count()
 
     return render(request, 'core/parts_list.html', {
         'parts': parts,
