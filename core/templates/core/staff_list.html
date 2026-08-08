@@ -4,46 +4,210 @@
 {% block topbar_actions %}<a href="{% url 'staff_create' %}" class="btn btn-primary">+ Add Staff</a>{% endblock %}
 {% block content %}
 
-<!-- Role Name Customization Card for Owner -->
-<div class="card mb-4" style="border:1px solid var(--border); border-radius:12px; padding:1.25rem; margin-bottom:1.5rem !important;">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+<style>
+.role-settings-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.025);
+  margin-bottom: 1.5rem !important;
+}
+
+.role-settings-header {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.role-settings-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #fff7ed;
+  color: #ea580c;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.role-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 1024px) {
+  .role-fields-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .role-fields-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.role-mini-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.role-mini-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.role-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.role-circle-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.role-card-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.save-button-wrapper {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 640px) {
+  .save-button-wrapper button {
+    width: 100%;
+  }
+}
+
+.btn-save-role-names {
+  background: #ea580c;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-save-role-names:hover {
+  background: #c2410c;
+}
+</style>
+
+<!-- Role Name Customization Section (UI-only Redesign) -->
+<div class="role-settings-card">
+  <div class="role-settings-header">
+    <div class="role-settings-icon-box">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 20h9"></path>
+        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+      </svg>
+    </div>
     <div>
-      <h3 style="margin:0; font-size:1.05rem; font-weight:700; color:var(--text-1);">✏️ Customize Default System Role Names</h3>
-      <p class="text-muted" style="margin:0.2rem 0 0 0; font-size:0.83rem;">
+      <h2 style="font-size:1.15rem; font-weight:700; color:#1e293b; margin:0;">Customize Default System Role Names</h2>
+      <p style="margin:0.15rem 0 0 0; font-size:0.83rem; color:#64748b;">
         Rename default system roles to match your garage's internal designations.
       </p>
     </div>
   </div>
 
-  <form method="post" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; align-items:end;">
+  <form method="post">
     {% csrf_token %}
     <input type="hidden" name="update_role_names" value="1">
     
-    <div>
-      <label style="font-size:0.8rem; font-weight:700; color:var(--text-2); text-transform:uppercase; margin-bottom:0.3rem; display:block;">Service Advisor Name</label>
-      <input type="text" name="role_name_advisor" value="{{ custom_roles.advisor.display_name|default:'Service Advisor' }}" class="form-input" placeholder="e.g. Front Desk Manager">
+    <!-- 3 Role Fields Grid -->
+    <div class="role-fields-grid">
+      
+      <!-- 1. SERVICE ADVISOR NAME -->
+      <div class="role-mini-card">
+        <div class="role-card-header">
+          <div class="role-circle-icon" style="background:#eff6ff; color:#2563eb;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <div class="role-card-label">SERVICE ADVISOR NAME</div>
+        </div>
+        <input type="text" name="role_name_advisor" value="{{ custom_roles.advisor.display_name|default:'Service Advisor' }}" class="form-input" placeholder="e.g. Front Desk Manager" style="width:100%; border-radius:8px; border:1px solid #cbd5e1; padding:0.55rem 0.8rem; font-size:0.9rem;">
+      </div>
+
+      <!-- 2. MECHANIC NAME -->
+      <div class="role-mini-card">
+        <div class="role-card-header">
+          <div class="role-circle-icon" style="background:#fff7ed; color:#ea580c;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+            </svg>
+          </div>
+          <div class="role-card-label">MECHANIC NAME</div>
+        </div>
+        <input type="text" name="role_name_mechanic" value="{{ custom_roles.mechanic.display_name|default:'Mechanic' }}" class="form-input" placeholder="e.g. Technician" style="width:100%; border-radius:8px; border:1px solid #cbd5e1; padding:0.55rem 0.8rem; font-size:0.9rem;">
+      </div>
+
+      <!-- 3. STORE MANAGER NAME -->
+      <div class="role-mini-card">
+        <div class="role-card-header">
+          <div class="role-circle-icon" style="background:#f3e8ff; color:#9333ea;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
+          </div>
+          <div class="role-card-label">STORE MANAGER NAME</div>
+        </div>
+        <input type="text" name="role_name_store_manager" value="{{ custom_roles.store_manager.display_name|default:'Store Manager' }}" class="form-input" placeholder="e.g. Parts Officer" style="width:100%; border-radius:8px; border:1px solid #cbd5e1; padding:0.55rem 0.8rem; font-size:0.9rem;">
+      </div>
+
     </div>
 
-    <div>
-      <label style="font-size:0.8rem; font-weight:700; color:var(--text-2); text-transform:uppercase; margin-bottom:0.3rem; display:block;">Mechanic Name</label>
-      <input type="text" name="role_name_mechanic" value="{{ custom_roles.mechanic.display_name|default:'Mechanic' }}" class="form-input" placeholder="e.g. Technician">
-    </div>
-
-    <div>
-      <label style="font-size:0.8rem; font-weight:700; color:var(--text-2); text-transform:uppercase; margin-bottom:0.3rem; display:block;">Store Manager Name</label>
-      <input type="text" name="role_name_store_manager" value="{{ custom_roles.store_manager.display_name|default:'Store Manager' }}" class="form-input" placeholder="e.g. Parts Officer">
-    </div>
-
-    <div>
-      <button type="submit" class="btn btn-primary" style="padding:0.6rem 1.2rem; font-weight:600; width:100%;">💾 Save Role Names</button>
+    <!-- Save Button Aligned Bottom-Right -->
+    <div class="save-button-wrapper">
+      <button type="submit" class="btn-save-role-names">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+          <polyline points="7 3 7 8 15 8"></polyline>
+        </svg>
+        Save Role Names
+      </button>
     </div>
   </form>
 </div>
 
 <!-- Staff List Table -->
-<div class="card">
+<div class="card" style="border-radius:14px; border:1px solid #e2e8f0; box-shadow:0 4px 20px rgba(0,0,0,0.025);">
   <div class="card-header flex justify-between items-center" style="padding:1rem 1.25rem;">
-    <span class="card-title">👥 All Staff Members</span>
+    <span class="card-title" style="font-weight:700;">👥 All Staff Members</span>
     <span class="text-muted" style="font-size:0.85rem;">{{ staff.count }} members</span>
   </div>
   <div class="table-wrap">
