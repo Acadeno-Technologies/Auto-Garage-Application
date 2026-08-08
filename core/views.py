@@ -878,13 +878,39 @@ def send_whatsapp_view(request):
                 f"💰 *Total Amount:* ₹{cost:.2f}\n\n"
                 f"Thank you for choosing Auto Garage! Drive safe! 🚘✨"
             )
+        elif job.status == 'delivered':
+            message_text = (
+                f"🚗 *Auto Garage Service Update*\n\n"
+                f"Dear *{recipient_name}*,\n\n"
+                f"Your vehicle *{job.vehicle.make} {job.vehicle.model}* ({job.vehicle.license_plate}) service is *DELIVERED*! 🚘\n\n"
+                f"📋 *Job Card:* {job.job_number}\n\n"
+                f"Thank you for choosing Auto Garage! Have a great drive! ✨"
+            )
+        elif job.status == 'waiting_parts':
+            message_text = (
+                f"🚗 *Auto Garage Service Update*\n\n"
+                f"Dear *{recipient_name}*,\n\n"
+                f"Update on your vehicle *{job.vehicle.make} {job.vehicle.model}* ({job.vehicle.license_plate}):\n\n"
+                f"📋 *Job Card:* {job.job_number}\n"
+                f"📌 *Status:* *WAITING FOR PARTS* 🛠️\n\n"
+                f"We are waiting for required spare parts and will resume work as soon as they arrive. Thank you for your patience! 🚘"
+            )
+        elif job.status == 'in_progress':
+            message_text = (
+                f"🚗 *Auto Garage Service Update*\n\n"
+                f"Dear *{recipient_name}*,\n\n"
+                f"Update on your vehicle *{job.vehicle.make} {job.vehicle.model}* ({job.vehicle.license_plate}):\n\n"
+                f"📋 *Job Card:* {job.job_number}\n"
+                f"📌 *Status:* *IN PROGRESS* 🔧\n\n"
+                f"Our team is actively working on your vehicle service."
+            )
         else:
             message_text = (
                 f"🚗 *Auto Garage Service Update*\n\n"
                 f"Dear *{recipient_name}*,\n\n"
-                f"Here is an update on your vehicle *{job.vehicle.make} {job.vehicle.model}* ({job.vehicle.license_plate}):\n\n"
+                f"Update on your vehicle *{job.vehicle.make} {job.vehicle.model}* ({job.vehicle.license_plate}):\n\n"
                 f"📋 *Job Card:* {job.job_number}\n"
-                f"📌 *Current Status:* *{status_disp}*\n\n"
+                f"📌 *Status:* *{status_disp.upper()}*\n\n"
                 f"We will notify you as soon as the status changes. Thank you for your patience! 🚘"
             )
     elif msg_type == 'amc_reminder':
