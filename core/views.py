@@ -817,6 +817,26 @@ def parts_export_csv(request):
 
 @login_required
 @role_required('owner', 'store_manager')
+def parts_export_pdf(request):
+    q = request.GET.get('q', '').strip()
+    cat_id = request.GET.get('category', '').strip()
+
+    all_parts = SparePart.objects.select_related('category', 'supplier').all()
+    parts = all_parts
+    if q:
+        parts = parts.filter(Q(name__icontains=q) | Q(part_number__icontains=q) | Q(category__name__icontains=q))
+    if cat_id:
+        parts = parts.filter(category_id=cat_id)
+
+    from django.utils import timezone
+    return render(request, 'core/parts_pdf.html', {
+        'parts': parts,
+        'generated_at': timezone.now()
+    })
+
+
+@login_required
+@role_required('owner', 'store_manager')
 def part_create(request):
     form = SparePartForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():

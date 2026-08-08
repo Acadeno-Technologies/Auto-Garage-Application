@@ -50,6 +50,7 @@ urlpatterns = [
     path('parts/<int:pk>/edit/', views.part_edit, name='part_edit'),
     path('parts/<int:pk>/delete/', views.part_delete, name='part_delete'),
     path('parts/export/', views.parts_export_csv, name='parts_export_csv'),
+    path('parts/export/pdf/', views.parts_export_pdf, name='parts_export_pdf'),
     path('parts/stock/', views.stock_transaction, name='stock_transaction'),
 
     # Categories & Suppliers
