@@ -5,7 +5,7 @@
 {% block content %}
 
 <!-- Role Name Customization Card for Owner -->
-<div class="card mb-4" style="border:1px solid var(--border); border-radius:12px; padding:1.25rem;">
+<div class="card mb-4" style="border:1px solid var(--border); border-radius:12px; padding:1.25rem; margin-bottom:1.5rem !important;">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
     <div>
       <h3 style="margin:0; font-size:1.05rem; font-weight:700; color:var(--text-1);">✏️ Customize Default System Role Names</h3>
@@ -56,7 +56,7 @@
           <th>Email</th>
           <th>Phone</th>
           <th>Joined</th>
-          <th style="width:140px;"></th>
+          <th style="width:160px; text-align:right;">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -72,12 +72,14 @@
           <td>{{ profile.user.email|default:"—" }}</td>
           <td class="text-mono">{{ profile.phone|default:"—" }}</td>
           <td class="text-muted">{{ profile.created_at|date:"d M Y" }}</td>
-          <td class="text-right">
-            <a href="{% url 'staff_edit' profile.pk %}" class="btn btn-secondary btn-sm" style="margin-right:0.25rem;">✏️ Edit</a>
-            <form method="post" action="{% url 'staff_delete' profile.pk %}" onsubmit="return confirm('Remove this staff member?');" style="display:inline;">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-danger btn-sm">Remove</button>
-            </form>
+          <td>
+            <div style="display:flex; align-items:center; justify-content:flex-end; gap:0.4rem; white-space:nowrap;">
+              <a href="{% url 'staff_edit' profile.pk %}" class="btn btn-secondary btn-sm" style="padding:0.3rem 0.65rem; font-size:0.8rem;">✏️ Edit</a>
+              <form method="post" action="{% url 'staff_delete' profile.pk %}" onsubmit="return confirm('Remove this staff member?');" style="display:inline; margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm" style="padding:0.3rem 0.65rem; font-size:0.8rem;">Remove</button>
+              </form>
+            </div>
           </td>
         </tr>
         {% empty %}
