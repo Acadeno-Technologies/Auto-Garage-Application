@@ -13,6 +13,7 @@ ROLE_CHOICES = [
     ('advisor', 'Service Advisor'),
     ('mechanic', 'Mechanic'),
     ('store_manager', 'Store Manager'),
+    ('custom', 'Custom Role'),
 ]
 
 class LoginForm(AuthenticationForm):

@@ -62,7 +62,8 @@ def login_view(request):
         role_selected = form.cleaned_data.get("role")
 
         if hasattr(user, "profile"):
-            if user.profile.role != role_selected and user.profile.role != 'custom' and role_selected != 'custom':
+            user_role = user.profile.role
+            if user_role != role_selected and user_role != 'custom' and role_selected != 'custom' and not (user_role == 'mechanic' and role_selected == 'custom'):
                 messages.error(request, "Incorrect role selected.")
                 return render(request, 'core/login.html', {'form': form})
 
