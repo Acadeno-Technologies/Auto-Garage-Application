@@ -40,6 +40,7 @@ urlpatterns = [
     path('jobs/<int:pk>/status/', views.job_update_status, name='job_update_status'),
     path('jobs/<int:pk>/delete/', views.job_delete, name='job_delete'),
     path('jobs/<int:pk>/add-part/', views.job_add_part, name='job_add_part'),
+    path('jobs/<int:pk>/part/<int:usage_pk>/<str:action>/', views.job_update_part_qty, name='job_update_part_qty'),
     path('jobs/<int:pk>/add-photo/', views.job_add_photo, name='job_add_photo'),
     path('jobs/<int:pk>/photo/<int:photo_pk>/delete/', views.job_delete_photo, name='job_delete_photo'),
 

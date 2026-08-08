@@ -605,6 +605,46 @@ def job_add_part(request, pk):
     return redirect('job_detail', pk=pk)
 
 
+@login_required
+@role_required('owner', 'advisor', 'mechanic')
+def job_update_part_qty(request, pk, usage_pk, action):
+    job = get_object_or_404(JobCard, pk=pk)
+    usage = get_object_or_404(JobPartUsage, pk=usage_pk, job_card=job)
+    part = usage.part
+
+    if action == 'increase':
+        if part.stock_quantity >= 1:
+            usage.quantity += 1
+            usage.save()
+            part.stock_quantity -= 1
+            part.save()
+            messages.success(request, f"Increased quantity of '{part.name}' to {usage.quantity}.")
+        else:
+            messages.error(request, f"Cannot increase. Insufficient stock for '{part.name}' (Available stock: {part.stock_quantity}).")
+
+    elif action == 'decrease':
+        if usage.quantity > 1:
+            usage.quantity -= 1
+            usage.save()
+            part.stock_quantity += 1
+            part.save()
+            messages.success(request, f"Decreased quantity of '{part.name}' to {usage.quantity}.")
+        else:
+            # Quantity goes down to 0 -> delete usage & restore stock
+            part.stock_quantity += usage.quantity
+            part.save()
+            usage.delete()
+            messages.success(request, f"Removed '{part.name}' from job card.")
+
+    elif action == 'delete' or request.method == 'POST':
+        part.stock_quantity += usage.quantity
+        part.save()
+        usage.delete()
+        messages.success(request, f"Removed '{part.name}' from job card.")
+
+    return redirect('job_detail', pk=pk)
+
+
 # ─── Mechanic Dashboard ───────────────────────────────────────────────────────
 
 @login_required
