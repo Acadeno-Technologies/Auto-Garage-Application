@@ -12,11 +12,12 @@
       <tr>
         <td>{{ profile.user.get_full_name|default:profile.user.username }}</td>
         <td class="text-mono">{{ profile.user.username }}</td>
-        <td><span class="badge badge-{{ profile.role }}">{{ profile.get_role_display }}</span></td>
+        <td><span class="badge badge-{{ profile.role }}">{{ profile.get_role_display_name }}</span></td>
         <td>{{ profile.user.email|default:"—" }}</td>
         <td class="text-mono">{{ profile.phone|default:"—" }}</td>
         <td class="text-muted">{{ profile.created_at|date:"d M Y" }}</td>
         <td>
+          <a href="{% url 'staff_edit' profile.pk %}" class="btn btn-secondary btn-sm" style="margin-right:0.25rem;">✏️ Edit</a>
           <form method="post" action="{% url 'staff_delete' profile.pk %}" onsubmit="return confirm('Remove this staff member?');" style="display:inline;">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger btn-sm">Remove</button>

@@ -46,13 +46,40 @@ class StaffCreationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-input'}))
     role = forms.ChoiceField(
         choices=[c for c in UserProfile.ROLE_CHOICES if c[0] != 'owner'],
-        widget=forms.Select(attrs={'class': 'form-input'})
+        widget=forms.Select(attrs={'class': 'form-input', 'id': 'id_role_select'})
+    )
+    custom_role = forms.CharField(
+        max_length=50,
+        required=False,
+        label="Custom Role Title (Specify if 'Custom Role' is selected)",
+        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Senior Electrician, Front Desk, Accountant', 'id': 'id_custom_role_input'})
     )
     phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={'class': 'form-input'}))
 
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'username', 'email']
+
+
+class StaffEditForm(forms.ModelForm):
+    first_name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-input'}))
+    last_name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-input'}))
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-input'}))
+    role = forms.ChoiceField(
+        choices=[c for c in UserProfile.ROLE_CHOICES if c[0] != 'owner'],
+        widget=forms.Select(attrs={'class': 'form-input', 'id': 'id_role_select'})
+    )
+    custom_role = forms.CharField(
+        max_length=50,
+        required=False,
+        label="Custom Role Title (Specify if 'Custom Role' is selected)",
+        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Senior Electrician, Front Desk, Accountant', 'id': 'id_custom_role_input'})
+    )
+    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={'class': 'form-input'}))
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
 
 
 class CustomerForm(forms.ModelForm):

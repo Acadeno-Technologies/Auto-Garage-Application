@@ -15,7 +15,7 @@ from .models import (
     AMCPlan, CustomerAMC, AMCServiceSchedule, WhatsAppLog
 )
 from .forms import (
-    LoginForm, StaffCreationForm, CustomerForm, VehicleForm, JobCardForm, JobCardPhotoForm,
+    LoginForm, StaffCreationForm, StaffEditForm, CustomerForm, VehicleForm, JobCardForm, JobCardPhotoForm,
     JobStatusForm, SparePartForm, PartCategoryForm, SupplierForm,
     StockTransactionForm, JobPartUsageForm, InvoiceForm,
     AMCPlanForm, CustomerAMCForm
@@ -171,11 +171,36 @@ def staff_create(request):
         UserProfile.objects.create(
             user=user,
             role=form.cleaned_data['role'],
+            custom_role=form.cleaned_data.get('custom_role', ''),
             phone=form.cleaned_data.get('phone', ''),
         )
         messages.success(request, f"Staff member {user.get_full_name()} created successfully.")
         return redirect('staff_list')
     return render(request, 'core/staff_form.html', {'form': form, 'title': 'Add Staff Member'})
+
+
+@login_required
+@role_required('owner')
+def staff_edit(request, pk):
+    profile = get_object_or_404(UserProfile, pk=pk)
+    user = profile.user
+    if request.method == 'POST':
+        form = StaffEditForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            profile.role = form.cleaned_data['role']
+            profile.custom_role = form.cleaned_data.get('custom_role', '')
+            profile.phone = form.cleaned_data.get('phone', '')
+            profile.save()
+            messages.success(request, f"Staff member {user.get_full_name() or user.username} updated successfully.")
+            return redirect('staff_list')
+    else:
+        form = StaffEditForm(instance=user, initial={
+            'role': profile.role,
+            'custom_role': profile.custom_role,
+            'phone': profile.phone,
+        })
+    return render(request, 'core/staff_form.html', {'form': form, 'title': f'Edit Staff Member: {user.get_full_name() or user.username}'})
 
 
 @login_required

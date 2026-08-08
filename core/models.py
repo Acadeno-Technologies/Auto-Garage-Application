@@ -10,14 +10,22 @@ class UserProfile(models.Model):
         ('advisor', 'Service Advisor'),
         ('mechanic', 'Mechanic'),
         ('store_manager', 'Store Manager'),
+        ('custom', 'Custom Role'),
     ]
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    role = models.CharField(max_length=50, choices=ROLE_CHOICES, default='mechanic')
+    custom_role = models.CharField(max_length=50, blank=True, null=True, verbose_name="Custom Role Title")
     phone = models.CharField(max_length=20, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def get_role_display_name(self):
+        if self.role == 'custom' and self.custom_role:
+            return self.custom_role
+        d = dict(self.ROLE_CHOICES)
+        return d.get(self.role, self.role.title())
+
     def __str__(self):
-        return f"{self.user.get_full_name() or self.user.username} ({self.get_role_display()})"
+        return f"{self.user.get_full_name() or self.user.username} ({self.get_role_display_name()})"
 
 
 class Customer(models.Model):
