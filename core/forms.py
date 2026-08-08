@@ -341,9 +341,14 @@ class JobPartUsageForm(forms.ModelForm):
         fields = ['part', 'quantity', 'unit_price']
         widgets = {
             'part': forms.Select(attrs={'class': 'form-input'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-input'}),
-            'unit_price': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-input', 'value': 1}),
+            'unit_price': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01', 'placeholder': 'Auto-filled from inventory'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['unit_price'].required = False
+        self.fields['unit_price'].label = "Unit Price ($) - Optional"
 
 
 class InvoiceForm(forms.ModelForm):

@@ -596,12 +596,14 @@ def job_add_part(request, pk):
         if form.is_valid():
             usage = form.save(commit=False)
             usage.job_card = job
+            if not usage.unit_price:
+                usage.unit_price = usage.part.unit_price
             usage.save()
             # Deduct from stock
             part = usage.part
             part.stock_quantity = max(0, part.stock_quantity - usage.quantity)
             part.save()
-            messages.success(request, f"Part '{part.name}' added to job.")
+            messages.success(request, f"Part '{part.name}' added to job (${usage.unit_price} each).")
     return redirect('job_detail', pk=pk)
 
 
