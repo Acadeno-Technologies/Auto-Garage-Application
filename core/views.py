@@ -32,7 +32,7 @@ def role_required(*roles):
                 return redirect('login')
             try:
                 profile = request.user.profile
-                if profile.role in roles or request.user.is_superuser:
+                if profile.role in roles or ('mechanic' in roles and profile.role == 'custom') or request.user.is_superuser:
                     return view_func(request, *args, **kwargs)
             except UserProfile.DoesNotExist:
                 if request.user.is_superuser:
@@ -62,7 +62,7 @@ def login_view(request):
         role_selected = form.cleaned_data.get("role")
 
         if hasattr(user, "profile"):
-            if user.profile.role != role_selected:
+            if user.profile.role != role_selected and user.profile.role != 'custom' and role_selected != 'custom':
                 messages.error(request, "Incorrect role selected.")
                 return render(request, 'core/login.html', {'form': form})
 
@@ -89,11 +89,11 @@ def dashboard(request):
         return redirect('owner_dashboard')
     elif role == 'advisor':
         return redirect('advisor_dashboard')
-    elif role == 'mechanic':
+    elif role in ['mechanic', 'custom']:
         return redirect('mechanic_dashboard')
     elif role == 'store_manager':
         return redirect('store_dashboard')
-    return render(request, 'core/dashboard_base.html')
+    return redirect('mechanic_dashboard')
 
 
 # ─── Owner Dashboard ─────────────────────────────────────────────────────────
@@ -120,7 +120,7 @@ def owner_dashboard(request):
     low_stock_list = SparePart.objects.filter(stock_quantity__lte=5).order_by('stock_quantity')[:5]
     recent_invoices = Invoice.objects.select_related('job_card__vehicle__customer').order_by('-id')[:5]
 
-    mechanics = User.objects.filter(profile__role='mechanic')
+    mechanics = User.objects.filter(Q(profile__role='mechanic') | Q(profile__role='custom'))
     mechanic_stats = []
     for m in mechanics:
         count = JobCard.objects.filter(mechanic=m, status='completed').count()
@@ -152,8 +152,27 @@ def models_low_stock():
 @login_required
 @role_required('owner')
 def staff_list(request):
+    if request.method == 'POST' and 'update_role_names' in request.POST:
+        for key in ['advisor', 'mechanic', 'store_manager']:
+            val = request.POST.get(f'role_name_{key}', '').strip()
+            if val:
+                RoleCustomization.objects.update_or_create(
+                    role_key=key,
+                    defaults={'display_name': val}
+                )
+        messages.success(request, "Role display names updated successfully.")
+        return redirect('staff_list')
+
     staff = UserProfile.objects.select_related('user').exclude(role='owner')
-    return render(request, 'core/staff_list.html', {'staff': staff})
+    custom_roles = {
+        'advisor': RoleCustomization.objects.filter(role_key='advisor').first(),
+        'mechanic': RoleCustomization.objects.filter(role_key='mechanic').first(),
+        'store_manager': RoleCustomization.objects.filter(role_key='store_manager').first(),
+    }
+    return render(request, 'core/staff_list.html', {
+        'staff': staff,
+        'custom_roles': custom_roles
+    })
 
 
 @login_required

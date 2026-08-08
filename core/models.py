@@ -4,6 +4,14 @@ from django.utils import timezone
 from decimal import Decimal
 
 
+class RoleCustomization(models.Model):
+    role_key = models.CharField(max_length=50, unique=True)
+    display_name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.role_key} -> {self.display_name}"
+
+
 class UserProfile(models.Model):
     ROLE_CHOICES = [
         ('owner', 'Owner'),
@@ -21,8 +29,21 @@ class UserProfile(models.Model):
     def get_role_display_name(self):
         if self.role == 'custom' and self.custom_role:
             return self.custom_role
-        d = dict(self.ROLE_CHOICES)
-        return d.get(self.role, self.role.title())
+        default_names = {
+            'owner': 'Owner',
+            'advisor': 'Service Advisor',
+            'mechanic': 'Mechanic',
+            'store_manager': 'Store Manager',
+            'custom': 'Custom Role',
+        }
+        def_name = default_names.get(self.role, self.role.title())
+        try:
+            rc = RoleCustomization.objects.filter(role_key=self.role).first()
+            if rc and rc.display_name.strip():
+                return rc.display_name.strip()
+        except Exception:
+            pass
+        return def_name
 
     def __str__(self):
         return f"{self.user.get_full_name() or self.user.username} ({self.get_role_display_name()})"

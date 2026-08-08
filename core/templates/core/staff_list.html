@@ -1,32 +1,90 @@
 {% extends 'core/base.html' %}
-{% block title %}Staff{% endblock %}
+{% block title %}Staff Management{% endblock %}
 {% block page_title %}Staff Management{% endblock %}
 {% block topbar_actions %}<a href="{% url 'staff_create' %}" class="btn btn-primary">+ Add Staff</a>{% endblock %}
 {% block content %}
+
+<!-- Role Name Customization Card for Owner -->
+<div class="card mb-4" style="border:1px solid var(--border); border-radius:12px; padding:1.25rem;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+    <div>
+      <h3 style="margin:0; font-size:1.05rem; font-weight:700; color:var(--text-1);">✏️ Customize Default System Role Names</h3>
+      <p class="text-muted" style="margin:0.2rem 0 0 0; font-size:0.83rem;">
+        Rename default system roles to match your garage's internal designations.
+      </p>
+    </div>
+  </div>
+
+  <form method="post" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; align-items:end;">
+    {% csrf_token %}
+    <input type="hidden" name="update_role_names" value="1">
+    
+    <div>
+      <label style="font-size:0.8rem; font-weight:700; color:var(--text-2); text-transform:uppercase; margin-bottom:0.3rem; display:block;">Service Advisor Name</label>
+      <input type="text" name="role_name_advisor" value="{{ custom_roles.advisor.display_name|default:'Service Advisor' }}" class="form-input" placeholder="e.g. Front Desk Manager">
+    </div>
+
+    <div>
+      <label style="font-size:0.8rem; font-weight:700; color:var(--text-2); text-transform:uppercase; margin-bottom:0.3rem; display:block;">Mechanic Name</label>
+      <input type="text" name="role_name_mechanic" value="{{ custom_roles.mechanic.display_name|default:'Mechanic' }}" class="form-input" placeholder="e.g. Technician">
+    </div>
+
+    <div>
+      <label style="font-size:0.8rem; font-weight:700; color:var(--text-2); text-transform:uppercase; margin-bottom:0.3rem; display:block;">Store Manager Name</label>
+      <input type="text" name="role_name_store_manager" value="{{ custom_roles.store_manager.display_name|default:'Store Manager' }}" class="form-input" placeholder="e.g. Parts Officer">
+    </div>
+
+    <div>
+      <button type="submit" class="btn btn-primary" style="padding:0.6rem 1.2rem; font-weight:600; width:100%;">💾 Save Role Names</button>
+    </div>
+  </form>
+</div>
+
+<!-- Staff List Table -->
 <div class="card">
-  <div class="card-header"><span class="card-title">👥 All Staff Members</span><span class="text-muted">{{ staff.count }} members</span></div>
-  <div class="table-wrap"><table>
-    <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Email</th><th>Phone</th><th>Joined</th><th></th></tr></thead>
-    <tbody>
-      {% for profile in staff %}
-      <tr>
-        <td>{{ profile.user.get_full_name|default:profile.user.username }}</td>
-        <td class="text-mono">{{ profile.user.username }}</td>
-        <td><span class="badge badge-{{ profile.role }}">{{ profile.get_role_display_name }}</span></td>
-        <td>{{ profile.user.email|default:"—" }}</td>
-        <td class="text-mono">{{ profile.phone|default:"—" }}</td>
-        <td class="text-muted">{{ profile.created_at|date:"d M Y" }}</td>
-        <td>
-          <a href="{% url 'staff_edit' profile.pk %}" class="btn btn-secondary btn-sm" style="margin-right:0.25rem;">✏️ Edit</a>
-          <form method="post" action="{% url 'staff_delete' profile.pk %}" onsubmit="return confirm('Remove this staff member?');" style="display:inline;">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
-          </form>
-        </td>
-      </tr>
-      {% empty %}<tr><td colspan="7" class="text-center text-muted">No staff registered yet</td></tr>
-      {% endfor %}
-    </tbody>
-  </table></div>
+  <div class="card-header flex justify-between items-center" style="padding:1rem 1.25rem;">
+    <span class="card-title">👥 All Staff Members</span>
+    <span class="text-muted" style="font-size:0.85rem;">{{ staff.count }} members</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Username</th>
+          <th>Role Title</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Joined</th>
+          <th style="width:140px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for profile in staff %}
+        <tr>
+          <td><strong>{{ profile.user.get_full_name|default:profile.user.username }}</strong></td>
+          <td class="text-mono">{{ profile.user.username }}</td>
+          <td>
+            <span class="badge badge-{{ profile.role }}">
+              {{ profile.get_role_display_name }}
+            </span>
+          </td>
+          <td>{{ profile.user.email|default:"—" }}</td>
+          <td class="text-mono">{{ profile.phone|default:"—" }}</td>
+          <td class="text-muted">{{ profile.created_at|date:"d M Y" }}</td>
+          <td class="text-right">
+            <a href="{% url 'staff_edit' profile.pk %}" class="btn btn-secondary btn-sm" style="margin-right:0.25rem;">✏️ Edit</a>
+            <form method="post" action="{% url 'staff_delete' profile.pk %}" onsubmit="return confirm('Remove this staff member?');" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted p-4">No staff members registered yet. Click "+ Add Staff" above to create team profiles.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 {% endblock %}
