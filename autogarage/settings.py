@@ -18,8 +18,10 @@ CSRF_TRUSTED_ORIGINS = [
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-key')
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 ALLOWED_HOSTS = ['*']
-CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME')
-CLOUDINARY_URL = os.environ.get('CLOUDINARY_URL')
+CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', '').strip()
+CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '').strip()
+CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '').strip()
+CLOUDINARY_URL = os.environ.get('CLOUDINARY_URL', '').strip()
 
 if CLOUDINARY_CLOUD_NAME or CLOUDINARY_URL:
     INSTALLED_APPS = [
@@ -33,12 +35,19 @@ if CLOUDINARY_CLOUD_NAME or CLOUDINARY_URL:
         'cloudinary',
         'core',
     ]
-    if CLOUDINARY_CLOUD_NAME:
+    if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
         CLOUDINARY_STORAGE = {
-            'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
-            'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
-            'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
+            'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+            'API_KEY': CLOUDINARY_API_KEY,
+            'API_SECRET': CLOUDINARY_API_SECRET,
         }
+        import cloudinary
+        cloudinary.config(
+            cloud_name=CLOUDINARY_CLOUD_NAME,
+            api_key=CLOUDINARY_API_KEY,
+            api_secret=CLOUDINARY_API_SECRET,
+            secure=True
+        )
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     STORAGES = {
         "default": {

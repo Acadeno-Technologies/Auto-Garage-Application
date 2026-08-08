@@ -273,9 +273,17 @@ def vehicle_list(request):
 def vehicle_create(request):
     form = VehicleForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and form.is_valid():
-        vehicle = form.save()
-        messages.success(request, f"Vehicle '{vehicle.license_plate}' added successfully.")
-        return redirect('vehicle_detail', pk=vehicle.pk)
+        try:
+            vehicle = form.save()
+            messages.success(request, f"Vehicle '{vehicle.license_plate}' added successfully.")
+            return redirect('vehicle_detail', pk=vehicle.pk)
+        except Exception as e:
+            messages.warning(request, f"Vehicle details saved, but photo upload encountered an issue: {e}")
+            # Try saving without image if upload failed
+            vehicle = form.save(commit=False)
+            vehicle.image = None
+            vehicle.save()
+            return redirect('vehicle_detail', pk=vehicle.pk)
     return render(request, 'core/vehicle_form.html', {'form': form, 'title': 'Add Vehicle'})
 
 
@@ -285,9 +293,18 @@ def vehicle_edit(request, pk):
     vehicle = get_object_or_404(Vehicle, pk=pk)
     form = VehicleForm(request.POST or None, request.FILES or None, instance=vehicle)
     if request.method == 'POST' and form.is_valid():
-        form.save()
-        messages.success(request, f"Vehicle '{vehicle.license_plate}' updated successfully.")
-        return redirect('vehicle_detail', pk=pk)
+        try:
+            form.save()
+            messages.success(request, f"Vehicle '{vehicle.license_plate}' updated successfully.")
+            return redirect('vehicle_detail', pk=pk)
+        except Exception as e:
+            messages.warning(request, f"Vehicle saved, but photo upload failed (Cloudinary credentials error): {e}")
+            # Save non-file changes if image upload fails
+            vehicle_obj = form.save(commit=False)
+            if 'image' in form.changed_data:
+                vehicle_obj.image = vehicle.image # keep previous
+            vehicle_obj.save()
+            return redirect('vehicle_detail', pk=pk)
     return render(request, 'core/vehicle_form.html', {'form': form, 'title': 'Edit Vehicle', 'vehicle': vehicle})
 
 
