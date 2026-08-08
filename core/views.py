@@ -752,14 +752,18 @@ def store_dashboard(request):
 @login_required
 @role_required('owner', 'store_manager')
 def parts_list(request):
-    q = request.GET.get('q', '')
+    q = request.GET.get('q', '').strip()
+    cat_id = request.GET.get('category', '').strip()
+
     all_parts = SparePart.objects.select_related('category', 'supplier').all()
     parts = all_parts
     if q:
-        parts = parts.filter(Q(name__icontains=q) | Q(part_number__icontains=q))
+        parts = parts.filter(Q(name__icontains=q) | Q(part_number__icontains=q) | Q(category__name__icontains=q))
+    if cat_id:
+        parts = parts.filter(category_id=cat_id)
 
-    categories = PartCategory.objects.all()
-    suppliers = Supplier.objects.all()
+    categories = PartCategory.objects.annotate(parts_count=Count('sparepart')).all()
+    suppliers = Supplier.objects.annotate(parts_count=Count('sparepart')).all()
 
     total_parts_count = all_parts.count()
     low_stock_count = sum(1 for p in all_parts if p.is_low_stock)
@@ -769,6 +773,7 @@ def parts_list(request):
     return render(request, 'core/parts_list.html', {
         'parts': parts,
         'q': q,
+        'selected_category': cat_id,
         'categories': categories,
         'suppliers': suppliers,
         'total_parts_count': total_parts_count,
@@ -776,6 +781,35 @@ def parts_list(request):
         'total_categories_count': total_categories_count,
         'total_suppliers_count': total_suppliers_count,
     })
+
+
+@login_required
+@role_required('owner', 'store_manager')
+def part_delete(request, pk):
+    part = get_object_or_404(SparePart, pk=pk)
+    if request.method == 'POST':
+        name = part.name
+        part.delete()
+        messages.success(request, f"Spare part '{name}' deleted.")
+    return redirect('parts_list')
+
+
+@login_required
+@role_required('owner', 'store_manager')
+def parts_export_csv(request):
+    import csv
+    from django.http import HttpResponse
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="inventory_parts_export.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['Name', 'Part Number', 'Category', 'Unit Price', 'Stock Quantity', 'Minimum Stock', 'Supplier'])
+    for p in SparePart.objects.select_related('category', 'supplier').all():
+        writer.writerow([
+            p.name, p.part_number, p.category.name if p.category else '',
+            p.unit_price, p.stock_quantity, p.minimum_stock,
+            p.supplier.name if p.supplier else ''
+        ])
+    return response
 
 
 @login_required
@@ -835,8 +869,7 @@ def stock_transaction(request):
 @login_required
 @role_required('owner', 'store_manager')
 def category_list(request):
-    cats = PartCategory.objects.all()
-    return render(request, 'core/category_list.html', {'categories': cats})
+    return redirect('parts_list')
 
 
 @login_required

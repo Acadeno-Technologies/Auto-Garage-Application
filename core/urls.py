@@ -48,13 +48,19 @@ urlpatterns = [
     path('parts/', views.parts_list, name='parts_list'),
     path('parts/add/', views.part_create, name='part_create'),
     path('parts/<int:pk>/edit/', views.part_edit, name='part_edit'),
+    path('parts/<int:pk>/delete/', views.part_delete, name='part_delete'),
+    path('parts/export/', views.parts_export_csv, name='parts_export_csv'),
     path('parts/stock/', views.stock_transaction, name='stock_transaction'),
 
     # Categories & Suppliers
     path('categories/', views.category_list, name='category_list'),
     path('categories/add/', views.category_create, name='category_create'),
+    path('categories/<int:pk>/edit/', views.category_edit, name='category_edit'),
+    path('categories/<int:pk>/delete/', views.category_delete, name='category_delete'),
     path('suppliers/', views.supplier_list, name='supplier_list'),
     path('suppliers/add/', views.supplier_create, name='supplier_create'),
+    path('suppliers/<int:pk>/edit/', views.supplier_edit, name='supplier_edit'),
+    path('suppliers/<int:pk>/delete/', views.supplier_delete, name='supplier_delete'),
 
     # Invoices
     path('invoices/', views.invoice_list, name='invoice_list'),

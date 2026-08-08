@@ -1,20 +1,26 @@
 {% extends 'core/base.html' %}
 {% block title %}Inventory Management{% endblock %}
-{% block page_title %}<span style="color:#1e293b; font-weight:800;">Inventory Management</span>{% endblock %}
+{% block page_title %}
+<div>
+  <div style="color:#1e293b; font-weight:800; font-size:1.4rem; line-height:1.2;">Inventory Management</div>
+  <div style="color:#64748b; font-size:0.85rem; font-weight:500; margin-top:2px;">Manage spare parts, categories and suppliers</div>
+</div>
+{% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'part_create' %}" class="btn btn-secondary btn-sm" style="border:1px solid #cbd5e1; color:#1e293b; background:#ffffff; font-weight:600; border-radius:8px; padding:0.5rem 1.1rem; text-decoration:none;">
-  + Add Part
+<a href="{% url 'part_create' %}" class="btn btn-secondary btn-sm" style="border:1px solid #cbd5e1; color:#1e293b; background:#ffffff; font-weight:600; border-radius:8px; padding:0.55rem 1.1rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem;">
+  <span style="font-weight:700;">+</span> Add New
 </a>
-<a href="{% url 'stock_transaction' %}" class="btn btn-primary btn-sm" style="background:#ea580c; color:white; border-radius:8px; font-weight:600; padding:0.5rem 1.1rem; border:none; box-shadow:0 3px 10px rgba(234,88,12,0.3); text-decoration:none;">
-  📊 Stock Transaction
+<a href="{% url 'stock_transaction' %}" class="btn btn-primary btn-sm" style="background:#ea580c; color:white; border-radius:8px; font-weight:600; padding:0.55rem 1.1rem; border:none; box-shadow:0 3px 10px rgba(234,88,12,0.3); text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem;">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+  Stock Transaction
 </a>
 {% endblock %}
 
 {% block content %}
 
 <style>
-.inventory-stats-grid {
+.inv-stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1.25rem;
@@ -22,51 +28,212 @@
 }
 
 @media (max-width: 992px) {
-  .inventory-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .inv-stats-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 576px) {
-  .inventory-stats-grid {
-    grid-template-columns: 1fr;
-  }
+  .inv-stats-grid { grid-template-columns: 1fr; }
 }
 
 .inv-stat-card {
   background: #ffffff;
-  border: 1px solid #e1e5eb;
+  border: 1px solid #e2e8f0;
   border-radius: 14px;
   padding: 1.25rem;
   box-shadow: 0 4px 15px rgba(0,0,0,0.02);
   display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.inv-stat-header {
+  display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .inv-stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
   display: grid;
   place-items: center;
   flex-shrink: 0;
 }
 
 .inv-stat-label {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.2rem;
+  letter-spacing: 0.6px;
 }
 
 .inv-stat-val {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 800;
-  color: #1e293b;
+  color: #0f172a;
   line-height: 1;
+  margin-bottom: 0.35rem;
+}
+
+.inv-stat-subtext {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.inv-search-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+  margin-bottom: 1.5rem !important;
+}
+
+.inv-search-form {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.inv-search-input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 260px;
+}
+
+.inv-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.inv-search-input {
+  width: 100%;
+  padding-left: 38px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  height: 42px;
+  font-size: 0.9rem;
+  background: #ffffff;
+}
+
+.inv-search-select {
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  height: 42px;
+  padding: 0 1rem;
+  font-size: 0.88rem;
+  color: #334155;
+  background: #ffffff;
+  min-width: 170px;
+}
+
+.inv-btn-secondary {
+  height: 42px;
+  padding: 0 1.1rem;
+  border-radius: 10px;
+  font-weight: 600;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.88rem;
+}
+
+.inv-btn-secondary:hover {
+  background: #f8fafc;
+}
+
+.action-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-left: 0.25rem;
+  text-decoration: none;
+}
+
+.action-icon-btn.edit-btn:hover {
+  border-color: #cbd5e1;
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.action-icon-btn.delete-btn:hover {
+  border-color: #fca5a5;
+  color: #ef4444;
+  background: #fef2f2;
+}
+
+.pagination-bar {
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.page-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.page-btn.active {
+  background: #ea580c;
+  color: #ffffff;
+  border-color: #ea580c;
+}
+
+.page-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.per-page-select {
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.82rem;
+  color: #475569;
+  background: #ffffff;
 }
 
 .bottom-sections-grid {
@@ -74,89 +241,140 @@
   grid-template-columns: 1fr 1fr;
   gap: 1.25rem;
   margin-top: 1.5rem !important;
+  margin-bottom: 1.5rem !important;
 }
 
-@media (max-width: 900px) {
-  .bottom-sections-grid {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 992px) {
+  .bottom-sections-grid { grid-template-columns: 1fr; }
+}
+
+.part-thumb-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  display: grid;
+  place-items: center;
+  color: #64748b;
+  flex-shrink: 0;
 }
 </style>
 
 <!-- 1. Top Summary Stats Grid -->
-<div class="inventory-stats-grid">
+<div class="inv-stats-grid">
   <!-- Total Parts -->
   <div class="inv-stat-card">
-    <div class="inv-stat-icon" style="background:#eff6ff; color:#2563eb;">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+    <div class="inv-stat-header">
+      <div class="inv-stat-icon" style="background:#eff6ff; color:#2563eb;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+      </div>
+      <div class="inv-stat-label">Total Parts</div>
     </div>
     <div>
-      <div class="inv-stat-label">Total Parts</div>
       <div class="inv-stat-val">{{ total_parts_count }}</div>
+      <div class="inv-stat-subtext">All parts in inventory</div>
     </div>
   </div>
 
   <!-- Low Stock -->
   <div class="inv-stat-card">
-    <div class="inv-stat-icon" style="background:#fef2f2; color:#ef4444;">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"></path></svg>
+    <div class="inv-stat-header">
+      <div class="inv-stat-icon" style="background:#fef2f2; color:#ef4444;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"></path></svg>
+      </div>
+      <div class="inv-stat-label">Low Stock</div>
     </div>
     <div>
-      <div class="inv-stat-label">Low Stock</div>
       <div class="inv-stat-val" style="color:#ef4444;">{{ low_stock_count }}</div>
+      <div class="inv-stat-subtext">Reorder required</div>
     </div>
   </div>
 
   <!-- Categories -->
   <div class="inv-stat-card">
-    <div class="inv-stat-icon" style="background:#f3e8ff; color:#9333ea;">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+    <div class="inv-stat-header">
+      <div class="inv-stat-icon" style="background:#f3e8ff; color:#9333ea;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+      </div>
+      <div class="inv-stat-label">Categories</div>
     </div>
     <div>
-      <div class="inv-stat-label">Categories</div>
       <div class="inv-stat-val">{{ total_categories_count }}</div>
+      <div class="inv-stat-subtext">Part categories</div>
     </div>
   </div>
 
   <!-- Suppliers -->
   <div class="inv-stat-card">
-    <div class="inv-stat-icon" style="background:#f0fdf4; color:#16a34a;">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+    <div class="inv-stat-header">
+      <div class="inv-stat-icon" style="background:#f0fdf4; color:#16a34a;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+      </div>
+      <div class="inv-stat-label">Suppliers</div>
     </div>
     <div>
-      <div class="inv-stat-label">Suppliers</div>
       <div class="inv-stat-val">{{ total_suppliers_count }}</div>
+      <div class="inv-stat-subtext">Active suppliers</div>
     </div>
   </div>
 </div>
 
-<!-- 2. Spare Parts Section (Primary / Largest) -->
-<div class="card mb-4" style="border-radius:14px; border:1px solid #e1e5eb; box-shadow:0 4px 15px rgba(0,0,0,0.02);">
-  <!-- Search Bar -->
-  <div style="padding:1rem 1.25rem; border-bottom:1px solid #e1e5eb; background:#ffffff; border-top-left-radius:14px; border-top-right-radius:14px;">
-    <form method="get" style="display:flex; gap:0.75rem; align-items:center;">
-      <div style="position:relative; flex:1; max-width:360px;">
-        <div style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#64748b; pointer-events:none;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        </div>
-        <input type="text" name="q" value="{{ q }}" class="form-input" style="padding-left:36px; border-radius:8px; border:1px solid #cbd5e1; height:38px; font-size:0.9rem;" placeholder="Search parts...">
+<!-- 2. Search & Filter Bar Card -->
+<div class="inv-search-card">
+  <form method="get" action="{% url 'parts_list' %}" class="inv-search-form">
+    <div class="inv-search-input-wrap">
+      <div class="inv-search-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
       </div>
-      <button type="submit" class="btn btn-secondary" style="height:38px; padding:0 1.2rem; border-radius:8px; font-weight:600; border:1px solid #cbd5e1;">Search</button>
-      {% if q %}
-      <a href="{% url 'parts_list' %}" class="btn btn-secondary" style="height:38px; padding:0 1rem; border-radius:8px; font-weight:600; border:1px solid #cbd5e1; display:inline-flex; align-items:center;">Clear</a>
-      {% endif %}
-    </form>
-  </div>
-
-  <div class="card-header" style="padding:1rem 1.25rem; border-bottom:1px solid #e1e5eb; display:flex; justify-content:flex-start !important; align-items:center; gap:0.6rem; background:#ffffff;">
-    <div style="width:32px; height:32px; border-radius:8px; background:#eff6ff; color:#2563eb; display:grid; place-items:center; flex-shrink:0;">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      <input type="text" name="q" value="{{ q }}" class="inv-search-input" placeholder="Search parts by name, part number or category...">
     </div>
-    <span class="card-title" style="font-weight:700; color:#1e293b; font-size:1.05rem; margin:0;">All Spare Parts</span>
+
+    <select name="category" class="inv-search-select" onchange="this.form.submit()">
+      <option value="">All Categories</option>
+      {% for cat in categories %}
+      <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit" class="inv-btn-secondary">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+      Filters
+      <span style="background:#e2e8f0; color:#334155; border-radius:10px; padding:0.15rem 0.5rem; font-size:0.75rem; font-weight:700;">{% if q or selected_category %}1{% else %}0{% endif %}</span>
+    </button>
+
+    <a href="{% url 'parts_list' %}" class="inv-btn-secondary" title="Reset Filters">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+    </a>
+  </form>
+</div>
+
+<!-- 3. Spare Parts Section (Primary / Largest Card) -->
+<div class="card mb-4" style="border-radius:14px; border:1px solid #e2e8f0; box-shadow:0 4px 15px rgba(0,0,0,0.02);">
+  <div class="card-header flex justify-between items-center" style="padding:1rem 1.25rem; border-bottom:1px solid #e2e8f0; background:#ffffff; border-top-left-radius:14px; border-top-right-radius:14px; flex-wrap:wrap; gap:0.75rem;">
+    <div style="display:flex; align-items:center; gap:0.6rem;">
+      <div style="width:32px; height:32px; border-radius:8px; background:#eff6ff; color:#2563eb; display:grid; place-items:center; flex-shrink:0;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </div>
+      <span class="card-title" style="font-weight:700; color:#1e293b; font-size:1.05rem; margin:0;">All Spare Parts</span>
+    </div>
+
+    <div style="display:flex; gap:0.5rem; align-items:center;">
+      <a href="{% url 'parts_export_csv' %}" class="inv-btn-secondary" style="height:36px; padding:0 0.85rem; font-size:0.82rem; text-decoration:none;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Export
+      </a>
+      <a href="{% url 'part_create' %}" class="inv-btn-secondary" style="height:36px; padding:0 0.85rem; font-size:0.82rem; text-decoration:none;">
+        + Add Part
+      </a>
+      <a href="{% url 'stock_transaction' %}" class="btn btn-primary btn-sm" style="background:#ea580c; color:white; border-radius:8px; font-weight:600; padding:0.45rem 0.95rem; border:none; height:36px; display:inline-flex; align-items:center; text-decoration:none; font-size:0.82rem;">
+        Stock Transaction
+      </a>
+    </div>
   </div>
 
   <div class="table-wrap">
-    <table>
+    <table id="parts-table">
       <thead>
         <tr>
           <th>NAME</th>
@@ -166,29 +384,55 @@
           <th>STOCK</th>
           <th>MIN STOCK</th>
           <th>STATUS</th>
-          <th style="width:100px; text-align:right;">ACTIONS</th>
+          <th style="width:90px; text-align:right;">ACTIONS</th>
         </tr>
       </thead>
       <tbody>
         {% for part in parts %}
-        <tr {% if part.is_low_stock %}style="background:#fef2f2;"{% endif %}>
-          <td><strong>{{ part.name }}</strong></td>
-          <td class="text-mono" style="font-size:0.8rem; color:#64748b;">{{ part.part_number }}</td>
-          <td>{{ part.category.name|default:"—" }}</td>
-          <td class="text-mono font-bold" style="color:#1e293b;">₹{{ part.unit_price }}</td>
-          <td class="text-mono {% if part.is_low_stock %}text-red font-bold{% else %}font-bold{% endif %}">{{ part.stock_quantity }}</td>
-          <td class="text-mono text-muted">{{ part.minimum_stock }}</td>
+        <tr class="part-row" {% if part.is_low_stock %}style="background:#fff5f5;"{% endif %}>
+          <td>
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+              <div class="part-thumb-placeholder">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8M8 12h8"></path></svg>
+              </div>
+              <div>
+                <strong style="color:#0f172a; font-size:0.92rem; display:block;">{{ part.name }}</strong>
+                <span style="font-size:0.78rem; color:#64748b;">{{ part.category.name|default:"General" }}</span>
+              </div>
+            </div>
+          </td>
+          <td class="text-mono" style="font-size:0.82rem; color:#64748b;">{{ part.part_number }}</td>
+          <td>
+            <span style="background:#eff6ff; color:#2563eb; font-weight:600; border-radius:8px; padding:0.2rem 0.6rem; font-size:0.78rem; display:inline-block;">
+              {{ part.category.name|default:"—" }}
+            </span>
+          </td>
+          <td class="text-mono font-bold" style="color:#0f172a;">₹{{ part.unit_price }}</td>
+          <td class="text-mono {% if part.is_low_stock %}text-red font-bold{% else %}font-bold{% endif %}" style="color:{% if part.is_low_stock %}#dc2626{% else %}#16a34a{% endif %};">
+            {{ part.stock_quantity }}
+          </td>
+          <td class="text-mono text-muted" style="color:#94a3b8;">{{ part.minimum_stock }}</td>
           <td>
             {% if part.is_low_stock %}
-            <span class="badge" style="background:#fee2e2; color:#dc2626; font-weight:700; border-radius:10px; padding:0.25rem 0.65rem;">● LOW STOCK</span>
+            <span class="badge" style="background:#fee2e2; color:#dc2626; font-weight:700; border-radius:20px; padding:0.25rem 0.75rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
+              ● LOW STOCK
+            </span>
             {% else %}
-            <span class="badge" style="background:#dcfce7; color:#16a34a; font-weight:700; border-radius:10px; padding:0.25rem 0.65rem;">✓ OK</span>
+            <span class="badge" style="background:#dcfce7; color:#16a34a; font-weight:700; border-radius:20px; padding:0.25rem 0.75rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
+              ✓ OK
+            </span>
             {% endif %}
           </td>
-          <td class="text-right">
-            <a href="{% url 'part_edit' part.pk %}" class="btn btn-secondary btn-sm" style="border-radius:6px; border:1px solid #cbd5e1; font-weight:600; padding:0.25rem 0.65rem;">
-              ✏️ Edit
+          <td class="text-right" style="white-space:nowrap;">
+            <a href="{% url 'part_edit' part.pk %}" class="action-icon-btn edit-btn" title="Edit Part">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
             </a>
+            <form method="post" action="{% url 'part_delete' part.pk %}" onsubmit="return confirm('Are you sure you want to delete part {{ part.name }}?');" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="action-icon-btn delete-btn" title="Delete Part">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              </button>
+            </form>
           </td>
         </tr>
         {% empty %}
@@ -197,87 +441,257 @@
       </tbody>
     </table>
   </div>
+
+  <!-- Pagination Bar -->
+  <div class="pagination-bar">
+    <div style="font-size:0.85rem; color:#64748b; font-weight:500;">
+      Showing <span id="parts-start">0</span> to <span id="parts-end">0</span> of <span id="parts-total">{{ parts|length }}</span> parts
+    </div>
+    <div class="pagination-controls">
+      <div style="display:flex; gap:0.25rem;" id="parts-pagination-btns"></div>
+      <select id="parts-per-page" class="per-page-select" onchange="changePerPage('parts', this.value)">
+        <option value="10" selected>10 / page</option>
+        <option value="25">25 / page</option>
+        <option value="50">50 / page</option>
+        <option value="10000">All</option>
+      </select>
+    </div>
+  </div>
 </div>
 
-<!-- 3. Categories + Suppliers (Side-by-Side on Desktop) -->
+<!-- 4. Categories + Suppliers (Side-by-Side Cards) -->
 <div class="bottom-sections-grid">
 
   <!-- Part Categories Card -->
-  <div class="card" style="border-radius:14px; border:1px solid #e1e5eb; box-shadow:0 4px 15px rgba(0,0,0,0.02);">
-    <div class="card-header flex justify-between items-center" style="padding:1rem 1.25rem; border-bottom:1px solid #e1e5eb; background:#ffffff; border-top-left-radius:14px; border-top-right-radius:14px;">
-      <div style="display:flex; align-items:center; gap:0.6rem;">
-        <div style="width:32px; height:32px; border-radius:8px; background:#f3e8ff; color:#9333ea; display:grid; place-items:center;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+  <div class="card" style="border-radius:14px; border:1px solid #e2e8f0; box-shadow:0 4px 15px rgba(0,0,0,0.02); display:flex; flex-direction:column; justify-space-between;">
+    <div>
+      <div class="card-header flex justify-between items-center" style="padding:1rem 1.25rem; border-bottom:1px solid #e2e8f0; background:#ffffff; border-top-left-radius:14px; border-top-right-radius:14px; flex-wrap:wrap; gap:0.5rem;">
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+          <div style="width:32px; height:32px; border-radius:8px; background:#f3e8ff; color:#9333ea; display:grid; place-items:center; flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+          </div>
+          <span class="card-title" style="font-weight:700; color:#1e293b; font-size:1.05rem;">Part Categories</span>
         </div>
-        <span class="card-title" style="font-weight:700; color:#1e293b; font-size:1.05rem;">Part Categories</span>
+        <a href="{% url 'category_create' %}" class="inv-btn-secondary" style="height:34px; padding:0 0.8rem; font-size:0.8rem; text-decoration:none;">
+          + Add Category
+        </a>
       </div>
-      <a href="{% url 'category_create' %}" class="btn btn-primary btn-sm" style="background:#ea580c; border:none; border-radius:8px; padding:0.4rem 0.9rem; font-weight:600; color:white; font-size:0.82rem; text-decoration:none;">
-        + Add Category
-      </a>
+
+      <div class="table-wrap">
+        <table id="cat-table">
+          <thead>
+            <tr>
+              <th>NAME</th>
+              <th>DESCRIPTION</th>
+              <th style="width:110px;">PARTS COUNT</th>
+              <th style="width:90px; text-align:right;">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cat in categories %}
+            <tr class="cat-row">
+              <td><strong style="color:#0f172a;">{{ cat.name }}</strong></td>
+              <td style="color:#64748b; font-size:0.85rem;">{{ cat.description|default:"—" }}</td>
+              <td class="text-mono" style="font-size:0.85rem; font-weight:600; color:#64748b;">{{ cat.parts_count|default:0 }}</td>
+              <td class="text-right" style="white-space:nowrap;">
+                <a href="{% url 'category_edit' cat.pk %}" class="action-icon-btn edit-btn" title="Edit Category">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </a>
+                <form method="post" action="{% url 'category_delete' cat.pk %}" onsubmit="return confirm('Delete category {{ cat.name }}?');" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="action-icon-btn delete-btn" title="Delete Category">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center text-muted p-4">No categories created yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>NAME</th>
-            <th>DESCRIPTION</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for cat in categories %}
-          <tr>
-            <td><strong>{{ cat.name }}</strong></td>
-            <td style="color:#64748b;">{{ cat.description|default:"—" }}</td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="2" class="text-center text-muted p-4">No categories created yet</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <!-- Category Pagination Bar -->
+    <div class="pagination-bar">
+      <div style="font-size:0.82rem; color:#64748b; font-weight:500;">
+        Showing <span id="cat-start">0</span> to <span id="cat-end">0</span> of <span id="cat-total">{{ categories|length }}</span> categories
+      </div>
+      <div class="pagination-controls">
+        <div style="display:flex; gap:0.25rem;" id="cat-pagination-btns"></div>
+        <select id="cat-per-page" class="per-page-select" onchange="changePerPage('cat', this.value)">
+          <option value="10" selected>10 / page</option>
+          <option value="25">25 / page</option>
+          <option value="10000">All</option>
+        </select>
+      </div>
     </div>
   </div>
 
   <!-- Suppliers Card -->
-  <div class="card" style="border-radius:14px; border:1px solid #e1e5eb; box-shadow:0 4px 15px rgba(0,0,0,0.02);">
-    <div class="card-header flex justify-between items-center" style="padding:1rem 1.25rem; border-bottom:1px solid #e1e5eb; background:#ffffff; border-top-left-radius:14px; border-top-right-radius:14px;">
-      <div style="display:flex; align-items:center; gap:0.6rem;">
-        <div style="width:32px; height:32px; border-radius:8px; background:#f0fdf4; color:#16a34a; display:grid; place-items:center;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+  <div class="card" style="border-radius:14px; border:1px solid #e2e8f0; box-shadow:0 4px 15px rgba(0,0,0,0.02); display:flex; flex-direction:column; justify-space-between;">
+    <div>
+      <div class="card-header flex justify-between items-center" style="padding:1rem 1.25rem; border-bottom:1px solid #e2e8f0; background:#ffffff; border-top-left-radius:14px; border-top-right-radius:14px; flex-wrap:wrap; gap:0.5rem;">
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+          <div style="width:32px; height:32px; border-radius:8px; background:#f0fdf4; color:#16a34a; display:grid; place-items:center; flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </div>
+          <span class="card-title" style="font-weight:700; color:#1e293b; font-size:1.05rem;">Suppliers</span>
         </div>
-        <span class="card-title" style="font-weight:700; color:#1e293b; font-size:1.05rem;">Suppliers</span>
+        <a href="{% url 'supplier_create' %}" class="inv-btn-secondary" style="height:34px; padding:0 0.8rem; font-size:0.8rem; text-decoration:none;">
+          + Add Supplier
+        </a>
       </div>
-      <a href="{% url 'supplier_create' %}" class="btn btn-primary btn-sm" style="background:#ea580c; border:none; border-radius:8px; padding:0.4rem 0.9rem; font-weight:600; color:white; font-size:0.82rem; text-decoration:none;">
-        + Add Supplier
-      </a>
+
+      <div class="table-wrap">
+        <table id="sup-table">
+          <thead>
+            <tr>
+              <th>NAME</th>
+              <th>CONTACT</th>
+              <th>PHONE</th>
+              <th>EMAIL</th>
+              <th style="width:90px; text-align:right;">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sup in suppliers %}
+            <tr class="sup-row">
+              <td><strong style="color:#0f172a;">{{ sup.name }}</strong></td>
+              <td style="color:#64748b; font-size:0.85rem;">{{ sup.contact_person|default:"—" }}</td>
+              <td class="text-mono" style="font-size:0.82rem; color:#475569;">{{ sup.phone|default:"—" }}</td>
+              <td style="font-size:0.82rem; color:#64748b;">{{ sup.email|default:"—" }}</td>
+              <td class="text-right" style="white-space:nowrap;">
+                <a href="{% url 'supplier_edit' sup.pk %}" class="action-icon-btn edit-btn" title="Edit Supplier">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </a>
+                <form method="post" action="{% url 'supplier_delete' sup.pk %}" onsubmit="return confirm('Delete supplier {{ sup.name }}?');" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="action-icon-btn delete-btn" title="Delete Supplier">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted p-4">No suppliers created yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>NAME</th>
-            <th>CONTACT</th>
-            <th>PHONE</th>
-            <th>EMAIL</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for sup in suppliers %}
-          <tr>
-            <td><strong>{{ sup.name }}</strong></td>
-            <td>{{ sup.contact_person|default:"—" }}</td>
-            <td class="text-mono" style="font-size:0.82rem;">{{ sup.phone|default:"—" }}</td>
-            <td style="font-size:0.82rem; color:#64748b;">{{ sup.email|default:"—" }}</td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="4" class="text-center text-muted p-4">No suppliers created yet</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <!-- Supplier Pagination Bar -->
+    <div class="pagination-bar">
+      <div style="font-size:0.82rem; color:#64748b; font-weight:500;">
+        Showing <span id="sup-start">0</span> to <span id="sup-end">0</span> of <span id="sup-total">{{ suppliers|length }}</span> suppliers
+      </div>
+      <div class="pagination-controls">
+        <div style="display:flex; gap:0.25rem;" id="sup-pagination-btns"></div>
+        <select id="sup-per-page" class="per-page-select" onchange="changePerPage('sup', this.value)">
+          <option value="10" selected>10 / page</option>
+          <option value="25">25 / page</option>
+          <option value="10000">All</option>
+        </select>
+      </div>
     </div>
   </div>
 
 </div>
+
+<!-- 5. Informational Card: Inventory Tips -->
+<div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:14px; padding:1rem 1.25rem; display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; color:#0369a1;">
+  <div style="display:flex; align-items:center; gap:0.85rem;">
+    <div style="width:36px; height:36px; border-radius:10px; background:#e0f2fe; color:#0284c7; display:grid; place-items:center; flex-shrink:0;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="18" x2="15" y2="18"></line><line x1="10" y1="22" x2="14" y2="22"></line><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path></svg>
+    </div>
+    <div>
+      <div style="font-weight:700; font-size:0.9rem; margin-bottom:2px;">Inventory Tips</div>
+      <div style="font-size:0.83rem; color:#0369a1;">Keep your inventory updated. Items marked as low stock need immediate attention to avoid service delays.</div>
+    </div>
+  </div>
+  <button onclick="this.parentElement.style.display='none'" style="background:transparent; border:none; color:#0284c7; cursor:pointer; font-size:1.1rem; padding:0.25rem; line-height:1;" title="Dismiss">✕</button>
+</div>
+
+<!-- Fast Client-Side Table Pagination Logic -->
+<script>
+const pagState = {
+  parts: { page: 1, perPage: 10 },
+  cat: { page: 1, perPage: 10 },
+  sup: { page: 1, perPage: 10 }
+};
+
+function renderTablePagination(prefix) {
+  const rows = document.querySelectorAll(`.${prefix}-row`);
+  const total = rows.length;
+  const state = pagState[prefix];
+  const totalPages = Math.ceil(total / state.perPage) || 1;
+
+  if (state.page > totalPages) state.page = totalPages;
+  if (state.page < 1) state.page = 1;
+
+  const startIdx = total === 0 ? 0 : (state.page - 1) * state.perPage + 1;
+  const endIdx = Math.min(state.page * state.perPage, total);
+
+  rows.forEach((row, idx) => {
+    if (idx + 1 >= startIdx && idx + 1 <= endIdx) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+
+  const startElem = document.getElementById(`${prefix}-start`);
+  const endElem = document.getElementById(`${prefix}-end`);
+  const totalElem = document.getElementById(`${prefix}-total`);
+  const btnsWrap = document.getElementById(`${prefix}-pagination-btns`);
+
+  if (startElem) startElem.innerText = startIdx;
+  if (endElem) endElem.innerText = endIdx;
+  if (totalElem) totalElem.innerText = total;
+
+  if (btnsWrap) {
+    btnsWrap.innerHTML = '';
+
+    // Previous Button
+    const prevBtn = document.createElement('button');
+    prevBtn.className = `page-btn ${state.page === 1 ? 'disabled' : ''}`;
+    prevBtn.innerText = '‹';
+    prevBtn.onclick = () => { if (state.page > 1) { state.page--; renderTablePagination(prefix); } };
+    btnsWrap.appendChild(prevBtn);
+
+    // Page Number Buttons
+    for (let p = 1; p <= totalPages; p++) {
+      if (totalPages <= 7 || p === 1 || p === totalPages || Math.abs(p - state.page) <= 1) {
+        const pageBtn = document.createElement('button');
+        pageBtn.className = `page-btn ${p === state.page ? 'active' : ''}`;
+        pageBtn.innerText = p;
+        pageBtn.onclick = () => { state.page = p; renderTablePagination(prefix); };
+        btnsWrap.appendChild(pageBtn);
+      }
+    }
+
+    // Next Button
+    const nextBtn = document.createElement('button');
+    nextBtn.className = `page-btn ${state.page === totalPages || total === 0 ? 'disabled' : ''}`;
+    nextBtn.innerText = '›';
+    nextBtn.onclick = () => { if (state.page < totalPages) { state.page++; renderTablePagination(prefix); } };
+    btnsWrap.appendChild(nextBtn);
+  }
+}
+
+function changePerPage(prefix, val) {
+  pagState[prefix].perPage = parseInt(val) || 10;
+  pagState[prefix].page = 1;
+  renderTablePagination(prefix);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  renderTablePagination('parts');
+  renderTablePagination('cat');
+  renderTablePagination('sup');
+});
+</script>
 
 {% endblock %}
