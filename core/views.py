@@ -436,6 +436,18 @@ def job_create(request):
         if v_color: vehicle.color = v_color
         vehicle.save()
 
+        # Prevent rapid double-click duplicate job creation
+        recent_cutoff = timezone.now() - timedelta(seconds=15)
+        existing_duplicate = JobCard.objects.filter(
+            vehicle=vehicle,
+            problem_description=job.problem_description,
+            created_at__gte=recent_cutoff
+        ).first()
+
+        if existing_duplicate:
+            messages.info(request, f"Job card {existing_duplicate.job_number} was already created.")
+            return redirect('job_detail', pk=existing_duplicate.pk)
+
         job.vehicle = vehicle
         job.advisor = request.user
         job.save()
@@ -561,6 +573,18 @@ def job_update_status(request, pk):
         messages.success(request, f"Job card '{updated_job.job_number}' updated successfully. SMS notification sent to customer ({customer.phone}).")
         return redirect('job_detail', pk=pk)
     return render(request, 'core/job_form.html', {'form': form, 'title': 'Update Job Card & Status', 'job': job})
+
+
+@login_required
+@role_required('owner', 'advisor')
+def job_delete(request, pk):
+    job = get_object_or_404(JobCard, pk=pk)
+    if request.method == 'POST':
+        job_num = job.job_number
+        job.delete()
+        messages.success(request, f"Job card '{job_num}' deleted successfully.")
+        return redirect('job_list')
+    return redirect('job_detail', pk=pk)
 
 
 @login_required

@@ -30,8 +30,16 @@
         <td class="text-muted">{{ job.created_at|date:"d M Y" }}</td>
         <td class="text-muted" style="font-size:0.8rem;">{{ job.estimated_completion_time|date:"d M H:i"|default:"—" }}</td>
         <td>
-          <a href="{% url 'job_detail' job.pk %}" class="btn btn-secondary btn-sm">View</a>
-          <a href="{% url 'job_update_status' job.pk %}" class="btn btn-primary btn-sm">Update</a>
+          <div style="display:flex; align-items:center; gap:0.3rem; white-space:nowrap;">
+            <a href="{% url 'job_detail' job.pk %}" class="btn btn-secondary btn-sm" style="padding:0.3rem 0.6rem; font-size:0.8rem;">View</a>
+            <a href="{% url 'job_update_status' job.pk %}" class="btn btn-primary btn-sm" style="padding:0.3rem 0.6rem; font-size:0.8rem;">Update</a>
+            {% if user.profile.role == 'owner' or user.profile.role == 'advisor' or user.is_superuser %}
+            <form method="post" action="{% url 'job_delete' job.pk %}" onsubmit="return confirm('Delete Job Card {{ job.job_number }}?');" style="display:inline; margin:0;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger btn-sm" style="padding:0.3rem 0.6rem; font-size:0.8rem;">Delete</button>
+            </form>
+            {% endif %}
+          </div>
         </td>
       </tr>
       {% empty %}<tr><td colspan="9" class="text-center text-muted">No job cards found</td></tr>

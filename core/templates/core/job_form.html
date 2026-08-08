@@ -18,7 +18,7 @@
       <span class="text-muted" style="font-size:0.78rem; display:block; margin-top:0.3rem;">Type 2+ characters to search and auto-populate existing customer and vehicle details.</span>
     </div>
 
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" id="job-card-main-form">
       {% csrf_token %}
       {% for field in form %}
       <div class="form-group mb-2">
@@ -46,6 +46,16 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    const mainForm = document.getElementById('job-card-main-form');
+    if (mainForm) {
+      mainForm.addEventListener('submit', function() {
+        const btn = mainForm.querySelector('button[type="submit"]');
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = '⏳ Saving Job Card...';
+        }
+      });
+    }
     // Quick Search & Auto-fill logic
     const searchInput = document.getElementById('quick-search-input');
     const searchResults = document.getElementById('quick-search-results');
