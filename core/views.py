@@ -58,18 +58,21 @@ def login_view(request):
 
     form = LoginForm(request, data=request.POST or None)
 
-    if request.method == 'POST' and form.is_valid():
-        user = form.get_user()
-        role_selected = form.cleaned_data.get("role")
+    if request.method == 'POST':
+        if form.is_valid():
+            user = form.get_user()
+            role_selected = form.cleaned_data.get("role")
 
-        if hasattr(user, "profile"):
-            user_role = user.profile.role
-            if user_role != role_selected and user_role != 'custom' and role_selected != 'custom' and not (user_role == 'mechanic' and role_selected == 'custom'):
-                messages.error(request, "Incorrect role selected.")
-                return render(request, 'core/login.html', {'form': form})
+            if hasattr(user, "profile"):
+                user_role = user.profile.role
+                if user_role != role_selected and user_role != 'custom' and role_selected != 'custom' and not (user_role == 'mechanic' and role_selected == 'custom'):
+                    messages.error(request, "Incorrect role selected for this account.")
+                    return render(request, 'core/login.html', {'form': form})
 
-        login(request, user)
-        return redirect('dashboard')
+            login(request, user)
+            return redirect('dashboard')
+        else:
+            messages.error(request, "Invalid username, password, or login credentials. Please try again.")
 
     return render(request, 'core/login.html', {'form': form})
 
