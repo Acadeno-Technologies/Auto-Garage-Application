@@ -103,21 +103,26 @@
   
   <!-- Status -->
   <div class="job-summary-card">
-    <div class="job-summary-label">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+    <div class="job-summary-label" style="color:#334155; font-weight:700; font-size:0.8rem;">
+      <span style="color:#ea580c; font-size:1.1rem; line-height:1; font-weight:700; margin-right:0.2rem;">$</span>
       STATUS
     </div>
-    <div class="job-summary-value">
-      <span class="badge badge-{{ job.status }}" style="font-weight:700; font-size:0.75rem; padding:0.25rem 0.6rem; border-radius:10px; text-transform:uppercase; margin-bottom:0.35rem; display:inline-block;">
-        {{ job.get_status_display }}
-      </span>
-      <form method="post" action="{% url 'job_update_status' job.pk %}" style="margin:0;">
+    <div class="job-summary-value" style="margin-top:0.4rem;">
+      <form method="post" action="{% url 'job_update_status' job.pk %}" style="margin:0; position:relative; display:flex; align-items:center;">
         {% csrf_token %}
-        <select name="quick_status" class="form-input" style="padding:0.25rem 0.4rem; font-size:0.78rem; border-radius:6px; font-weight:600; background:#f8fafc; border:1px solid #cbd5e1; cursor:pointer; width:100%; color:#1e293b;" onchange="this.form.submit();">
+        <div style="position:absolute; left:12px; pointer-events:none; display:flex; align-items:center; color:#ea580c;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        </div>
+        <select name="quick_status" onchange="this.form.submit();" style="width:100%; height:42px; padding:0 34px 0 38px; border-radius:10px; font-weight:700; font-size:0.8rem; letter-spacing:0.5px; text-transform:uppercase; background-color:#fff7ed; border:1.5px solid #fdba74; color:#ea580c; cursor:pointer; appearance:none; -webkit-appearance:none; -moz-appearance:none; outline:none;">
           {% for val, label in status_choices %}
-          <option value="{{ val }}" {% if job.status == val %}selected{% endif %}>{{ label }}</option>
+          <option value="{{ val }}" {% if job.status == val %}selected{% endif %} style="background:#ffffff; color:#1e293b; font-weight:600; text-transform:none;">
+            {{ label|upper }}
+          </option>
           {% endfor %}
         </select>
+        <div style="position:absolute; right:12px; pointer-events:none; display:flex; align-items:center; color:#ea580c;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
       </form>
     </div>
   </div>
