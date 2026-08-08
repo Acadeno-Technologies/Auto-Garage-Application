@@ -3,11 +3,6 @@
 {% block page_title %}Owner Dashboard{% endblock %}
 {% block breadcrumb %}Welcome back, {{ request.user.get_full_name|default:request.user.username }}{% endblock %}
 
-{% block topbar_actions %}
-<a href="{% url 'staff_create' %}" class="btn btn-primary btn-sm">+ Add Staff</a>
-<a href="{% url 'reports' %}" class="btn btn-secondary btn-sm">📈 Reports</a>
-{% endblock %}
-
 {% block content %}
 
 <!-- STAT CARDS -->
