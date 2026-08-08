@@ -808,6 +808,8 @@ def stock_transaction(request):
     if request.method == 'POST' and form.is_valid():
         tx = form.save(commit=False)
         tx.created_by = request.user
+        if not tx.unit_price:
+            tx.unit_price = tx.part.unit_price
         tx.save()
         # Update stock
         part = tx.part
@@ -816,9 +818,16 @@ def stock_transaction(request):
         else:
             part.stock_quantity = max(0, part.stock_quantity - tx.quantity)
         part.save()
-        messages.success(request, "Stock transaction recorded.")
-        return redirect('store_dashboard')
-    return render(request, 'core/stock_form.html', {'form': form, 'title': 'Stock Transaction'})
+        messages.success(request, f"Stock transaction recorded for '{part.name}'.")
+        return redirect('parts_list')
+
+    import json
+    part_prices = {p.id: float(p.unit_price) for p in SparePart.objects.all()}
+    return render(request, 'core/stock_form.html', {
+        'form': form,
+        'title': 'Stock Transaction',
+        'part_prices_json': json.dumps(part_prices)
+    })
 
 
 # ─── Categories & Suppliers ───────────────────────────────────────────────────

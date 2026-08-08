@@ -328,11 +328,16 @@ class StockTransactionForm(forms.ModelForm):
         widgets = {
             'part': forms.Select(attrs={'class': 'form-input'}),
             'transaction_type': forms.Select(attrs={'class': 'form-input'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-input'}),
-            'unit_price': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01'}),
-            'reference': forms.TextInput(attrs={'class': 'form-input'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-input', 'value': 1}),
+            'unit_price': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01', 'placeholder': 'Auto-filled from part price'}),
+            'reference': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. PO-001 / Invoice #'}),
             'notes': forms.Textarea(attrs={'class': 'form-input', 'rows': 2}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['unit_price'].required = False
+        self.fields['unit_price'].label = "Unit Price (₹) - Auto-filled"
 
 
 class JobPartUsageForm(forms.ModelForm):
