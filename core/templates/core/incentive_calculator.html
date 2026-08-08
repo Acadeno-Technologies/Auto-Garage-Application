@@ -3,96 +3,124 @@
 {% block page_title %}🔒 Incentive & Profit Calculator{% endblock %}
 {% block content %}
 
+<style>
+.dashboard-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+@media (max-width: 1100px) {
+  .dashboard-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .dashboard-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.metric-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+</style>
+
 <!-- Top Header Control Bar -->
-<div class="mb-4" style="background:var(--bg-card); padding:1.25rem 1.5rem; border-radius:12px; border:1px solid var(--border); box-shadow:0 4px 15px rgba(0,0,0,0.05);">
-  <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:1rem;">
+<div class="mb-4" style="background:var(--bg-card); padding:1rem 1.25rem; border-radius:12px; border:1px solid var(--border);">
+  <div style="display:flex; flex-wrap:wrap; justify-space-between; align-items:center; gap:1rem;">
     <div>
-      <div style="font-size:1.15rem; font-weight:700; color:var(--text-1); display:flex; align-items:center; gap:0.5rem;">
+      <div style="font-size:1.05rem; font-weight:700; color:var(--text-1); display:flex; align-items:center; gap:0.5rem;">
         <span>📐 Net Profit Formula:</span>
         <span style="color:var(--teal); font-family:var(--font-mono, monospace); background:rgba(20,184,166,0.1); padding:0.2rem 0.6rem; border-radius:6px;">
           Bill Amount - Total Expenses
         </span>
       </div>
-      <p class="text-muted" style="margin:0.3rem 0 0 0; font-size:0.85rem;">
+      <p class="text-muted" style="margin:0.25rem 0 0 0; font-size:0.82rem;">
         🔒 Restricted Access: Only Garage Admins/Owners can calculate incentives and manage workshop expenses.
       </p>
     </div>
 
     <!-- Filter Form & Quick Presets -->
-    <form method="get" id="filter-form" style="display:flex; flex-wrap:wrap; items-center; gap:0.75rem;">
+    <form method="get" id="filter-form" style="display:flex; flex-wrap:wrap; align-items:center; gap:0.6rem;">
       <div style="display:flex; align-items:center; gap:0.4rem;">
-        <span class="text-muted" style="font-size:0.85rem; font-weight:600;">Period:</span>
-        <select name="period" class="form-input" style="width:auto; padding:0.4rem 0.8rem;" onchange="this.form.submit()">
+        <span class="text-muted" style="font-size:0.82rem; font-weight:600;">Period:</span>
+        <select name="period" class="form-input" style="width:140px; padding:0.35rem 0.6rem; font-size:0.85rem;" onchange="this.form.submit()">
           <option value="this_month" {% if period == 'this_month' %}selected{% endif %}>📅 This Month</option>
           <option value="last_month" {% if period == 'last_month' %}selected{% endif %}>📅 Last Month</option>
           <option value="all" {% if period == 'all' %}selected{% endif %}>📅 All Time</option>
         </select>
       </div>
 
-      <div style="display:flex; align-items:center; gap:0.4rem; background:var(--bg-panel); padding:0.3rem 0.75rem; border-radius:8px; border:1px solid var(--border);">
-        <span class="text-muted" style="font-size:0.85rem; font-weight:600;">Incentive Rate:</span>
-        <input type="number" name="rate" id="rate-input" value="{{ rate }}" step="1" min="1" max="100" class="form-input" style="width:65px; text-align:center; padding:0.2rem 0.4rem; font-weight:700; color:var(--teal);" onchange="this.form.submit()">
-        <span style="font-weight:700; color:var(--teal);">%</span>
+      <div style="display:flex; align-items:center; gap:0.3rem; background:var(--bg-panel); padding:0.25rem 0.6rem; border-radius:8px; border:1px solid var(--border);">
+        <span class="text-muted" style="font-size:0.82rem; font-weight:600;">Incentive Rate:</span>
+        <input type="number" name="rate" id="rate-input" value="{{ rate }}" step="1" min="1" max="100" class="form-input" style="width:60px; text-align:center; padding:0.2rem; font-weight:700; color:var(--teal);" onchange="this.form.submit()">
+        <span style="font-weight:700; color:var(--teal); font-size:0.9rem;">%</span>
       </div>
 
       <!-- Quick % Presets -->
-      <div style="display:flex; gap:0.25rem;">
-        <button type="button" class="btn btn-secondary btn-sm" onclick="setRate(5)">5%</button>
-        <button type="button" class="btn btn-secondary btn-sm" onclick="setRate(10)">10%</button>
-        <button type="button" class="btn btn-secondary btn-sm" onclick="setRate(15)">15%</button>
-        <button type="button" class="btn btn-secondary btn-sm" onclick="setRate(20)">20%</button>
+      <div style="display:flex; gap:0.2rem;">
+        <button type="button" class="btn btn-secondary btn-sm" style="padding:0.25rem 0.5rem; font-size:0.78rem;" onclick="setRate(5)">5%</button>
+        <button type="button" class="btn btn-secondary btn-sm" style="padding:0.25rem 0.5rem; font-size:0.78rem;" onclick="setRate(10)">10%</button>
+        <button type="button" class="btn btn-secondary btn-sm" style="padding:0.25rem 0.5rem; font-size:0.78rem;" onclick="setRate(15)">15%</button>
+        <button type="button" class="btn btn-secondary btn-sm" style="padding:0.25rem 0.5rem; font-size:0.78rem;" onclick="setRate(20)">20%</button>
       </div>
     </form>
   </div>
 </div>
 
 <!-- 4 Key Summary Metrics Grid -->
-<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1.25rem;" class="mb-4">
+<div class="dashboard-metrics-grid mb-4">
   <!-- Bill Amount -->
-  <div class="card p-3" style="border-left: 4px solid var(--green); border-radius:10px;">
+  <div class="metric-card" style="border-left: 4px solid var(--green);">
     <div style="display:flex; justify-content:space-between; align-items:center;">
-      <span class="text-muted" style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">💳 Bill Amount</span>
-      <span style="font-size:1.2rem;">💵</span>
+      <span class="text-muted" style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">💳 BILL AMOUNT</span>
+      <span style="font-size:1.1rem;">💵</span>
     </div>
-    <div style="font-size:1.75rem; font-weight:800; color:var(--green); margin-top:0.4rem;" class="font-mono">₹{{ total_bill_amount|floatformat:2 }}</div>
-    <div class="text-muted" style="font-size:0.78rem; margin-top:0.3rem;">Total revenue from paid invoices</div>
+    <div style="font-size:1.6rem; font-weight:800; color:var(--green); margin-top:0.3rem;" class="font-mono">₹{{ total_bill_amount|floatformat:2 }}</div>
+    <div class="text-muted" style="font-size:0.75rem; margin-top:0.2rem;">Total revenue from paid invoices</div>
   </div>
 
   <!-- Total Expenses -->
-  <div class="card p-3" style="border-left: 4px solid var(--red); border-radius:10px;">
+  <div class="metric-card" style="border-left: 4px solid var(--red);">
     <div style="display:flex; justify-content:space-between; align-items:center;">
-      <span class="text-muted" style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">💸 Total Expenses</span>
-      <span style="font-size:1.2rem;">📉</span>
+      <span class="text-muted" style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">💸 TOTAL EXPENSES</span>
+      <span style="font-size:1.1rem;">📉</span>
     </div>
-    <div style="font-size:1.75rem; font-weight:800; color:var(--red); margin-top:0.4rem;" class="font-mono">₹{{ total_expenses|floatformat:2 }}</div>
-    <div class="text-muted" style="font-size:0.78rem; margin-top:0.3rem;">Parts: ₹{{ parts_expenses|floatformat:2 }} • Overhead: ₹{{ overhead_expenses|floatformat:2 }}</div>
+    <div style="font-size:1.6rem; font-weight:800; color:var(--red); margin-top:0.3rem;" class="font-mono">₹{{ total_expenses|floatformat:2 }}</div>
+    <div class="text-muted" style="font-size:0.75rem; margin-top:0.2rem;">Parts: ₹{{ parts_expenses|floatformat:2 }} • Overhead: ₹{{ overhead_expenses|floatformat:2 }}</div>
   </div>
 
   <!-- Net Profit -->
-  <div class="card p-3" style="border-left: 4px solid {% if net_profit >= 0 %}var(--teal){% else %}var(--red){% endif %}; border-radius:10px;">
+  <div class="metric-card" style="border-left: 4px solid {% if net_profit >= 0 %}var(--teal){% else %}var(--red){% endif %};">
     <div style="display:flex; justify-content:space-between; align-items:center;">
-      <span class="text-muted" style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">📈 Net Profit</span>
-      <span style="font-size:1.2rem;">📊</span>
+      <span class="text-muted" style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">📈 NET PROFIT</span>
+      <span style="font-size:1.1rem;">📊</span>
     </div>
-    <div style="font-size:1.75rem; font-weight:800; color:{% if net_profit >= 0 %}var(--teal){% else %}var(--red){% endif %}; margin-top:0.4rem;" class="font-mono">₹{{ net_profit|floatformat:2 }}</div>
-    <div class="text-muted" style="font-size:0.78rem; margin-top:0.3rem;">Gross profit after deducting all costs</div>
+    <div style="font-size:1.6rem; font-weight:800; color:{% if net_profit >= 0 %}var(--teal){% else %}var(--red){% endif %}; margin-top:0.3rem;" class="font-mono">₹{{ net_profit|floatformat:2 }}</div>
+    <div class="text-muted" style="font-size:0.75rem; margin-top:0.2rem;">Gross profit after deducting all costs</div>
   </div>
 
   <!-- Incentive Pool -->
-  <div class="card p-3" style="border-left: 4px solid #a855f7; background:linear-gradient(135deg, rgba(168,85,247,0.06) 0%, rgba(20,184,166,0.06) 100%); border-radius:10px;">
+  <div class="metric-card" style="border-left: 4px solid #a855f7; background:rgba(168,85,247,0.05);">
     <div style="display:flex; justify-content:space-between; align-items:center;">
-      <span style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#a855f7;">🎁 Incentive Pool ({{ rate }}%)</span>
-      <span style="font-size:1.2rem;">✨</span>
+      <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#a855f7;">🎁 INCENTIVE POOL ({{ rate }}%)</span>
+      <span style="font-size:1.1rem;">✨</span>
     </div>
-    <div style="font-size:1.75rem; font-weight:800; color:#a855f7; margin-top:0.4rem;" class="font-mono">₹{{ total_incentive_pool|floatformat:2 }}</div>
-    <div class="text-muted" style="font-size:0.78rem; margin-top:0.3rem;">Calculated at {{ rate }}% of Net Profit</div>
+    <div style="font-size:1.6rem; font-weight:800; color:#a855f7; margin-top:0.3rem;" class="font-mono">₹{{ total_incentive_pool|floatformat:2 }}</div>
+    <div class="text-muted" style="font-size:0.75rem; margin-top:0.2rem;">Calculated at {{ rate }}% of Net Profit</div>
   </div>
 </div>
 
 <div class="grid-2 gap-3 mb-4">
   <!-- Mechanic Performance & Incentive Breakdown -->
   <div class="card">
-    <div class="card-header flex justify-between items-center" style="padding:1rem 1.25rem;">
+    <div class="card-header flex justify-between items-center" style="padding:0.9rem 1.2rem;">
       <span class="card-title" style="display:flex; align-items:center; gap:0.5rem;">
         <span>👨‍🔧 Mechanic Performance & Incentives</span>
       </span>
@@ -138,7 +166,7 @@
 
   <!-- Record Workshop Expense Form -->
   <div class="card">
-    <div class="card-header" style="padding:1rem 1.25rem;">
+    <div class="card-header" style="padding:0.9rem 1.2rem;">
       <span class="card-title" style="display:flex; align-items:center; gap:0.5rem;">
         <span>➕ Record Workshop Expense</span>
       </span>
@@ -148,28 +176,28 @@
         {% csrf_token %}
         <input type="hidden" name="add_expense" value="1">
         <div class="form-group mb-3">
-          <label style="font-weight:600; font-size:0.85rem; color:var(--text-2);">Expense Title / Item Name</label>
+          <label style="font-weight:600; font-size:0.82rem; color:var(--text-2);">Expense Title / Item Name</label>
           {{ expense_form.title }}
         </div>
         <div class="grid-2 gap-2 mb-3">
           <div class="form-group">
-            <label style="font-weight:600; font-size:0.85rem; color:var(--text-2);">Category</label>
+            <label style="font-weight:600; font-size:0.82rem; color:var(--text-2);">Category</label>
             {{ expense_form.category }}
           </div>
           <div class="form-group">
-            <label style="font-weight:600; font-size:0.85rem; color:var(--text-2);">Amount (₹)</label>
+            <label style="font-weight:600; font-size:0.82rem; color:var(--text-2);">Amount (₹)</label>
             {{ expense_form.amount }}
           </div>
         </div>
         <div class="form-group mb-3">
-          <label style="font-weight:600; font-size:0.85rem; color:var(--text-2);">Expense Date</label>
+          <label style="font-weight:600; font-size:0.82rem; color:var(--text-2);">Expense Date</label>
           {{ expense_form.expense_date }}
         </div>
         <div class="form-group mb-3">
-          <label style="font-weight:600; font-size:0.85rem; color:var(--text-2);">Notes / Receipt Details (Optional)</label>
+          <label style="font-weight:600; font-size:0.82rem; color:var(--text-2);">Notes / Receipt Details (Optional)</label>
           {{ expense_form.notes }}
         </div>
-        <button type="submit" class="btn btn-primary w-full" style="padding:0.65rem 1rem; font-weight:600;">💾 Save Expense Record</button>
+        <button type="submit" class="btn btn-primary w-full" style="padding:0.6rem 1rem; font-weight:600;">💾 Save Expense Record</button>
       </form>
     </div>
   </div>
@@ -177,7 +205,7 @@
 
 <!-- Workshop Expense History Log -->
 <div class="card">
-  <div class="card-header flex justify-between items-center" style="padding:1rem 1.25rem;">
+  <div class="card-header flex justify-between items-center" style="padding:0.9rem 1.2rem;">
     <span class="card-title" style="display:flex; align-items:center; gap:0.5rem;">
       <span>📑 Workshop Expense History Log</span>
     </span>
