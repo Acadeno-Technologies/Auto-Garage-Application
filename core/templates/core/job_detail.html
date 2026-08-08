@@ -4,10 +4,10 @@
 {% block breadcrumb %}<a href="{% url 'job_list' %}" style="color:var(--text-3);">Job Cards</a> / Detail{% endblock %}
 {% block topbar_actions %}
 <a href="{% url 'send_whatsapp' %}?type=job_created&job_id={{ job.id }}&phone={{ job.vehicle.customer.phone }}&name={{ job.vehicle.customer.name }}" target="_blank" class="btn btn-teal btn-sm">
-  📱 Send Creation SMS/WA
+  📱 Send Creation WA
 </a>
-<a href="{% url 'send_whatsapp' %}?type=job_completed&job_id={{ job.id }}&phone={{ job.vehicle.customer.phone }}&name={{ job.vehicle.customer.name }}" target="_blank" class="btn btn-sm" style="background:#25D366; color:white;">
-  📱 Send Completion SMS/WA
+<a href="{% url 'send_whatsapp' %}?type=job_status&job_id={{ job.id }}&phone={{ job.vehicle.customer.phone }}&name={{ job.vehicle.customer.name }}" target="_blank" class="btn btn-sm" style="background:#25D366; color:white;">
+  📱 Send WA Status ({{ job.get_status_display }})
 </a>
 <a href="{% url 'job_update_status' job.pk %}" class="btn btn-secondary btn-sm">✏️ Update Status</a>
 {% if not job.invoice %}

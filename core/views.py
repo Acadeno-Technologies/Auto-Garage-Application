@@ -864,18 +864,29 @@ def send_whatsapp_view(request):
             f"📌 *Status:* {job.get_status_display()}\n\n"
             f"We will notify you once the work is completed! Thank you for choosing Auto Garage! 🚘"
         )
-    elif msg_type == 'job_completed':
+    elif msg_type in ['job_completed', 'job_status']:
         job_id = request.GET.get('job_id')
         job = get_object_or_404(JobCard, pk=job_id)
-        cost = job.total_cost()
-        message_text = (
-            f"🚗 *Auto Garage Service Update*\n\n"
-            f"Dear *{recipient_name}*,\n\n"
-            f"Good news! Your vehicle *{job.vehicle.make} {job.vehicle.model}* ({job.vehicle.license_plate}) service is *COMPLETED* and ready for pickup! 🎉\n\n"
-            f"📋 *Job Card:* {job.job_number}\n"
-            f"💰 *Total Amount:* ₹{cost:.2f}\n\n"
-            f"Thank you for choosing Auto Garage! Drive safe! 🚘✨"
-        )
+        status_disp = job.get_status_display()
+        if job.status == 'completed':
+            cost = job.total_cost()
+            message_text = (
+                f"🚗 *Auto Garage Service Update*\n\n"
+                f"Dear *{recipient_name}*,\n\n"
+                f"Good news! Your vehicle *{job.vehicle.make} {job.vehicle.model}* ({job.vehicle.license_plate}) service is *COMPLETED* and ready for pickup! 🎉\n\n"
+                f"📋 *Job Card:* {job.job_number}\n"
+                f"💰 *Total Amount:* ₹{cost:.2f}\n\n"
+                f"Thank you for choosing Auto Garage! Drive safe! 🚘✨"
+            )
+        else:
+            message_text = (
+                f"🚗 *Auto Garage Service Update*\n\n"
+                f"Dear *{recipient_name}*,\n\n"
+                f"Here is an update on your vehicle *{job.vehicle.make} {job.vehicle.model}* ({job.vehicle.license_plate}):\n\n"
+                f"📋 *Job Card:* {job.job_number}\n"
+                f"📌 *Current Status:* *{status_disp}*\n\n"
+                f"We will notify you as soon as the status changes. Thank you for your patience! 🚘"
+            )
     elif msg_type == 'amc_reminder':
         schedule_id = request.GET.get('schedule_id')
         schedule = get_object_or_404(AMCServiceSchedule, pk=schedule_id)
