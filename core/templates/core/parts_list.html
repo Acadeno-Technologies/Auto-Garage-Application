@@ -238,14 +238,25 @@
 
 .bottom-sections-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 1.25rem;
   margin-top: 1.5rem !important;
   margin-bottom: 1.5rem !important;
+  align-items: stretch;
 }
 
 @media (max-width: 992px) {
-  .bottom-sections-grid { grid-template-columns: 1fr; }
+  .bottom-sections-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+.table-wrap table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.table-wrap td, .table-wrap th {
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .part-thumb-placeholder {
