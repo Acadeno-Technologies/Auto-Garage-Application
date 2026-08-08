@@ -216,12 +216,45 @@ class JobCardPhotoForm(forms.ModelForm):
 
 
 class JobStatusForm(forms.ModelForm):
+    customer_name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Customer Name'}),
+        label='Customer Name',
+        required=True
+    )
+    customer_phone = forms.CharField(
+        max_length=20,
+        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Customer Phone Number'}),
+        label='Customer Phone Number',
+        required=True
+    )
+    vehicle_number = forms.CharField(
+        max_length=20,
+        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. KA-01-AB-1234'}),
+        label='Vehicle Number',
+        required=True
+    )
+    vehicle_model = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Toyota Corolla'}),
+        label='Vehicle Model',
+        required=True
+    )
+    vehicle_color = forms.CharField(
+        max_length=50,
+        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Black / Red'}),
+        label='Vehicle Colour',
+        required=False
+    )
+
     class Meta:
         model = JobCard
-        fields = ['status', 'mechanic', 'estimated_completion_time', 'repair_instructions', 'notes']
+        fields = ['status', 'mechanic', 'problem_description', 'labour_cost', 'estimated_completion_time', 'repair_instructions', 'notes']
         widgets = {
             'status': forms.Select(attrs={'class': 'form-input'}),
             'mechanic': forms.Select(attrs={'class': 'form-input'}),
+            'problem_description': forms.Textarea(attrs={'class': 'form-input', 'rows': 3}),
+            'labour_cost': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01'}),
             'estimated_completion_time': forms.DateTimeInput(attrs={'class': 'form-input', 'type': 'datetime-local'}),
             'repair_instructions': forms.Textarea(attrs={'class': 'form-input', 'rows': 3}),
             'notes': forms.Textarea(attrs={'class': 'form-input', 'rows': 2}),
@@ -235,6 +268,15 @@ class JobStatusForm(forms.ModelForm):
         self.fields['mechanic'].queryset = mechanics
         self.fields['mechanic'].required = False
         self.fields['mechanic'].label = "Assign Mechanic"
+
+        if self.instance and self.instance.pk and getattr(self.instance, 'vehicle', None):
+            v = self.instance.vehicle
+            self.initial['customer_name'] = v.customer.name
+            self.initial['customer_phone'] = v.customer.phone
+            self.initial['vehicle_number'] = v.license_plate
+            self.initial['vehicle_model'] = f"{v.make} {v.model}".strip()
+            self.initial['vehicle_color'] = v.color
+
         if self.instance and self.instance.estimated_completion_time:
             self.initial['estimated_completion_time'] = self.instance.estimated_completion_time.strftime('%Y-%m-%dT%H:%M')
 

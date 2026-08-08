@@ -488,7 +488,33 @@ def job_update_status(request, pk):
     job = get_object_or_404(JobCard, pk=pk)
     form = JobStatusForm(request.POST or None, instance=job)
     if request.method == 'POST' and form.is_valid():
-        updated_job = form.save()
+        updated_job = form.save(commit=False)
+        
+        # Save customer and vehicle changes
+        c_name = form.cleaned_data.get('customer_name', '').strip()
+        c_phone = form.cleaned_data.get('customer_phone', '').strip()
+        v_num = form.cleaned_data.get('vehicle_number', '').strip().upper()
+        v_model_raw = form.cleaned_data.get('vehicle_model', '').strip()
+        v_color = form.cleaned_data.get('vehicle_color', '').strip()
+
+        if c_name and c_phone and updated_job.vehicle:
+            cust = updated_job.vehicle.customer
+            cust.name = c_name
+            cust.phone = c_phone
+            cust.save()
+
+            model_parts = v_model_raw.split()
+            v_make = model_parts[0] if model_parts else "Vehicle"
+            v_model = ' '.join(model_parts[1:]) if len(model_parts) > 1 else v_model_raw
+
+            v = updated_job.vehicle
+            v.license_plate = v_num
+            v.make = v_make
+            v.model = v_model
+            v.color = v_color
+            v.save()
+
+        updated_job.save()
         customer = updated_job.vehicle.customer
         status_disp = updated_job.get_status_display()
         
@@ -512,9 +538,9 @@ def job_update_status(request, pk):
             message_body=sms_body,
             sent_by=request.user
         )
-        messages.success(request, f"Job status updated to '{status_disp}'. SMS notification sent to customer ({customer.phone}).")
+        messages.success(request, f"Job card '{updated_job.job_number}' updated successfully. SMS notification sent to customer ({customer.phone}).")
         return redirect('job_detail', pk=pk)
-    return render(request, 'core/job_form.html', {'form': form, 'title': 'Update Job Status', 'job': job})
+    return render(request, 'core/job_form.html', {'form': form, 'title': 'Update Job Card & Status', 'job': job})
 
 
 @login_required
