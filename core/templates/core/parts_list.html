@@ -1,43 +1,283 @@
 {% extends 'core/base.html' %}
-{% block title %}Spare Parts{% endblock %}
-{% block page_title %}Spare Parts{% endblock %}
+{% block title %}Inventory Management{% endblock %}
+{% block page_title %}<span style="color:#1e293b; font-weight:800;">Inventory Management</span>{% endblock %}
+
 {% block topbar_actions %}
-<a href="{% url 'part_create' %}" class="btn btn-secondary btn-sm">+ Add Part</a>
-<a href="{% url 'stock_transaction' %}" class="btn btn-primary btn-sm">🔄 Stock Transaction</a>
+<a href="{% url 'part_create' %}" class="btn btn-secondary btn-sm" style="border:1px solid #cbd5e1; color:#1e293b; background:#ffffff; font-weight:600; border-radius:8px; padding:0.5rem 1.1rem; text-decoration:none;">
+  + Add Part
+</a>
+<a href="{% url 'stock_transaction' %}" class="btn btn-primary btn-sm" style="background:#ea580c; color:white; border-radius:8px; font-weight:600; padding:0.5rem 1.1rem; border:none; box-shadow:0 3px 10px rgba(234,88,12,0.3); text-decoration:none;">
+  📊 Stock Transaction
+</a>
 {% endblock %}
+
 {% block content %}
-<div class="card mb-2" style="padding:1rem 1.5rem;">
-  <form method="get" style="display:flex;gap:0.75rem;align-items:center;">
-    <input type="text" name="q" value="{{ q }}" class="form-input" style="max-width:300px;" placeholder="Search parts…">
-    <button class="btn btn-secondary">Search</button>
-    {% if q %}<a href="{% url 'parts_list' %}" class="btn btn-secondary">Clear</a>{% endif %}
-  </form>
+
+<style>
+.inventory-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.5rem !important;
+}
+
+@media (max-width: 992px) {
+  .inventory-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 576px) {
+  .inventory-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.inv-stat-card {
+  background: #ffffff;
+  border: 1px solid #e1e5eb;
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.inv-stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.inv-stat-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.2rem;
+}
+
+.inv-stat-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1;
+}
+
+.bottom-sections-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-top: 1.5rem !important;
+}
+
+@media (max-width: 900px) {
+  .bottom-sections-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<!-- 1. Top Summary Stats Grid -->
+<div class="inventory-stats-grid">
+  <!-- Total Parts -->
+  <div class="inv-stat-card">
+    <div class="inv-stat-icon" style="background:#eff6ff; color:#2563eb;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+    </div>
+    <div>
+      <div class="inv-stat-label">Total Parts</div>
+      <div class="inv-stat-val">{{ total_parts_count }}</div>
+    </div>
+  </div>
+
+  <!-- Low Stock -->
+  <div class="inv-stat-card">
+    <div class="inv-stat-icon" style="background:#fef2f2; color:#ef4444;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"></path></svg>
+    </div>
+    <div>
+      <div class="inv-stat-label">Low Stock</div>
+      <div class="inv-stat-val" style="color:#ef4444;">{{ low_stock_count }}</div>
+    </div>
+  </div>
+
+  <!-- Categories -->
+  <div class="inv-stat-card">
+    <div class="inv-stat-icon" style="background:#f3e8ff; color:#9333ea;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+    </div>
+    <div>
+      <div class="inv-stat-label">Categories</div>
+      <div class="inv-stat-val">{{ total_categories_count }}</div>
+    </div>
+  </div>
+
+  <!-- Suppliers -->
+  <div class="inv-stat-card">
+    <div class="inv-stat-icon" style="background:#f0fdf4; color:#16a34a;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+    </div>
+    <div>
+      <div class="inv-stat-label">Suppliers</div>
+      <div class="inv-stat-val">{{ total_suppliers_count }}</div>
+    </div>
+  </div>
 </div>
-<div class="card">
-  <div class="card-header"><span class="card-title">⚙️ All Spare Parts</span></div>
-  <div class="table-wrap"><table>
-    <thead><tr><th>Name</th><th>Part #</th><th>Category</th><th>Price</th><th>Stock</th><th>Min</th><th>Status</th><th></th></tr></thead>
-    <tbody>
-      {% for part in parts %}
-      <tr {% if part.is_low_stock %}class="low-stock"{% endif %}>
-        <td>{{ part.name }}</td>
-        <td class="text-mono" style="font-size:0.78rem;">{{ part.part_number }}</td>
-        <td>{{ part.category.name|default:"—" }}</td>
-        <td class="text-mono">${{ part.unit_price }}</td>
-        <td class="text-mono {% if part.is_low_stock %}text-red font-bold{% endif %}">{{ part.stock_quantity }}</td>
-        <td class="text-muted text-mono">{{ part.minimum_stock }}</td>
-        <td>
-          {% if part.is_low_stock %}
-          <span class="badge badge-low">Low Stock</span>
-          {% else %}
-          <span class="badge badge-ok">OK</span>
-          {% endif %}
-        </td>
-        <td><a href="{% url 'part_edit' part.pk %}" class="btn btn-secondary btn-sm">Edit</a></td>
-      </tr>
-      {% empty %}<tr><td colspan="8" class="text-center text-muted">No parts registered</td></tr>
-      {% endfor %}
-    </tbody>
-  </table></div>
+
+<!-- 2. Spare Parts Section (Primary / Largest) -->
+<div class="card mb-4" style="border-radius:14px; border:1px solid #e1e5eb; box-shadow:0 4px 15px rgba(0,0,0,0.02);">
+  <!-- Search Bar -->
+  <div style="padding:1rem 1.25rem; border-bottom:1px solid #e1e5eb; background:#ffffff; border-top-left-radius:14px; border-top-right-radius:14px;">
+    <form method="get" style="display:flex; gap:0.75rem; align-items:center;">
+      <div style="position:relative; flex:1; max-width:360px;">
+        <div style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#64748b; pointer-events:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </div>
+        <input type="text" name="q" value="{{ q }}" class="form-input" style="padding-left:36px; border-radius:8px; border:1px solid #cbd5e1; height:38px; font-size:0.9rem;" placeholder="Search parts...">
+      </div>
+      <button type="submit" class="btn btn-secondary" style="height:38px; padding:0 1.2rem; border-radius:8px; font-weight:600; border:1px solid #cbd5e1;">Search</button>
+      {% if q %}
+      <a href="{% url 'parts_list' %}" class="btn btn-secondary" style="height:38px; padding:0 1rem; border-radius:8px; font-weight:600; border:1px solid #cbd5e1; display:inline-flex; align-items:center;">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="card-header" style="padding:1rem 1.25rem; border-bottom:1px solid #e1e5eb; display:flex; justify-content:flex-start !important; align-items:center; gap:0.6rem; background:#ffffff;">
+    <div style="width:32px; height:32px; border-radius:8px; background:#eff6ff; color:#2563eb; display:grid; place-items:center; flex-shrink:0;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    </div>
+    <span class="card-title" style="font-weight:700; color:#1e293b; font-size:1.05rem; margin:0;">All Spare Parts</span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>NAME</th>
+          <th>PART #</th>
+          <th>CATEGORY</th>
+          <th>PRICE</th>
+          <th>STOCK</th>
+          <th>MIN STOCK</th>
+          <th>STATUS</th>
+          <th style="width:100px; text-align:right;">ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for part in parts %}
+        <tr {% if part.is_low_stock %}style="background:#fef2f2;"{% endif %}>
+          <td><strong>{{ part.name }}</strong></td>
+          <td class="text-mono" style="font-size:0.8rem; color:#64748b;">{{ part.part_number }}</td>
+          <td>{{ part.category.name|default:"—" }}</td>
+          <td class="text-mono font-bold" style="color:#1e293b;">₹{{ part.unit_price }}</td>
+          <td class="text-mono {% if part.is_low_stock %}text-red font-bold{% else %}font-bold{% endif %}">{{ part.stock_quantity }}</td>
+          <td class="text-mono text-muted">{{ part.minimum_stock }}</td>
+          <td>
+            {% if part.is_low_stock %}
+            <span class="badge" style="background:#fee2e2; color:#dc2626; font-weight:700; border-radius:10px; padding:0.25rem 0.65rem;">● LOW STOCK</span>
+            {% else %}
+            <span class="badge" style="background:#dcfce7; color:#16a34a; font-weight:700; border-radius:10px; padding:0.25rem 0.65rem;">✓ OK</span>
+            {% endif %}
+          </td>
+          <td class="text-right">
+            <a href="{% url 'part_edit' part.pk %}" class="btn btn-secondary btn-sm" style="border-radius:6px; border:1px solid #cbd5e1; font-weight:600; padding:0.25rem 0.65rem;">
+              ✏️ Edit
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center text-muted p-4">No spare parts found</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
+
+<!-- 3. Categories + Suppliers (Side-by-Side on Desktop) -->
+<div class="bottom-sections-grid">
+
+  <!-- Part Categories Card -->
+  <div class="card" style="border-radius:14px; border:1px solid #e1e5eb; box-shadow:0 4px 15px rgba(0,0,0,0.02);">
+    <div class="card-header flex justify-between items-center" style="padding:1rem 1.25rem; border-bottom:1px solid #e1e5eb; background:#ffffff; border-top-left-radius:14px; border-top-right-radius:14px;">
+      <div style="display:flex; align-items:center; gap:0.6rem;">
+        <div style="width:32px; height:32px; border-radius:8px; background:#f3e8ff; color:#9333ea; display:grid; place-items:center;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+        </div>
+        <span class="card-title" style="font-weight:700; color:#1e293b; font-size:1.05rem;">Part Categories</span>
+      </div>
+      <a href="{% url 'category_create' %}" class="btn btn-primary btn-sm" style="background:#ea580c; border:none; border-radius:8px; padding:0.4rem 0.9rem; font-weight:600; color:white; font-size:0.82rem; text-decoration:none;">
+        + Add Category
+      </a>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>NAME</th>
+            <th>DESCRIPTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cat in categories %}
+          <tr>
+            <td><strong>{{ cat.name }}</strong></td>
+            <td style="color:#64748b;">{{ cat.description|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="2" class="text-center text-muted p-4">No categories created yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Suppliers Card -->
+  <div class="card" style="border-radius:14px; border:1px solid #e1e5eb; box-shadow:0 4px 15px rgba(0,0,0,0.02);">
+    <div class="card-header flex justify-between items-center" style="padding:1rem 1.25rem; border-bottom:1px solid #e1e5eb; background:#ffffff; border-top-left-radius:14px; border-top-right-radius:14px;">
+      <div style="display:flex; align-items:center; gap:0.6rem;">
+        <div style="width:32px; height:32px; border-radius:8px; background:#f0fdf4; color:#16a34a; display:grid; place-items:center;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        </div>
+        <span class="card-title" style="font-weight:700; color:#1e293b; font-size:1.05rem;">Suppliers</span>
+      </div>
+      <a href="{% url 'supplier_create' %}" class="btn btn-primary btn-sm" style="background:#ea580c; border:none; border-radius:8px; padding:0.4rem 0.9rem; font-weight:600; color:white; font-size:0.82rem; text-decoration:none;">
+        + Add Supplier
+      </a>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>NAME</th>
+            <th>CONTACT</th>
+            <th>PHONE</th>
+            <th>EMAIL</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sup in suppliers %}
+          <tr>
+            <td><strong>{{ sup.name }}</strong></td>
+            <td>{{ sup.contact_person|default:"—" }}</td>
+            <td class="text-mono" style="font-size:0.82rem;">{{ sup.phone|default:"—" }}</td>
+            <td style="font-size:0.82rem; color:#64748b;">{{ sup.email|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="text-center text-muted p-4">No suppliers created yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
 {% endblock %}

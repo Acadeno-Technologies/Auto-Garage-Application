@@ -753,10 +753,29 @@ def store_dashboard(request):
 @role_required('owner', 'store_manager')
 def parts_list(request):
     q = request.GET.get('q', '')
-    parts = SparePart.objects.select_related('category', 'supplier').all()
+    all_parts = SparePart.objects.select_related('category', 'supplier').all()
+    parts = all_parts
     if q:
         parts = parts.filter(Q(name__icontains=q) | Q(part_number__icontains=q))
-    return render(request, 'core/parts_list.html', {'parts': parts, 'q': q})
+
+    categories = PartCategory.objects.all()
+    suppliers = Supplier.objects.all()
+
+    total_parts_count = all_parts.count()
+    low_stock_count = sum(1 for p in all_parts if p.is_low_stock)
+    total_categories_count = categories.count()
+    total_suppliers_count = suppliers.count()
+
+    return render(request, 'core/parts_list.html', {
+        'parts': parts,
+        'q': q,
+        'categories': categories,
+        'suppliers': suppliers,
+        'total_parts_count': total_parts_count,
+        'low_stock_count': low_stock_count,
+        'total_categories_count': total_categories_count,
+        'total_suppliers_count': total_suppliers_count,
+    })
 
 
 @login_required
