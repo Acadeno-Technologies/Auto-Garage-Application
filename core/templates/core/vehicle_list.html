@@ -12,7 +12,7 @@
       <tr>
         <td style="width:50px;">
           {% if v.image %}
-          <img src="{{ v.image.url }}" alt="{{ v }}" style="width:40px; height:40px; border-radius:6px; object-fit:cover; border:1px solid var(--border);">
+          <img src="{{ v.image.url }}" alt="{{ v }}" style="width:40px; height:40px; border-radius:6px; object-fit:cover; border:1px solid var(--border);" onerror="this.outerHTML='<div style=\'width:40px; height:40px; border-radius:6px; background:var(--bg-panel); display:grid; place-items:center; font-size:1.1rem; border:1px solid var(--border);\'>🚗</div>';">
           {% else %}
           <div style="width:40px; height:40px; border-radius:6px; background:var(--bg-panel); display:grid; place-items:center; font-size:1.1rem; border:1px solid var(--border);">🚗</div>
           {% endif %}
