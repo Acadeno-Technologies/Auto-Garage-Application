@@ -9,3 +9,4 @@ django-filter
 djangorestframework
 cloudinary
 django-cloudinary-storage
+Pillow
