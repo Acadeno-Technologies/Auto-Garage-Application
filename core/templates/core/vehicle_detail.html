@@ -8,46 +8,116 @@
 {% endblock %}
 {% block content %}
 
+<!-- Vehicle Hero Image Banner -->
 {% if vehicle.image %}
-<div class="card mb-3" style="overflow:hidden;">
-  <div style="max-height:300px; width:100%; overflow:hidden; position:relative; background:var(--bg-panel);">
-    <img src="{{ vehicle.image.url }}" alt="{{ vehicle }}" style="width:100%; height:300px; object-fit:cover; display:block;" onerror="this.parentElement.parentElement.style.display='none';">
+<div class="card mb-4" style="overflow:hidden; border-radius:12px; border:1px solid var(--border); margin-bottom:1.5rem !important;">
+  <div style="max-height:280px; width:100%; overflow:hidden; position:relative; background:var(--bg-panel);">
+    <img src="{{ vehicle.image.url }}" alt="{{ vehicle }}" style="width:100%; height:280px; object-fit:cover; display:block;" onerror="this.parentElement.parentElement.style.display='none';">
   </div>
+</div>
+{% else %}
+<div class="card mb-4" style="border-radius:12px; border:1px dashed var(--border); padding:2rem; text-align:center; background:var(--bg-panel); margin-bottom:1.5rem !important;">
+  <div style="font-size:2.5rem; margin-bottom:0.5rem;">🚗</div>
+  <div style="font-weight:700; color:var(--text-1); margin-bottom:0.25rem;">No Photo Uploaded for this Vehicle</div>
+  <p class="text-muted" style="font-size:0.85rem; margin-bottom:1rem;">Upload a photo of {{ vehicle.make }} {{ vehicle.model }} to display its image banner here.</p>
+  <a href="{% url 'vehicle_edit' vehicle.pk %}" class="btn btn-secondary btn-sm">📷 Add Vehicle Photo</a>
 </div>
 {% endif %}
 
-<div class="card mb-3">
+<!-- Vehicle Info Section with Individual Metric Cards -->
+<div class="card mb-4" style="margin-bottom:1.5rem !important;">
   <div class="card-header"><span class="card-title">🚗 Vehicle Info</span></div>
-  <div class="card-body">
-    <div class="job-meta-grid">
-      <div class="job-meta-item"><div class="job-meta-label">Make / Model</div><div class="job-meta-value">{{ vehicle.make }} {{ vehicle.model }}</div></div>
-      <div class="job-meta-item"><div class="job-meta-label">Year</div><div class="job-meta-value">{{ vehicle.year }}</div></div>
-      <div class="job-meta-item"><div class="job-meta-label">License Plate</div><div class="job-meta-value text-mono text-accent">{{ vehicle.license_plate }}</div></div>
-      <div class="job-meta-item"><div class="job-meta-label">Color</div><div class="job-meta-value">{{ vehicle.color|default:"—" }}</div></div>
-      <div class="job-meta-item"><div class="job-meta-label">VIN</div><div class="job-meta-value text-mono">{{ vehicle.vin|default:"—" }}</div></div>
-      <div class="job-meta-item"><div class="job-meta-label">Mileage</div><div class="job-meta-value text-mono">{{ vehicle.mileage }} km</div></div>
-      <div class="job-meta-item"><div class="job-meta-label">Owner</div><div class="job-meta-value"><a href="{% url 'customer_detail' vehicle.customer.pk %}" style="color:var(--teal);">{{ vehicle.customer.name }}</a></div></div>
+  <div class="card-body" style="padding:1.25rem;">
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:1rem;">
+      
+      <!-- Make / Model -->
+      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:1rem;">
+        <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted, #64748b); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.3rem;">MAKE / MODEL</div>
+        <div style="font-weight:700; color:var(--text-1, #1e293b); font-size:1rem;">{{ vehicle.make }} {{ vehicle.model }}</div>
+      </div>
+
+      <!-- Year -->
+      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:1rem;">
+        <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted, #64748b); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.3rem;">YEAR</div>
+        <div style="font-weight:700; color:var(--text-1, #1e293b); font-size:1rem;">{{ vehicle.year }}</div>
+      </div>
+
+      <!-- License Plate -->
+      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:1rem;">
+        <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted, #64748b); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.3rem;">LICENSE PLATE</div>
+        <div style="font-weight:700; color:var(--orange, #ea580c); font-size:1rem;" class="font-mono">{{ vehicle.license_plate }}</div>
+      </div>
+
+      <!-- Color -->
+      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:1rem;">
+        <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted, #64748b); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.3rem;">COLOR</div>
+        <div style="font-weight:700; color:var(--text-1, #1e293b); font-size:1rem;">{{ vehicle.color|default:"—" }}</div>
+      </div>
+
+      <!-- VIN -->
+      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:1rem;">
+        <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted, #64748b); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.3rem;">VIN</div>
+        <div style="font-weight:700; color:var(--text-1, #1e293b); font-size:0.9rem;" class="font-mono">{{ vehicle.vin|default:"—" }}</div>
+      </div>
+
+      <!-- Mileage -->
+      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:1rem;">
+        <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted, #64748b); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.3rem;">MILEAGE</div>
+        <div style="font-weight:700; color:var(--text-1, #1e293b); font-size:1rem;" class="font-mono">{{ vehicle.mileage }} km</div>
+      </div>
+
+      <!-- Owner -->
+      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:1rem;">
+        <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted, #64748b); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.3rem;">OWNER</div>
+        <div style="font-weight:700; font-size:1rem;">
+          <a href="{% url 'customer_detail' vehicle.customer.pk %}" style="color:var(--teal, #0d9488); text-decoration:none;">{{ vehicle.customer.name }}</a>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
 
+<!-- Service History Section -->
 <div class="card">
-  <div class="card-header"><span class="card-title">📋 Service History</span></div>
-  <div class="table-wrap"><table>
-    <thead><tr><th>Job #</th><th>Problem</th><th>Mechanic</th><th>Status</th><th>Date</th><th></th></tr></thead>
-    <tbody>
-      {% for job in jobs %}
-      <tr>
-        <td class="text-mono text-accent">{{ job.job_number }}</td>
-        <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ job.problem_description }}</td>
-        <td>{% if job.mechanic %}{{ job.mechanic.get_full_name|default:job.mechanic.username }}{% else %}Unassigned{% endif %}</td>
-        <td><span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span></td>
-        <td class="text-muted">{{ job.created_at|date:"d M Y" }}</td>
-        <td><a href="{% url 'job_detail' job.pk %}" class="btn btn-secondary btn-sm">View</a></td>
-      </tr>
-      {% empty %}<tr><td colspan="6" class="text-center text-muted">No service history</td></tr>
-      {% endfor %}
-    </tbody>
-  </table></div>
+  <div class="card-header flex justify-between items-center" style="padding:1rem 1.25rem;">
+    <span class="card-title">📋 Service History</span>
+    <span class="text-muted" style="font-size:0.85rem;">{{ jobs.count }} job card(s)</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Job #</th>
+          <th>Problem Description</th>
+          <th>Mechanic</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th style="width:80px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job in jobs %}
+        <tr>
+          <td class="text-mono text-accent">
+            <a href="{% url 'job_detail' job.pk %}" style="font-weight:700;">{{ job.job_number }}</a>
+          </td>
+          <td style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ job.problem_description }}</td>
+          <td>{% if job.mechanic %}{{ job.mechanic.get_full_name|default:job.mechanic.username }}{% else %}Unassigned{% endif %}</td>
+          <td><span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span></td>
+          <td class="text-muted">{{ job.created_at|date:"d M Y" }}</td>
+          <td class="text-right">
+            <a href="{% url 'job_detail' job.pk %}" class="btn btn-secondary btn-sm">View</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-muted p-4">No service history found for this vehicle.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
+
 {% endblock %}
