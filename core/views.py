@@ -271,7 +271,10 @@ def vehicle_list(request):
 @login_required
 @role_required('owner', 'advisor')
 def vehicle_create(request):
-    form = VehicleForm(request.POST or None, request.FILES or None)
+    files = request.FILES.copy() if request.FILES else None
+    if files and 'image' in files and (not files['image'] or getattr(files['image'], 'size', 0) == 0):
+        del files['image']
+    form = VehicleForm(request.POST or None, files or None)
     if request.method == 'POST' and form.is_valid():
         try:
             vehicle = form.save()
@@ -279,7 +282,6 @@ def vehicle_create(request):
             return redirect('vehicle_detail', pk=vehicle.pk)
         except Exception as e:
             messages.warning(request, f"Vehicle details saved, but photo upload encountered an issue: {e}")
-            # Try saving without image if upload failed
             vehicle = form.save(commit=False)
             vehicle.image = None
             vehicle.save()
@@ -291,18 +293,20 @@ def vehicle_create(request):
 @role_required('owner', 'advisor')
 def vehicle_edit(request, pk):
     vehicle = get_object_or_404(Vehicle, pk=pk)
-    form = VehicleForm(request.POST or None, request.FILES or None, instance=vehicle)
+    files = request.FILES.copy() if request.FILES else None
+    if files and 'image' in files and (not files['image'] or getattr(files['image'], 'size', 0) == 0):
+        del files['image']
+    form = VehicleForm(request.POST or None, files or None, instance=vehicle)
     if request.method == 'POST' and form.is_valid():
         try:
             form.save()
             messages.success(request, f"Vehicle '{vehicle.license_plate}' updated successfully.")
             return redirect('vehicle_detail', pk=pk)
         except Exception as e:
-            messages.warning(request, f"Vehicle saved, but photo upload failed (Cloudinary credentials error): {e}")
-            # Save non-file changes if image upload fails
+            messages.warning(request, f"Vehicle saved, but photo upload failed: {e}")
             vehicle_obj = form.save(commit=False)
             if 'image' in form.changed_data:
-                vehicle_obj.image = vehicle.image # keep previous
+                vehicle_obj.image = vehicle.image
             vehicle_obj.save()
             return redirect('vehicle_detail', pk=pk)
     return render(request, 'core/vehicle_form.html', {'form': form, 'title': 'Edit Vehicle', 'vehicle': vehicle})
