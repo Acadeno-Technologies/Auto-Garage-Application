@@ -40,6 +40,14 @@ if CLOUDINARY_CLOUD_NAME or CLOUDINARY_URL:
             'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
         }
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
 else:
     INSTALLED_APPS = [
         'django.contrib.admin',
@@ -50,6 +58,14 @@ else:
         'django.contrib.staticfiles',
         'core',
     ]
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
