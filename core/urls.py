@@ -63,6 +63,7 @@ urlpatterns = [
     # Reports & Incentives (Admin Only)
     path('reports/', views.reports, name='reports'),
     path('incentives/', views.incentive_calculator, name='incentive_calculator'),
+    path('incentives/expense/<int:pk>/delete/', views.expense_delete, name='expense_delete'),
 
     # AMC Management
     path('amc/', views.amc_list, name='amc_list'),

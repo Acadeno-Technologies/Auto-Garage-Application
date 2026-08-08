@@ -1,138 +1,199 @@
 {% extends 'core/base.html' %}
-{% block title %}Incentive Calculator (Admin Only){% endblock %}
+{% block title %}Incentive & Profit Calculator (Admin Only){% endblock %}
 {% block page_title %}🔒 Incentive & Profit Calculator{% endblock %}
 {% block content %}
 
-<div class="mb-3 flex justify-between items-center" style="background:var(--bg-card); padding:1rem; border-radius:10px; border:1px solid var(--border);">
-  <div>
-    <h3 style="margin:0; font-size:1.1rem; color:var(--text-1);">Formula: <span class="text-teal font-mono">Net Profit = Bill Amount - Total Expenses</span></h3>
-    <p class="text-muted" style="margin:0.2rem 0 0 0; font-size:0.85rem;">🔒 Restricted Access: Only Garage Admins/Owners can calculate incentives and manage overhead expenses.</p>
-  </div>
-  <form method="get" class="flex gap-2 items-center">
-    <select name="period" class="form-input" style="width:auto;" onchange="this.form.submit()">
-      <option value="this_month" {% if period == 'this_month' %}selected{% endif %}>📅 This Month</option>
-      <option value="last_month" {% if period == 'last_month' %}selected{% endif %}>📅 Last Month</option>
-      <option value="all" {% if period == 'all' %}selected{% endif %}>📅 All Time</option>
-    </select>
-    <div class="flex items-center gap-1" style="background:var(--bg-panel); padding:0.3rem 0.6rem; border-radius:6px; border:1px solid var(--border);">
-      <span style="font-size:0.85rem; font-weight:600; color:var(--text-2);">Incentive %:</span>
-      <input type="number" name="rate" value="{{ rate }}" step="1" min="1" max="100" class="form-input" style="width:70px; padding:0.2rem 0.4rem; text-align:center;" onchange="this.form.submit()">
+<!-- Top Header Control Bar -->
+<div class="mb-4" style="background:var(--bg-card); padding:1.25rem 1.5rem; border-radius:12px; border:1px solid var(--border); box-shadow:0 4px 15px rgba(0,0,0,0.05);">
+  <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:1rem;">
+    <div>
+      <div style="font-size:1.15rem; font-weight:700; color:var(--text-1); display:flex; align-items:center; gap:0.5rem;">
+        <span>📐 Net Profit Formula:</span>
+        <span style="color:var(--teal); font-family:var(--font-mono, monospace); background:rgba(20,184,166,0.1); padding:0.2rem 0.6rem; border-radius:6px;">
+          Bill Amount - Total Expenses
+        </span>
+      </div>
+      <p class="text-muted" style="margin:0.3rem 0 0 0; font-size:0.85rem;">
+        🔒 Restricted Access: Only Garage Admins/Owners can calculate incentives and manage workshop expenses.
+      </p>
     </div>
-    <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
-  </form>
+
+    <!-- Filter Form & Quick Presets -->
+    <form method="get" id="filter-form" style="display:flex; flex-wrap:wrap; items-center; gap:0.75rem;">
+      <div style="display:flex; align-items:center; gap:0.4rem;">
+        <span class="text-muted" style="font-size:0.85rem; font-weight:600;">Period:</span>
+        <select name="period" class="form-input" style="width:auto; padding:0.4rem 0.8rem;" onchange="this.form.submit()">
+          <option value="this_month" {% if period == 'this_month' %}selected{% endif %}>📅 This Month</option>
+          <option value="last_month" {% if period == 'last_month' %}selected{% endif %}>📅 Last Month</option>
+          <option value="all" {% if period == 'all' %}selected{% endif %}>📅 All Time</option>
+        </select>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:0.4rem; background:var(--bg-panel); padding:0.3rem 0.75rem; border-radius:8px; border:1px solid var(--border);">
+        <span class="text-muted" style="font-size:0.85rem; font-weight:600;">Incentive Rate:</span>
+        <input type="number" name="rate" id="rate-input" value="{{ rate }}" step="1" min="1" max="100" class="form-input" style="width:65px; text-align:center; padding:0.2rem 0.4rem; font-weight:700; color:var(--teal);" onchange="this.form.submit()">
+        <span style="font-weight:700; color:var(--teal);">%</span>
+      </div>
+
+      <!-- Quick % Presets -->
+      <div style="display:flex; gap:0.25rem;">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="setRate(5)">5%</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="setRate(10)">10%</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="setRate(15)">15%</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="setRate(20)">20%</button>
+      </div>
+    </form>
+  </div>
 </div>
 
-<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1rem;" class="mb-4">
-  <div class="card p-3">
-    <div class="text-muted" style="font-size:0.8rem; font-weight:600; text-transform:uppercase;">💳 Bill Amount (Paid Invoices)</div>
-    <div style="font-size:1.6rem; font-weight:700; color:var(--green); margin-top:0.3rem;" class="font-mono">₹{{ total_bill_amount|floatformat:2 }}</div>
-    <div class="text-muted" style="font-size:0.75rem; margin-top:0.2rem;">Total revenue collected</div>
+<!-- 4 Key Summary Metrics Grid -->
+<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1.25rem;" class="mb-4">
+  <!-- Bill Amount -->
+  <div class="card p-3" style="border-left: 4px solid var(--green); border-radius:10px;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span class="text-muted" style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">💳 Bill Amount</span>
+      <span style="font-size:1.2rem;">💵</span>
+    </div>
+    <div style="font-size:1.75rem; font-weight:800; color:var(--green); margin-top:0.4rem;" class="font-mono">₹{{ total_bill_amount|floatformat:2 }}</div>
+    <div class="text-muted" style="font-size:0.78rem; margin-top:0.3rem;">Total revenue from paid invoices</div>
   </div>
 
-  <div class="card p-3">
-    <div class="text-muted" style="font-size:0.8rem; font-weight:600; text-transform:uppercase;">💸 Total Expenses</div>
-    <div style="font-size:1.6rem; font-weight:700; color:var(--red); margin-top:0.3rem;" class="font-mono">₹{{ total_expenses|floatformat:2 }}</div>
-    <div class="text-muted" style="font-size:0.75rem; margin-top:0.2rem;">Parts: ₹{{ parts_expenses|floatformat:2 }} | Overhead: ₹{{ overhead_expenses|floatformat:2 }}</div>
+  <!-- Total Expenses -->
+  <div class="card p-3" style="border-left: 4px solid var(--red); border-radius:10px;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span class="text-muted" style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">💸 Total Expenses</span>
+      <span style="font-size:1.2rem;">📉</span>
+    </div>
+    <div style="font-size:1.75rem; font-weight:800; color:var(--red); margin-top:0.4rem;" class="font-mono">₹{{ total_expenses|floatformat:2 }}</div>
+    <div class="text-muted" style="font-size:0.78rem; margin-top:0.3rem;">Parts: ₹{{ parts_expenses|floatformat:2 }} • Overhead: ₹{{ overhead_expenses|floatformat:2 }}</div>
   </div>
 
-  <div class="card p-3">
-    <div class="text-muted" style="font-size:0.8rem; font-weight:600; text-transform:uppercase;">📈 Net Profit (Bill - Expense)</div>
-    <div style="font-size:1.6rem; font-weight:700; color:{% if net_profit >= 0 %}var(--teal){% else %}var(--red){% endif %}; margin-top:0.3rem;" class="font-mono">₹{{ net_profit|floatformat:2 }}</div>
-    <div class="text-muted" style="font-size:0.75rem; margin-top:0.2rem;">Gross profit after all costs</div>
+  <!-- Net Profit -->
+  <div class="card p-3" style="border-left: 4px solid {% if net_profit >= 0 %}var(--teal){% else %}var(--red){% endif %}; border-radius:10px;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span class="text-muted" style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">📈 Net Profit</span>
+      <span style="font-size:1.2rem;">📊</span>
+    </div>
+    <div style="font-size:1.75rem; font-weight:800; color:{% if net_profit >= 0 %}var(--teal){% else %}var(--red){% endif %}; margin-top:0.4rem;" class="font-mono">₹{{ net_profit|floatformat:2 }}</div>
+    <div class="text-muted" style="font-size:0.78rem; margin-top:0.3rem;">Gross profit after deducting all costs</div>
   </div>
 
-  <div class="card p-3" style="background:rgba(20,184,166,0.08); border:1px solid var(--teal);">
-    <div class="text-muted" style="font-size:0.8rem; font-weight:600; text-transform:uppercase; color:var(--teal);">🎁 Incentive Pool ({{ rate }}%)</div>
-    <div style="font-size:1.6rem; font-weight:700; color:var(--teal); margin-top:0.3rem;" class="font-mono">₹{{ total_incentive_pool|floatformat:2 }}</div>
-    <div class="text-muted" style="font-size:0.75rem; margin-top:0.2rem;">{{ rate }}% of Net Profit</div>
+  <!-- Incentive Pool -->
+  <div class="card p-3" style="border-left: 4px solid #a855f7; background:linear-gradient(135deg, rgba(168,85,247,0.06) 0%, rgba(20,184,166,0.06) 100%); border-radius:10px;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#a855f7;">🎁 Incentive Pool ({{ rate }}%)</span>
+      <span style="font-size:1.2rem;">✨</span>
+    </div>
+    <div style="font-size:1.75rem; font-weight:800; color:#a855f7; margin-top:0.4rem;" class="font-mono">₹{{ total_incentive_pool|floatformat:2 }}</div>
+    <div class="text-muted" style="font-size:0.78rem; margin-top:0.3rem;">Calculated at {{ rate }}% of Net Profit</div>
   </div>
 </div>
 
 <div class="grid-2 gap-3 mb-4">
-  <!-- Mechanic Incentive Breakdown -->
+  <!-- Mechanic Performance & Incentive Breakdown -->
   <div class="card">
-    <div class="card-header flex justify-between items-center">
-      <span class="card-title">👨‍🔧 Mechanic Performance & Incentive Breakdown</span>
-      <span class="badge badge-advisor">{{ rate }}% Rate Applied</span>
+    <div class="card-header flex justify-between items-center" style="padding:1rem 1.25rem;">
+      <span class="card-title" style="display:flex; align-items:center; gap:0.5rem;">
+        <span>👨‍🔧 Mechanic Performance & Incentives</span>
+      </span>
+      <span class="badge badge-advisor" style="font-weight:600;">{{ rate }}% Incentive Rate</span>
     </div>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
             <th>Mechanic</th>
-            <th>Completed Jobs</th>
-            <th>Labour Billed</th>
-            <th>Parts Cost</th>
-            <th>Net Profit</th>
-            <th>Incentive ({{ rate }}%)</th>
+            <th class="text-center">Jobs Done</th>
+            <th class="text-right">Labour Billed</th>
+            <th class="text-right">Parts Cost</th>
+            <th class="text-right">Net Profit</th>
+            <th class="text-right">Incentive ({{ rate }}%)</th>
           </tr>
         </thead>
         <tbody>
           {% for m in mechanic_breakdown %}
           <tr>
             <td><strong>{{ m.mechanic.get_full_name|default:m.mechanic.username }}</strong></td>
-            <td class="text-mono">{{ m.completed_jobs }}</td>
-            <td class="text-mono text-green">₹{{ m.labour_revenue|floatformat:2 }}</td>
-            <td class="text-mono text-red">₹{{ m.parts_cost|floatformat:2 }}</td>
-            <td class="text-mono font-semibold">₹{{ m.net_profit|floatformat:2 }}</td>
-            <td class="text-mono font-bold text-teal" style="font-size:0.95rem;">₹{{ m.incentive|floatformat:2 }}</td>
+            <td class="text-mono text-center">{{ m.completed_jobs }}</td>
+            <td class="text-mono text-right text-green">₹{{ m.labour_revenue|floatformat:2 }}</td>
+            <td class="text-mono text-right text-red">₹{{ m.parts_cost|floatformat:2 }}</td>
+            <td class="text-mono text-right font-semibold">₹{{ m.net_profit|floatformat:2 }}</td>
+            <td class="text-mono text-right font-bold text-teal" style="font-size:0.95rem;">₹{{ m.incentive|floatformat:2 }}</td>
           </tr>
           {% empty %}
-          <tr><td colspan="6" class="text-center text-muted">No mechanic jobs found for this period</td></tr>
+          <tr>
+            <td colspan="6" class="text-center p-4">
+              <div style="font-size:2rem; margin-bottom:0.5rem;">🛠️</div>
+              <div style="font-weight:600; color:var(--text-1); margin-bottom:0.25rem;">No mechanic jobs found for this period</div>
+              <div class="text-muted" style="font-size:0.82rem; max-width:400px; margin:0 auto;">
+                Completed job cards assigned to mechanics will automatically calculate their net contribution and incentive here.
+              </div>
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- Add Overhead Expense Form -->
+  <!-- Record Workshop Expense Form -->
   <div class="card">
-    <div class="card-header"><span class="card-title">➕ Record Workshop Expense</span></div>
+    <div class="card-header" style="padding:1rem 1.25rem;">
+      <span class="card-title" style="display:flex; align-items:center; gap:0.5rem;">
+        <span>➕ Record Workshop Expense</span>
+      </span>
+    </div>
     <div class="card-body">
       <form method="post">
         {% csrf_token %}
         <input type="hidden" name="add_expense" value="1">
-        <div class="form-group mb-2">
-          <label>Expense Title / Item</label>
+        <div class="form-group mb-3">
+          <label style="font-weight:600; font-size:0.85rem; color:var(--text-2);">Expense Title / Item Name</label>
           {{ expense_form.title }}
         </div>
-        <div class="grid-2 gap-2 mb-2">
+        <div class="grid-2 gap-2 mb-3">
           <div class="form-group">
-            <label>Category</label>
+            <label style="font-weight:600; font-size:0.85rem; color:var(--text-2);">Category</label>
             {{ expense_form.category }}
           </div>
           <div class="form-group">
-            <label>Amount (₹)</label>
+            <label style="font-weight:600; font-size:0.85rem; color:var(--text-2);">Amount (₹)</label>
             {{ expense_form.amount }}
           </div>
         </div>
-        <div class="form-group mb-2">
-          <label>Expense Date</label>
+        <div class="form-group mb-3">
+          <label style="font-weight:600; font-size:0.85rem; color:var(--text-2);">Expense Date</label>
           {{ expense_form.expense_date }}
         </div>
         <div class="form-group mb-3">
-          <label>Notes / Receipt Details</label>
+          <label style="font-weight:600; font-size:0.85rem; color:var(--text-2);">Notes / Receipt Details (Optional)</label>
           {{ expense_form.notes }}
         </div>
-        <button type="submit" class="btn btn-primary w-full">💾 Save Expense Record</button>
+        <button type="submit" class="btn btn-primary w-full" style="padding:0.65rem 1rem; font-weight:600;">💾 Save Expense Record</button>
       </form>
     </div>
   </div>
 </div>
 
-<!-- Expense History Table -->
+<!-- Workshop Expense History Log -->
 <div class="card">
-  <div class="card-header"><span class="card-title">📑 Workshop Expense Log</span></div>
+  <div class="card-header flex justify-between items-center" style="padding:1rem 1.25rem;">
+    <span class="card-title" style="display:flex; align-items:center; gap:0.5rem;">
+      <span>📑 Workshop Expense History Log</span>
+    </span>
+    <span class="text-muted" style="font-size:0.82rem;">{{ expenses_list.count }} records</span>
+  </div>
   <div class="table-wrap">
     <table>
       <thead>
         <tr>
           <th>Date</th>
-          <th>Title</th>
+          <th>Title / Item</th>
           <th>Category</th>
-          <th>Amount</th>
+          <th class="text-right">Amount</th>
           <th>Recorded By</th>
           <th>Notes</th>
+          <th style="width:80px;"></th>
         </tr>
       </thead>
       <tbody>
@@ -140,17 +201,50 @@
         <tr>
           <td class="text-mono">{{ exp.expense_date|date:"d M Y" }}</td>
           <td><strong>{{ exp.title }}</strong></td>
-          <td><span class="badge badge-pending">{{ exp.get_category_display }}</span></td>
-          <td class="text-mono text-red font-semibold">₹{{ exp.amount|floatformat:2 }}</td>
+          <td>
+            <span class="badge badge-pending">
+              {% if exp.category == 'utilities' %}⚡ Electricity & Utilities
+              {% elif exp.category == 'rent' %}🏠 Rent
+              {% elif exp.category == 'tools' %}🛠️ Tools & Equipment
+              {% elif exp.category == 'salary' %}💼 Salary / Advance
+              {% elif exp.category == 'parts_purchase' %}⚙️ Parts Purchase
+              {% else %}📌 {{ exp.get_category_display }}{% endif %}
+            </span>
+          </td>
+          <td class="text-mono text-right text-red font-semibold" style="font-size:0.95rem;">₹{{ exp.amount|floatformat:2 }}</td>
           <td>{{ exp.created_by.username|default:"Admin" }}</td>
           <td class="text-muted" style="font-size:0.82rem;">{{ exp.notes|default:"—" }}</td>
+          <td class="text-right">
+            <form method="post" action="{% url 'expense_delete' exp.pk %}" style="display:inline;" onsubmit="return confirm('Delete this expense record?');">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger btn-sm" style="padding:0.2rem 0.5rem; font-size:0.75rem;">Delete</button>
+            </form>
+          </td>
         </tr>
         {% empty %}
-        <tr><td colspan="6" class="text-center text-muted">No workshop expenses recorded yet. Use the form above to add rent, utilities, tools, etc.</td></tr>
+        <tr>
+          <td colspan="7" class="text-center p-4">
+            <div style="font-size:1.8rem; margin-bottom:0.5rem;">💸</div>
+            <div style="font-weight:600; color:var(--text-1); margin-bottom:0.25rem;">No workshop expenses recorded yet</div>
+            <div class="text-muted" style="font-size:0.82rem;">
+              Use the form above to record rent, electricity, tool purchases, or staff advances.
+            </div>
+          </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
+
+<script>
+function setRate(val) {
+  const rateInput = document.getElementById('rate-input');
+  if (rateInput) {
+    rateInput.value = val;
+    document.getElementById('filter-form').submit();
+  }
+}
+</script>
 
 {% endblock %}

@@ -859,6 +859,18 @@ def incentive_calculator(request):
     return render(request, 'core/incentive_calculator.html', context)
 
 
+@login_required
+@role_required('owner')
+def expense_delete(request, pk):
+    exp = get_object_or_404(Expense, pk=pk)
+    if request.method == 'POST':
+        title = exp.title
+        exp.delete()
+        messages.success(request, f"Expense '{title}' removed.")
+        return redirect('incentive_calculator')
+    return render(request, 'core/confirm_delete.html', {'obj': exp, 'type': 'Workshop Expense'})
+
+
 # ─── AMC Management ───────────────────────────────────────────────────────────
 
 @login_required
