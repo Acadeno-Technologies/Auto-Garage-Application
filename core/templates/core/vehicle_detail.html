@@ -8,80 +8,248 @@
 {% endblock %}
 {% block content %}
 
+<style>
+.vehicle-hero-card {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+  margin-bottom: 1.5rem !important;
+}
+
+.vehicle-info-container {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  margin-bottom: 1.5rem !important;
+}
+
+.vehicle-info-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 1024px) {
+  .vehicle-info-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .vehicle-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.info-field-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  min-height: 125px;
+}
+
+.info-field-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+  border-color: #cbd5e1;
+}
+
+.field-icon-box {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 0.85rem;
+  flex-shrink: 0;
+}
+
+.field-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.35rem;
+}
+
+.field-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.3;
+}
+
+.owner-distinct-card {
+  background: #f0f9ff;
+  border: 1px solid #e0f2fe;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+</style>
+
 <!-- Vehicle Hero Image Banner -->
 {% if vehicle.image %}
-<div class="card mb-4" style="overflow:hidden; border-radius:12px; border:1px solid var(--border); margin-bottom:1.5rem !important;">
-  <div style="max-height:280px; width:100%; overflow:hidden; position:relative; background:var(--bg-panel);">
-    <img src="{{ vehicle.image.url }}" alt="{{ vehicle }}" style="width:100%; height:280px; object-fit:cover; display:block;" onerror="this.parentElement.parentElement.style.display='none';">
+<div class="vehicle-hero-card">
+  <div style="max-height:300px; width:100%; overflow:hidden; position:relative; background:#f8fafc;">
+    <img src="{{ vehicle.image.url }}" alt="{{ vehicle }}" style="width:100%; height:300px; object-fit:cover; display:block;" onerror="this.parentElement.parentElement.style.display='none';">
+    <div style="position:absolute; inset:0; background:linear-gradient(to bottom, transparent 70%, rgba(0,0,0,0.15) 100%);"></div>
   </div>
 </div>
 {% else %}
-<div class="card mb-4" style="border-radius:12px; border:1px dashed var(--border); padding:2rem; text-align:center; background:var(--bg-panel); margin-bottom:1.5rem !important;">
-  <div style="font-size:2.5rem; margin-bottom:0.5rem;">🚗</div>
-  <div style="font-weight:700; color:var(--text-1); margin-bottom:0.25rem;">No Photo Uploaded for this Vehicle</div>
-  <p class="text-muted" style="font-size:0.85rem; margin-bottom:1rem;">Upload a photo of {{ vehicle.make }} {{ vehicle.model }} to display its image banner here.</p>
+<div class="vehicle-hero-card" style="padding:2.5rem; text-align:center; background:#f8fafc; border:1px dashed #cbd5e1;">
+  <div style="font-size:2.8rem; margin-bottom:0.5rem;">🚗</div>
+  <div style="font-weight:700; color:#1e293b; font-size:1.1rem; margin-bottom:0.25rem;">No Photo Uploaded for this Vehicle</div>
+  <p class="text-muted" style="font-size:0.85rem; margin-bottom:1rem;">Upload a photo of {{ vehicle.make }} {{ vehicle.model }} to display its cover banner here.</p>
   <a href="{% url 'vehicle_edit' vehicle.pk %}" class="btn btn-secondary btn-sm">📷 Add Vehicle Photo</a>
 </div>
 {% endif %}
 
-<!-- Vehicle Info Section with Individual Metric Cards -->
-<div class="card mb-4" style="margin-bottom:1.5rem !important;">
-  <div class="card-header"><span class="card-title">🚗 Vehicle Info</span></div>
-  <div class="card-body" style="padding:1.25rem;">
-    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:1rem;">
-      
-      <!-- Make / Model -->
-      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:1rem;">
-        <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted, #64748b); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.3rem;">MAKE / MODEL</div>
-        <div style="font-weight:700; color:var(--text-1, #1e293b); font-size:1rem;">{{ vehicle.make }} {{ vehicle.model }}</div>
-      </div>
+<!-- Vehicle Information Section -->
+<div class="vehicle-info-container">
+  <div style="margin-bottom:1.25rem;">
+    <h2 style="font-size:1.15rem; font-weight:700; color:#1e293b; margin:0 0 0.35rem 0; display:flex; align-items:center; gap:0.5rem;">
+      <span>🚗</span> Vehicle Information
+    </h2>
+    <div style="width:36px; height:3px; background:#ea580c; border-radius:2px;"></div>
+  </div>
 
-      <!-- Year -->
-      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:1rem;">
-        <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted, #64748b); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.3rem;">YEAR</div>
-        <div style="font-weight:700; color:var(--text-1, #1e293b); font-size:1rem;">{{ vehicle.year }}</div>
-      </div>
-
-      <!-- License Plate -->
-      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:1rem;">
-        <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted, #64748b); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.3rem;">LICENSE PLATE</div>
-        <div style="font-weight:700; color:var(--orange, #ea580c); font-size:1rem;" class="font-mono">{{ vehicle.license_plate }}</div>
-      </div>
-
-      <!-- Color -->
-      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:1rem;">
-        <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted, #64748b); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.3rem;">COLOR</div>
-        <div style="font-weight:700; color:var(--text-1, #1e293b); font-size:1rem;">{{ vehicle.color|default:"—" }}</div>
-      </div>
-
-      <!-- VIN -->
-      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:1rem;">
-        <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted, #64748b); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.3rem;">VIN</div>
-        <div style="font-weight:700; color:var(--text-1, #1e293b); font-size:0.9rem;" class="font-mono">{{ vehicle.vin|default:"—" }}</div>
-      </div>
-
-      <!-- Mileage -->
-      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:1rem;">
-        <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted, #64748b); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.3rem;">MILEAGE</div>
-        <div style="font-weight:700; color:var(--text-1, #1e293b); font-size:1rem;" class="font-mono">{{ vehicle.mileage }} km</div>
-      </div>
-
-      <!-- Owner -->
-      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:1rem;">
-        <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted, #64748b); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.3rem;">OWNER</div>
-        <div style="font-weight:700; font-size:1rem;">
-          <a href="{% url 'customer_detail' vehicle.customer.pk %}" style="color:var(--teal, #0d9488); text-decoration:none;">{{ vehicle.customer.name }}</a>
+  <!-- 6 Column Horizontal Grid -->
+  <div class="vehicle-info-grid">
+    
+    <!-- 1. Make / Model -->
+    <div class="info-field-card">
+      <div>
+        <div class="field-icon-box" style="background:#f3e8ff; color:#9333ea;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path>
+            <circle cx="7" cy="17" r="2"></circle>
+            <path d="M9 17h6"></path>
+            <circle cx="17" cy="17" r="2"></circle>
+          </svg>
         </div>
+        <div class="field-label">MAKE / MODEL</div>
       </div>
+      <div class="field-value">{{ vehicle.make }} {{ vehicle.model }}</div>
+    </div>
 
+    <!-- 2. Year -->
+    <div class="info-field-card">
+      <div>
+        <div class="field-icon-box" style="background:#dbeafe; color:#2563eb;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+        </div>
+        <div class="field-label">YEAR</div>
+      </div>
+      <div class="field-value">{{ vehicle.year }}</div>
+    </div>
+
+    <!-- 3. License Plate -->
+    <div class="info-field-card">
+      <div>
+        <div class="field-icon-box" style="background:#ffedd5; color:#ea580c;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+            <circle cx="6" cy="12" r="1"></circle>
+            <circle cx="18" cy="12" r="1"></circle>
+            <line x1="10" y1="12" x2="14" y2="12"></line>
+          </svg>
+        </div>
+        <div class="field-label">LICENSE PLATE</div>
+      </div>
+      <div class="field-value font-mono" style="color:#ea580c; font-weight:800;">{{ vehicle.license_plate }}</div>
+    </div>
+
+    <!-- 4. Color -->
+    <div class="info-field-card">
+      <div>
+        <div class="field-icon-box" style="background:#dcfce7; color:#16a34a;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="13.5" cy="6.5" r=".5"></circle>
+            <circle cx="17.5" cy="10.5" r=".5"></circle>
+            <circle cx="8.5" cy="7.5" r=".5"></circle>
+            <circle cx="6.5" cy="12.5" r=".5"></circle>
+            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.92 0 1.7-.72 1.7-1.65 0-.43-.17-.83-.45-1.14-.29-.32-.45-.73-.45-1.21 0-.93.75-1.68 1.68-1.68h2.02c2.48 0 4.5-2.02 4.5-4.5 0-5.52-4.48-10-10-10z"></path>
+          </svg>
+        </div>
+        <div class="field-label">COLOR</div>
+      </div>
+      <div class="field-value">{{ vehicle.color|default:"—" }}</div>
+    </div>
+
+    <!-- 5. VIN -->
+    <div class="info-field-card">
+      <div>
+        <div class="field-icon-box" style="background:#fce7f3; color:#db2777;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+            <circle cx="9" cy="10" r="2"></circle>
+            <line x1="15" y1="8" x2="17" y2="8"></line>
+            <line x1="15" y1="12" x2="17" y2="12"></line>
+            <line x1="7" y1="16" x2="17" y2="16"></line>
+          </svg>
+        </div>
+        <div class="field-label">VIN</div>
+      </div>
+      <div class="field-value font-mono" style="font-size:0.85rem; word-break:break-all;">{{ vehicle.vin|default:"—" }}</div>
+    </div>
+
+    <!-- 6. Mileage -->
+    <div class="info-field-card">
+      <div>
+        <div class="field-icon-box" style="background:#e0f2fe; color:#0284c7;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <div class="field-label">MILEAGE</div>
+      </div>
+      <div class="field-value font-mono">{{ vehicle.mileage }} km</div>
+    </div>
+
+  </div>
+
+  <!-- Visually Distinct Owner Card Below -->
+  <div class="owner-distinct-card">
+    <div style="width:42px; height:42px; border-radius:50%; background:#0284c7; color:white; display:grid; place-items:center; flex-shrink:0;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+    </div>
+    <div>
+      <div class="field-label" style="margin-bottom:0.15rem;">OWNER</div>
+      <div>
+        <a href="{% url 'customer_detail' vehicle.customer.pk %}" style="color:#0284c7; font-weight:700; font-size:1.05rem; text-decoration:none;">
+          {{ vehicle.customer.name }}
+        </a>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- Service History Section -->
-<div class="card">
-  <div class="card-header flex justify-between items-center" style="padding:1rem 1.25rem;">
-    <span class="card-title">📋 Service History</span>
+<div class="card" style="border-radius:14px; border:1px solid #e2e8f0; box-shadow:0 4px 20px rgba(0,0,0,0.03);">
+  <div class="card-header flex justify-between items-center" style="padding:1.1rem 1.25rem;">
+    <span class="card-title" style="font-weight:700;">📋 Service History</span>
     <span class="text-muted" style="font-size:0.85rem;">{{ jobs.count }} job card(s)</span>
   </div>
   <div class="table-wrap">
