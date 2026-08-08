@@ -22,7 +22,7 @@
   </form>
 </div>
 
-<div class="grid-4 mb-4">
+<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1rem;" class="mb-4">
   <div class="card p-3">
     <div class="text-muted" style="font-size:0.8rem; font-weight:600; text-transform:uppercase;">💳 Bill Amount (Paid Invoices)</div>
     <div style="font-size:1.6rem; font-weight:700; color:var(--green); margin-top:0.3rem;" class="font-mono">₹{{ total_bill_amount|floatformat:2 }}</div>
