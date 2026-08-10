@@ -532,16 +532,17 @@ def job_create(request):
                     year=timezone.now().year
                 )
 
-            # Prevent rapid double-click duplicate job creation
-            recent_cutoff = timezone.now() - timedelta(seconds=15)
+            # Prevent duplicate job creation (check active job cards or recent creation)
+            recent_cutoff = timezone.now() - timedelta(seconds=60)
             existing_duplicate = JobCard.objects.filter(
                 vehicle=vehicle,
-                problem_description=job.problem_description,
-                created_at__gte=recent_cutoff
+                problem_description=job.problem_description
+            ).filter(
+                Q(status__in=['pending', 'in_progress', 'waiting_parts']) | Q(created_at__gte=recent_cutoff)
             ).first()
 
             if existing_duplicate:
-                messages.info(request, f"Job card {existing_duplicate.job_number} was already created.")
+                messages.warning(request, f"Active Job Card '{existing_duplicate.job_number}' already exists for vehicle '{vehicle.license_plate}' with the same problem description.")
                 return redirect('job_detail', pk=existing_duplicate.pk)
 
             job.vehicle = vehicle
