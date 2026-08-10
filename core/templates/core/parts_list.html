@@ -3,18 +3,32 @@
 {% block page_title %}
 <div>
   <h1 style="color:#0f172a; font-weight:800; font-size:1.35rem; line-height:1.2; margin:0;">Inventory Management</h1>
-  <p style="color:#64748b; font-size:0.83rem; font-weight:500; margin:2px 0 0 0;">Manage spare parts and stock levels</p>
+  <p style="color:#64748b; font-size:0.83rem; font-weight:500; margin:2px 0 0 0;">Manage spare parts, categories, and suppliers</p>
 </div>
 {% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'part_create' %}" class="btn btn-secondary btn-sm" style="border:1px solid #cbd5e1; color:#0f172a; background:#ffffff; font-weight:600; border-radius:8px; padding:0.5rem 1rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; font-size:0.85rem;">
-  <span style="font-weight:700;">+</span> Add Part
-</a>
-<a href="{% url 'stock_transaction' %}" class="btn btn-primary btn-sm" style="background:#dc2626; color:white; border-radius:8px; font-weight:600; padding:0.5rem 1rem; border:none; box-shadow:0 3px 10px rgba(220,38,38,0.25); text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; font-size:0.85rem;">
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-  Stock Transaction
-</a>
+<div id="topbar-actions-parts" class="topbar-actions-group" style="display:flex; gap:0.5rem; align-items:center;">
+  <a href="{% url 'part_create' %}" class="btn btn-secondary btn-sm" style="border:1px solid #cbd5e1; color:#0f172a; background:#ffffff; font-weight:600; border-radius:8px; padding:0.5rem 1rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; font-size:0.85rem;">
+    <span style="font-weight:700;">+</span> Add Part
+  </a>
+  <a href="{% url 'stock_transaction' %}" class="btn btn-primary btn-sm" style="background:#dc2626; color:white; border-radius:8px; font-weight:600; padding:0.5rem 1rem; border:none; box-shadow:0 3px 10px rgba(220,38,38,0.25); text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; font-size:0.85rem;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+    Stock Transaction
+  </a>
+</div>
+
+<div id="topbar-actions-categories" class="topbar-actions-group" style="display:none; gap:0.5rem; align-items:center;">
+  <a href="{% url 'category_create' %}" class="btn btn-primary btn-sm" style="background:#dc2626; color:white; border-radius:8px; font-weight:600; padding:0.5rem 1rem; border:none; box-shadow:0 3px 10px rgba(220,38,38,0.25); text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; font-size:0.85rem;">
+    <span style="font-weight:700;">+</span> Add Category
+  </a>
+</div>
+
+<div id="topbar-actions-suppliers" class="topbar-actions-group" style="display:none; gap:0.5rem; align-items:center;">
+  <a href="{% url 'supplier_create' %}" class="btn btn-primary btn-sm" style="background:#dc2626; color:white; border-radius:8px; font-weight:600; padding:0.5rem 1rem; border:none; box-shadow:0 3px 10px rgba(220,38,38,0.25); text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; font-size:0.85rem;">
+    <span style="font-weight:700;">+</span> Add Supplier
+  </a>
+</div>
 {% endblock %}
 
 {% block content %}
@@ -87,6 +101,7 @@
   transition: all 0.15s ease;
   border-left: 3px solid transparent;
   white-space: nowrap;
+  cursor: pointer;
 }
 
 .inv-subnav-item:hover {
@@ -133,7 +148,7 @@
   color: #0f172a;
 }
 
-/* Main Search & Table Card */
+/* Main Cards */
 .inv-main-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -322,15 +337,15 @@
   <div class="inv-subnav-card">
     <div class="inv-subnav-title">Inventory Menu</div>
     <div class="inv-subnav-menu">
-      <a href="{% url 'parts_list' %}" class="inv-subnav-item active">
+      <a href="javascript:void(0)" id="subnav-item-parts" class="inv-subnav-item" onclick="switchTab('parts')">
         <span class="icon">📦</span>
         <span>All Spare Parts</span>
       </a>
-      <a href="{% url 'category_list' %}" class="inv-subnav-item">
+      <a href="javascript:void(0)" id="subnav-item-categories" class="inv-subnav-item" onclick="switchTab('categories')">
         <span class="icon">🏷️</span>
         <span>Part Categories</span>
       </a>
-      <a href="{% url 'supplier_list' %}" class="inv-subnav-item">
+      <a href="javascript:void(0)" id="subnav-item-suppliers" class="inv-subnav-item" onclick="switchTab('suppliers')">
         <span class="icon">🏭</span>
         <span>Suppliers</span>
       </a>
@@ -357,161 +372,351 @@
     </div>
   </div>
 
-  <!-- RIGHT: Main All Spare Parts Content Card -->
-  <div class="inv-main-card">
+  <!-- RIGHT: Content Area -->
+  <div class="inv-content-container" style="display:flex; flex-direction:column; gap:1.25rem;">
     
-    <!-- Card Header -->
-    <div class="inv-card-header">
-      <div style="display:flex; align-items:center; gap:0.6rem;">
-        <div style="width:34px; height:34px; border-radius:8px; background:#eff6ff; color:#2563eb; display:grid; place-items:center; flex-shrink:0;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-        </div>
-        <h2 style="font-weight:800; color:#0f172a; font-size:1.1rem; margin:0;">All Spare Parts</h2>
-      </div>
-
-      <!-- Action Buttons -->
-      <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
-        <a href="{% url 'parts_export_pdf' %}?q={{ q }}&category={{ selected_category }}" target="_blank" class="inv-btn-secondary" style="height:36px; padding:0 0.85rem; font-size:0.8rem; color:#dc2626; border-color:#fca5a5; background:#fef2f2;" title="Export as PDF Document">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-          Export PDF
-        </a>
-        <a href="{% url 'parts_export_csv' %}" class="inv-btn-secondary" style="height:36px; padding:0 0.85rem; font-size:0.8rem;" title="Export as CSV Spreadsheet">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          CSV
-        </a>
-        <a href="{% url 'part_create' %}" class="inv-btn-secondary" style="height:36px; padding:0 0.85rem; font-size:0.8rem;">
-          + Add Part
-        </a>
-        <a href="{% url 'stock_transaction' %}" class="btn btn-primary btn-sm" style="background:#dc2626; color:white; border-radius:8px; font-weight:600; padding:0.45rem 0.9rem; border:none; height:36px; display:inline-flex; align-items:center; text-decoration:none; font-size:0.8rem; box-shadow:0 2px 8px rgba(220,38,38,0.25);">
-          Stock Transaction
-        </a>
-      </div>
-    </div>
-
-    <!-- Search & Filter Toolbar -->
-    <div class="inv-search-toolbar">
-      <form method="get" action="{% url 'parts_list' %}" class="inv-search-form">
-        <div class="inv-search-input-wrap">
-          <div class="inv-search-icon">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+    <!-- CARD 1: All Spare Parts Card -->
+    <div id="tab-content-parts" class="inv-main-card tab-content-panel" style="display:none;">
+      
+      <!-- Card Header -->
+      <div class="inv-card-header">
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+          <div style="width:34px; height:34px; border-radius:8px; background:#eff6ff; color:#2563eb; display:grid; place-items:center; flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
           </div>
-          <input type="text" name="q" value="{{ q }}" class="inv-search-input" placeholder="Search parts by name, part number or category...">
+          <h2 style="font-weight:800; color:#0f172a; font-size:1.1rem; margin:0;">All Spare Parts</h2>
         </div>
 
-        <select name="category" class="inv-search-select" onchange="this.form.submit()">
-          <option value="">All Categories</option>
-          {% for cat in categories %}
-          <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
-          {% endfor %}
-        </select>
+        <!-- Action Buttons -->
+        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+          <a href="{% url 'parts_export_pdf' %}?q={{ q }}&category={{ selected_category }}" target="_blank" class="inv-btn-secondary" style="height:36px; padding:0 0.85rem; font-size:0.8rem; color:#dc2626; border-color:#fca5a5; background:#fef2f2;" title="Export as PDF Document">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            Export PDF
+          </a>
+          <a href="{% url 'parts_export_csv' %}" class="inv-btn-secondary" style="height:36px; padding:0 0.85rem; font-size:0.8rem;" title="Export as CSV Spreadsheet">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            CSV
+          </a>
+          <a href="{% url 'part_create' %}" class="inv-btn-secondary" style="height:36px; padding:0 0.85rem; font-size:0.8rem;">
+            + Add Part
+          </a>
+          <a href="{% url 'stock_transaction' %}" class="btn btn-primary btn-sm" style="background:#dc2626; color:white; border-radius:8px; font-weight:600; padding:0.45rem 0.9rem; border:none; height:36px; display:inline-flex; align-items:center; text-decoration:none; font-size:0.8rem; box-shadow:0 2px 8px rgba(220,38,38,0.25);">
+            Stock Transaction
+          </a>
+        </div>
+      </div>
 
-        <button type="submit" class="inv-btn-secondary">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-          Filters
-          <span style="background:#e2e8f0; color:#334155; border-radius:10px; padding:0.15rem 0.45rem; font-size:0.75rem; font-weight:700;">{% if q or selected_category %}1{% else %}0{% endif %}</span>
-        </button>
+      <!-- Search & Filter Toolbar -->
+      <div class="inv-search-toolbar">
+        <form method="get" action="{% url 'parts_list' %}" class="inv-search-form">
+          <input type="hidden" name="tab" value="parts">
+          <div class="inv-search-input-wrap">
+            <div class="inv-search-icon">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+            <input type="text" name="q" value="{{ q }}" class="inv-search-input" placeholder="Search parts by name, part number or category...">
+          </div>
 
-        <a href="{% url 'parts_list' %}" class="inv-btn-secondary" title="Reset Filters">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+          <select name="category" class="inv-search-select" onchange="this.form.submit()">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+
+          <button type="submit" class="inv-btn-secondary">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+            Filters
+            <span style="background:#e2e8f0; color:#334155; border-radius:10px; padding:0.15rem 0.45rem; font-size:0.75rem; font-weight:700;">{% if q or selected_category %}1{% else %}0{% endif %}</span>
+          </button>
+
+          <a href="{% url 'parts_list' %}?tab=parts" class="inv-btn-secondary" title="Reset Filters">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+          </a>
+        </form>
+      </div>
+
+      <!-- Spare Parts Table -->
+      <div class="table-wrap">
+        <table id="parts-table" style="width:100%;">
+          <thead>
+            <tr>
+              <th>NAME</th>
+              <th>PART #</th>
+              <th>CATEGORY</th>
+              <th>PRICE</th>
+              <th>STOCK</th>
+              <th>MIN STOCK</th>
+              <th>STATUS</th>
+              <th style="width:90px; text-align:right;">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for part in parts %}
+            <tr class="parts-row" {% if part.is_low_stock %}style="background:#fff5f5;"{% endif %}>
+              <td>
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                  <div class="part-thumb-placeholder">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8M8 12h8"></path></svg>
+                  </div>
+                  <div>
+                    <strong style="color:#0f172a; font-size:0.9rem; display:block;">{{ part.name }}</strong>
+                    <span style="font-size:0.76rem; color:#64748b;">{{ part.category.name|default:"General" }}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="text-mono" style="font-size:0.82rem; color:#64748b;">{{ part.part_number }}</td>
+              <td>
+                <span style="background:#eff6ff; color:#2563eb; font-weight:600; border-radius:8px; padding:0.2rem 0.6rem; font-size:0.78rem; display:inline-block;">
+                  {{ part.category.name|default:"—" }}
+                </span>
+              </td>
+              <td class="text-mono font-bold" style="color:#0f172a;">₹{{ part.unit_price }}</td>
+              <td class="text-mono {% if part.is_low_stock %}text-red font-bold{% else %}font-bold{% endif %}" style="color:{% if part.is_low_stock %}#dc2626{% else %}#16a34a{% endif %};">
+                {{ part.stock_quantity }}
+              </td>
+              <td class="text-mono text-muted" style="color:#94a3b8;">{{ part.minimum_stock }}</td>
+              <td>
+                {% if part.is_low_stock %}
+                <span class="badge" style="background:#fee2e2; color:#dc2626; font-weight:700; border-radius:20px; padding:0.25rem 0.75rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                  ● LOW STOCK
+                </span>
+                {% else %}
+                <span class="badge" style="background:#dcfce7; color:#16a34a; font-weight:700; border-radius:20px; padding:0.25rem 0.75rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                  ✓ OK
+                </span>
+                {% endif %}
+              </td>
+              <td class="text-right" style="white-space:nowrap;">
+                <a href="{% url 'part_edit' part.pk %}" class="action-icon-btn edit-btn" title="Edit Part">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </a>
+                <form method="post" action="{% url 'part_delete' part.pk %}" onsubmit="return confirm('Are you sure you want to delete part {{ part.name }}?');" style="display:inline; margin:0;">
+                  {% csrf_token %}
+                  <button type="submit" class="action-icon-btn delete-btn" title="Delete Part">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" class="text-center text-muted p-4">No spare parts found</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Bar -->
+      <div class="pagination-bar">
+        <div style="font-size:0.83rem; color:#64748b; font-weight:500;">
+          Showing <span id="parts-start">0</span> to <span id="parts-end">0</span> of <span id="parts-total">{{ parts|length }}</span> parts
+        </div>
+        <div class="pagination-controls">
+          <div style="display:flex; gap:0.25rem;" id="parts-pagination-btns"></div>
+          <select id="parts-per-page" class="per-page-select" onchange="changePerPage('parts', this.value)">
+            <option value="10" selected>10 / page</option>
+            <option value="25">25 / page</option>
+            <option value="50">50 / page</option>
+            <option value="10000">All</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CARD 2: Part Categories Card -->
+    <div id="tab-content-categories" class="inv-main-card tab-content-panel" style="display:none;">
+      
+      <!-- Card Header -->
+      <div class="inv-card-header">
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+          <div style="width:34px; height:34px; border-radius:8px; background:#f3e8ff; color:#9333ea; display:grid; place-items:center; flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+          </div>
+          <h2 style="font-weight:800; color:#0f172a; font-size:1.1rem; margin:0;">Part Categories</h2>
+        </div>
+
+        <a href="{% url 'category_create' %}" class="btn btn-primary btn-sm" style="background:#dc2626; color:white; border-radius:8px; font-weight:600; padding:0.45rem 0.9rem; border:none; height:36px; display:inline-flex; align-items:center; text-decoration:none; font-size:0.8rem; box-shadow:0 2px 8px rgba(220,38,38,0.25);">
+          + Add Category
         </a>
-      </form>
+      </div>
+
+      <!-- Categories Table -->
+      <div class="table-wrap">
+        <table style="width:100%;">
+          <thead>
+            <tr>
+              <th>NAME</th>
+              <th>DESCRIPTION</th>
+              <th style="width:120px;">PARTS COUNT</th>
+              <th style="width:90px; text-align:right;">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cat in categories %}
+            <tr class="cat-row">
+              <td><strong style="color:#0f172a; font-size:0.9rem;">{{ cat.name }}</strong></td>
+              <td style="color:#64748b; font-size:0.85rem;">{{ cat.description|default:"—" }}</td>
+              <td class="text-mono font-bold" style="color:#2563eb;">{{ cat.parts_count|default:0 }}</td>
+              <td class="text-right" style="white-space:nowrap;">
+                <a href="{% url 'category_edit' cat.pk %}" class="action-icon-btn edit-btn" title="Edit Category">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </a>
+                <form method="post" action="{% url 'category_delete' cat.pk %}" onsubmit="return confirm('Delete category {{ cat.name }}?');" style="display:inline; margin:0;">
+                  {% csrf_token %}
+                  <button type="submit" class="action-icon-btn delete-btn" title="Delete Category">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center text-muted p-4">No categories created yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Categories Pagination Bar -->
+      <div class="pagination-bar">
+        <div style="font-size:0.83rem; color:#64748b; font-weight:500;">
+          Showing <span id="cat-start">0</span> to <span id="cat-end">0</span> of <span id="cat-total">{{ categories|length }}</span> categories
+        </div>
+        <div class="pagination-controls">
+          <div style="display:flex; gap:0.25rem;" id="cat-pagination-btns"></div>
+          <select id="cat-per-page" class="per-page-select" onchange="changePerPage('cat', this.value)">
+            <option value="10" selected>10 / page</option>
+            <option value="25">25 / page</option>
+            <option value="10000">All</option>
+          </select>
+        </div>
+      </div>
+
     </div>
 
-    <!-- Spare Parts Table -->
-    <div class="table-wrap">
-      <table id="parts-table" style="width:100%;">
-        <thead>
-          <tr>
-            <th>NAME</th>
-            <th>PART #</th>
-            <th>CATEGORY</th>
-            <th>PRICE</th>
-            <th>STOCK</th>
-            <th>MIN STOCK</th>
-            <th>STATUS</th>
-            <th style="width:90px; text-align:right;">ACTIONS</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for part in parts %}
-          <tr class="parts-row" {% if part.is_low_stock %}style="background:#fff5f5;"{% endif %}>
-            <td>
-              <div style="display:flex; align-items:center; gap:0.75rem;">
-                <div class="part-thumb-placeholder">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8M8 12h8"></path></svg>
-                </div>
-                <div>
-                  <strong style="color:#0f172a; font-size:0.9rem; display:block;">{{ part.name }}</strong>
-                  <span style="font-size:0.76rem; color:#64748b;">{{ part.category.name|default:"General" }}</span>
-                </div>
-              </div>
-            </td>
-            <td class="text-mono" style="font-size:0.82rem; color:#64748b;">{{ part.part_number }}</td>
-            <td>
-              <span style="background:#eff6ff; color:#2563eb; font-weight:600; border-radius:8px; padding:0.2rem 0.6rem; font-size:0.78rem; display:inline-block;">
-                {{ part.category.name|default:"—" }}
-              </span>
-            </td>
-            <td class="text-mono font-bold" style="color:#0f172a;">₹{{ part.unit_price }}</td>
-            <td class="text-mono {% if part.is_low_stock %}text-red font-bold{% else %}font-bold{% endif %}" style="color:{% if part.is_low_stock %}#dc2626{% else %}#16a34a{% endif %};">
-              {{ part.stock_quantity }}
-            </td>
-            <td class="text-mono text-muted" style="color:#94a3b8;">{{ part.minimum_stock }}</td>
-            <td>
-              {% if part.is_low_stock %}
-              <span class="badge" style="background:#fee2e2; color:#dc2626; font-weight:700; border-radius:20px; padding:0.25rem 0.75rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
-                ● LOW STOCK
-              </span>
-              {% else %}
-              <span class="badge" style="background:#dcfce7; color:#16a34a; font-weight:700; border-radius:20px; padding:0.25rem 0.75rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
-                ✓ OK
-              </span>
-              {% endif %}
-            </td>
-            <td class="text-right" style="white-space:nowrap;">
-              <a href="{% url 'part_edit' part.pk %}" class="action-icon-btn edit-btn" title="Edit Part">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-              </a>
-              <form method="post" action="{% url 'part_delete' part.pk %}" onsubmit="return confirm('Are you sure you want to delete part {{ part.name }}?');" style="display:inline; margin:0;">
-                {% csrf_token %}
-                <button type="submit" class="action-icon-btn delete-btn" title="Delete Part">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                </button>
-              </form>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="8" class="text-center text-muted p-4">No spare parts found</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+    <!-- CARD 3: Suppliers Card -->
+    <div id="tab-content-suppliers" class="inv-main-card tab-content-panel" style="display:none;">
+      
+      <!-- Card Header -->
+      <div class="inv-card-header">
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+          <div style="width:34px; height:34px; border-radius:8px; background:#f0fdf4; color:#16a34a; display:grid; place-items:center; flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </div>
+          <h2 style="font-weight:800; color:#0f172a; font-size:1.1rem; margin:0;">Suppliers</h2>
+        </div>
 
-    <!-- Pagination Bar -->
-    <div class="pagination-bar">
-      <div style="font-size:0.83rem; color:#64748b; font-weight:500;">
-        Showing <span id="parts-start">0</span> to <span id="parts-end">0</span> of <span id="parts-total">{{ parts|length }}</span> parts
+        <a href="{% url 'supplier_create' %}" class="btn btn-primary btn-sm" style="background:#dc2626; color:white; border-radius:8px; font-weight:600; padding:0.45rem 0.9rem; border:none; height:36px; display:inline-flex; align-items:center; text-decoration:none; font-size:0.8rem; box-shadow:0 2px 8px rgba(220,38,38,0.25);">
+          + Add Supplier
+        </a>
       </div>
-      <div class="pagination-controls">
-        <div style="display:flex; gap:0.25rem;" id="parts-pagination-btns"></div>
-        <select id="parts-per-page" class="per-page-select" onchange="changePerPage('parts', this.value)">
-          <option value="10" selected>10 / page</option>
-          <option value="25">25 / page</option>
-          <option value="50">50 / page</option>
-          <option value="10000">All</option>
-        </select>
+
+      <!-- Suppliers Table -->
+      <div class="table-wrap">
+        <table style="width:100%;">
+          <thead>
+            <tr>
+              <th>NAME</th>
+              <th>CONTACT</th>
+              <th>PHONE</th>
+              <th>EMAIL</th>
+              <th style="width:90px; text-align:right;">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in suppliers %}
+            <tr class="sup-row">
+              <td><strong style="color:#0f172a; font-size:0.9rem;">{{ s.name }}</strong></td>
+              <td style="color:#64748b; font-size:0.85rem;">{{ s.contact_person|default:"—" }}</td>
+              <td class="text-mono" style="font-size:0.85rem; color:#0f172a;">{{ s.phone }}</td>
+              <td style="font-size:0.85rem; color:#64748b;">{{ s.email|default:"—" }}</td>
+              <td class="text-right" style="white-space:nowrap;">
+                <a href="{% url 'supplier_edit' s.pk %}" class="action-icon-btn edit-btn" title="Edit Supplier">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </a>
+                <form method="post" action="{% url 'supplier_delete' s.pk %}" onsubmit="return confirm('Delete supplier {{ s.name }}?');" style="display:inline; margin:0;">
+                  {% csrf_token %}
+                  <button type="submit" class="action-icon-btn delete-btn" title="Delete Supplier">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted p-4">No suppliers created yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
+
+      <!-- Suppliers Pagination Bar -->
+      <div class="pagination-bar">
+        <div style="font-size:0.83rem; color:#64748b; font-weight:500;">
+          Showing <span id="sup-start">0</span> to <span id="sup-end">0</span> of <span id="sup-total">{{ suppliers|length }}</span> suppliers
+        </div>
+        <div class="pagination-controls">
+          <div style="display:flex; gap:0.25rem;" id="sup-pagination-btns"></div>
+          <select id="sup-per-page" class="per-page-select" onchange="changePerPage('sup', this.value)">
+            <option value="10" selected>10 / page</option>
+            <option value="25">25 / page</option>
+            <option value="10000">All</option>
+          </select>
+        </div>
+      </div>
+
     </div>
 
   </div>
 
 </div>
 
-<!-- Table Pagination JavaScript -->
+<!-- Table Pagination & Interactive Tab Switching JavaScript -->
 <script>
 const pagState = {
-  parts: { page: 1, perPage: 10 }
+  parts: { page: 1, perPage: 10 },
+  cat: { page: 1, perPage: 10 },
+  sup: { page: 1, perPage: 10 }
 };
+
+function switchTab(tabName) {
+  if (!['parts', 'categories', 'suppliers'].includes(tabName)) {
+    tabName = 'parts';
+  }
+
+  // 1. Hide all tab content panels
+  document.querySelectorAll('.tab-content-panel').forEach(panel => {
+    panel.style.display = 'none';
+  });
+
+  // 2. Remove active class from all menu items
+  document.querySelectorAll('.inv-subnav-item').forEach(item => {
+    item.classList.remove('active');
+  });
+
+  // 3. Hide all topbar action groups
+  document.querySelectorAll('.topbar-actions-group').forEach(grp => {
+    grp.style.display = 'none';
+  });
+
+  // 4. Show selected tab panel & highlight menu item
+  const selectedPanel = document.getElementById('tab-content-' + tabName);
+  const selectedMenuItem = document.getElementById('subnav-item-' + tabName);
+  const selectedTopbar = document.getElementById('topbar-actions-' + tabName);
+
+  if (selectedPanel) selectedPanel.style.display = 'block';
+  if (selectedMenuItem) selectedMenuItem.classList.add('active');
+  if (selectedTopbar) selectedTopbar.style.display = 'flex';
+
+  // 5. Update URL parameter without reload
+  const url = new URL(window.location);
+  url.searchParams.set('tab', tabName);
+  window.history.replaceState({}, '', url);
+
+  // 6. Trigger pagination render
+  if (tabName === 'parts') renderTablePagination('parts');
+  if (tabName === 'categories') renderTablePagination('cat');
+  if (tabName === 'suppliers') renderTablePagination('sup');
+}
 
 function renderTablePagination(prefix) {
   const rows = document.querySelectorAll(`.${prefix}-row`);
@@ -579,7 +784,9 @@ function changePerPage(prefix, val) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  renderTablePagination('parts');
+  const urlParams = new URLSearchParams(window.location.search);
+  const initialTab = urlParams.get('tab') || '{{ active_tab|default:"parts" }}';
+  switchTab(initialTab);
 });
 </script>
 

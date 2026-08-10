@@ -856,6 +856,9 @@ def store_dashboard(request):
 def parts_list(request):
     q = request.GET.get('q', '').strip()
     cat_id = request.GET.get('category', '').strip()
+    active_tab = request.GET.get('tab', 'parts').strip().lower()
+    if active_tab not in ['parts', 'categories', 'suppliers']:
+        active_tab = 'parts'
 
     all_parts = SparePart.objects.select_related('category', 'supplier').all()
     parts = all_parts
@@ -896,6 +899,7 @@ def parts_list(request):
         'low_stock_count': low_stock_count,
         'total_categories_count': total_categories_count,
         'total_suppliers_count': total_suppliers_count,
+        'active_tab': active_tab,
     })
 
 
@@ -1005,7 +1009,7 @@ def stock_transaction(request):
 @login_required
 @role_required('owner', 'store_manager')
 def category_list(request):
-    return redirect('parts_list')
+    return redirect('/parts/?tab=categories')
 
 
 @login_required
@@ -1015,8 +1019,10 @@ def category_create(request):
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, "Category created.")
-        return redirect('parts_list')
+        return redirect('/parts/?tab=categories')
     return render(request, 'core/category_form.html', {'form': form, 'title': 'Add Category'})
+
+
 @login_required
 @role_required('owner', 'store_manager')
 def category_edit(request, pk):
@@ -1025,7 +1031,7 @@ def category_edit(request, pk):
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, "Category updated.")
-        return redirect('parts_list')
+        return redirect('/parts/?tab=categories')
     return render(request, 'core/category_form.html', {'form': form, 'title': 'Edit Category'})
 
 
@@ -1037,13 +1043,13 @@ def category_delete(request, pk):
         name = cat.name
         cat.delete()
         messages.success(request, f"Category '{name}' deleted.")
-    return redirect('parts_list')
+    return redirect('/parts/?tab=categories')
 
 
 @login_required
 @role_required('owner', 'store_manager')
 def supplier_list(request):
-    return redirect('parts_list')
+    return redirect('/parts/?tab=suppliers')
 
 
 @login_required
@@ -1052,8 +1058,8 @@ def supplier_create(request):
     form = SupplierForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         form.save()
-        messages.success(request, "Supplier added.")
-        return redirect('parts_list')
+        messages.success(request, "Supplier created.")
+        return redirect('/parts/?tab=suppliers')
     return render(request, 'core/supplier_form.html', {'form': form, 'title': 'Add Supplier'})
 
 
@@ -1065,7 +1071,7 @@ def supplier_edit(request, pk):
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, "Supplier updated.")
-        return redirect('parts_list')
+        return redirect('/parts/?tab=suppliers')
     return render(request, 'core/supplier_form.html', {'form': form, 'title': 'Edit Supplier'})
 
 
@@ -1077,7 +1083,7 @@ def supplier_delete(request, pk):
         name = sup.name
         sup.delete()
         messages.success(request, f"Supplier '{name}' deleted.")
-    return redirect('parts_list')
+    return redirect('/parts/?tab=suppliers')
 
 
 # ─── Billing / Invoices ───────────────────────────────────────────────────────
