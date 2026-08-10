@@ -469,6 +469,28 @@
 </div>
 
 <script>
+const partPricesMap = {{ part_prices_json|safe|default:"{}" }};
+
+document.addEventListener('DOMContentLoaded', function() {
+  const partSelect = document.querySelector('select[name="part"]');
+  const unitPriceInput = document.querySelector('input[name="unit_price"]');
+
+  function autoFillPartPrice() {
+    if (!partSelect || !unitPriceInput) return;
+    const selectedPartId = partSelect.value;
+    if (selectedPartId && partPricesMap[selectedPartId] !== undefined) {
+      unitPriceInput.value = partPricesMap[selectedPartId];
+    }
+  }
+
+  if (partSelect) {
+    partSelect.addEventListener('change', autoFillPartPrice);
+    if (partSelect.value) {
+      autoFillPartPrice();
+    }
+  }
+});
+
 function openPhotoModal(url, caption) {
   document.getElementById('modalPhotoImg').src = url;
   document.getElementById('modalPhotoCaption').textContent = caption || '';

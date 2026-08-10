@@ -573,6 +573,8 @@ def job_create(request):
     return render(request, 'core/job_form.html', {'form': form, 'title': 'Create Job Card'})
 
 
+import json
+
 @login_required
 def job_detail(request, pk):
     job = get_object_or_404(JobCard, pk=pk)
@@ -581,10 +583,12 @@ def job_detail(request, pk):
     part_form = JobPartUsageForm()
     photo_form = JobCardPhotoForm()
     status_choices = JobCard.STATUS_CHOICES
+    part_prices_json = json.dumps({str(p.pk): str(p.unit_price) for p in SparePart.objects.all()})
     return render(request, 'core/job_detail.html', {
         'job': job, 'parts_used': parts_used, 'photos': photos,
         'part_form': part_form, 'photo_form': photo_form,
-        'status_choices': status_choices
+        'status_choices': status_choices,
+        'part_prices_json': part_prices_json
     })
 
 
