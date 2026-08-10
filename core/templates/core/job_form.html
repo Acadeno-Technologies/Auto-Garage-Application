@@ -337,6 +337,10 @@
     min-height: 85px;
   }
 
+  .input-icon-wrapper textarea {
+    padding-left: 2.5rem;
+  }
+
   .custom-form-group select {
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2064748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
@@ -663,22 +667,11 @@
         {% endif %}
       </div>
 
-      <!-- STATUS BADGE / MODE PILL -->
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.75rem;">
+      <!-- STATUS BADGE -->
+      <div style="margin-top:0.75rem;">
         <span id="customer-status-badge" class="badge-status-pill badge-info-blue" style="display:inline-flex;">
           ✨ Add New Customer Mode
         </span>
-        <button type="button" class="tab-btn"
-          style="border: 1.5px solid #c084fc; color: #9333ea; border-radius: 20px; font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.75rem; background: #faf5ff;"
-          onclick="switchCustomerMode('new')">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <polygon
-              points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-            </polygon>
-          </svg>
-          ADD NEW CUSTOMER MODE
-        </button>
       </div>
 
       <!-- Owned Vehicles Pill List -->
