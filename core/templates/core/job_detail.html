@@ -372,9 +372,31 @@
       </table>
     </div>
 
-    <div style="padding:1rem 1.25rem; border-top:2px solid #e1e5eb; display:flex; justify-content:space-between; align-items:center; background:#ffffff; border-bottom-left-radius:14px; border-bottom-right-radius:14px;">
-      <span style="font-weight:700; color:#1e293b; font-size:1rem;">Total Job Cost:</span>
-      <span style="color:#16a34a; font-weight:800; font-size:1.15rem;" class="font-mono">₹{{ job.total_cost }}</span>
+    <!-- Financial Breakdown Container -->
+    <div style="padding:1.25rem; border-top:2px solid #e1e5eb; background:#f8fafc; border-bottom-left-radius:14px; border-bottom-right-radius:14px;">
+      <div style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.75rem;">JOB CARD COST BREAKDOWN</div>
+      
+      <div style="display:flex; flex-direction:column; gap:0.5rem;">
+        <!-- Labour Cost -->
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.92rem; color:#475569;">
+          <span>🛠️ Labour Cost:</span>
+          <span class="font-mono" style="font-weight:600; color:#1e293b;">₹{{ job.labour_cost }}</span>
+        </div>
+
+        <!-- Parts Cost -->
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.92rem; color:#475569;">
+          <span>⚙️ Total Parts Cost:</span>
+          <span class="font-mono" style="font-weight:600; color:#16a34a;">₹{{ job.total_parts_cost }}</span>
+        </div>
+
+        <div style="border-top:1px dashed #cbd5e1; margin:0.3rem 0;"></div>
+
+        <!-- Total Job Cost -->
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:1.05rem; font-weight:800; color:#0f172a;">
+          <span>Total Job Cost:</span>
+          <span class="font-mono" style="color:#16a34a; font-size:1.25rem;">₹{{ job.total_cost }}</span>
+        </div>
+      </div>
     </div>
   </div>
 
