@@ -492,7 +492,8 @@
         <div class="pagination-controls">
           <div style="display:flex; gap:0.25rem;" id="parts-pagination-btns"></div>
           <select id="parts-per-page" class="per-page-select" onchange="changePerPage('parts', this.value)">
-            <option value="10" selected>10 / page</option>
+            <option value="5" selected>5 / page</option>
+            <option value="10">10 / page</option>
             <option value="25">25 / page</option>
             <option value="50">50 / page</option>
             <option value="10000">All</option>
@@ -563,7 +564,8 @@
         <div class="pagination-controls">
           <div style="display:flex; gap:0.25rem;" id="cat-pagination-btns"></div>
           <select id="cat-per-page" class="per-page-select" onchange="changePerPage('cat', this.value)">
-            <option value="10" selected>10 / page</option>
+            <option value="5" selected>5 / page</option>
+            <option value="10">10 / page</option>
             <option value="25">25 / page</option>
             <option value="10000">All</option>
           </select>
@@ -635,7 +637,8 @@
         <div class="pagination-controls">
           <div style="display:flex; gap:0.25rem;" id="sup-pagination-btns"></div>
           <select id="sup-per-page" class="per-page-select" onchange="changePerPage('sup', this.value)">
-            <option value="10" selected>10 / page</option>
+            <option value="5" selected>5 / page</option>
+            <option value="10">10 / page</option>
             <option value="25">25 / page</option>
             <option value="10000">All</option>
           </select>
@@ -651,9 +654,9 @@
 <!-- Table Pagination & Interactive Tab Switching JavaScript -->
 <script>
 const pagState = {
-  parts: { page: 1, perPage: 10 },
-  cat: { page: 1, perPage: 10 },
-  sup: { page: 1, perPage: 10 }
+  parts: { page: 1, perPage: 5 },
+  cat: { page: 1, perPage: 5 },
+  sup: { page: 1, perPage: 5 }
 };
 
 function switchTab(tabName) {
