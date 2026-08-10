@@ -1143,7 +1143,7 @@ def invoice_edit(request, pk):
         messages.success(request, "Invoice updated.")
         return redirect('invoice_detail', pk=pk)
     return render(request, 'core/invoice_form.html', {
-        'form': form, 'job': invoice.job_card, 'title': 'Edit Invoice'
+        'form': form, 'job': invoice.job_card, 'invoice': invoice, 'title': 'Edit Invoice'
     })
 
 
