@@ -283,6 +283,18 @@ def customer_edit(request, pk):
     return render(request, 'core/customer_form.html', {'form': form, 'title': 'Edit Customer'})
 
 
+@login_required
+@role_required('owner', 'advisor')
+def customer_delete(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+    name = customer.name
+    if request.method == 'POST':
+        customer.delete()
+        messages.success(request, f"Customer '{name}' deleted successfully.")
+        return redirect('customer_list')
+    return render(request, 'core/confirm_delete.html', {'obj': customer, 'type': 'Customer'})
+
+
 # ─── Vehicle Management ───────────────────────────────────────────────────────
 
 @login_required

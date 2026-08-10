@@ -3,8 +3,14 @@
 {% block page_title %}{{ customer.name }}{% endblock %}
 {% block breadcrumb %}<a href="{% url 'customer_list' %}" style="color:var(--text-3);">Customers</a> / Detail{% endblock %}
 {% block topbar_actions %}
-<a href="{% url 'customer_edit' customer.pk %}" class="btn btn-secondary btn-sm">Edit</a>
-<a href="{% url 'vehicle_create' %}" class="btn btn-primary btn-sm">+ Add Vehicle</a>
+<div style="display:flex; gap:0.5rem; align-items:center;">
+  <a href="{% url 'customer_edit' customer.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+  <form method="post" action="{% url 'customer_delete' customer.pk %}" onsubmit="return confirm('Are you sure you want to delete customer {{ customer.name }}?');" style="display:inline; margin:0;">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger btn-sm" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; border-radius:6px; padding:0.35rem 0.75rem; font-size:0.82rem; font-weight:600; cursor:pointer;">Delete</button>
+  </form>
+  <a href="{% url 'vehicle_create' %}" class="btn btn-primary btn-sm">+ Add Vehicle</a>
+</div>
 {% endblock %}
 {% block content %}
 <div class="grid-2 mb-3">
