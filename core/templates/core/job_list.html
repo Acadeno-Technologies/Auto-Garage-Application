@@ -1,50 +1,301 @@
 {% extends 'core/base.html' %}
 {% block title %}Job Cards{% endblock %}
 {% block page_title %}Job Cards{% endblock %}
-{% block topbar_actions %}<a href="{% url 'job_create' %}" class="btn btn-primary">+ New Job Card</a>{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'job_create' %}" class="btn-action-primary">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+  + New Job Card
+</a>
+{% endblock %}
+
 {% block content %}
-<div class="card mb-2" style="padding:1rem 1.5rem;">
-  <div class="flex gap-2">
-    <a href="{% url 'job_list' %}" class="btn {% if not status_filter %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">All</a>
-    {% for s,l in job.STATUS_CHOICES %}
-    {% endfor %}
-    <a href="?status=pending" class="btn {% if status_filter == 'pending' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">Pending</a>
-    <a href="?status=in_progress" class="btn {% if status_filter == 'in_progress' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">In Progress</a>
-    <a href="?status=completed" class="btn {% if status_filter == 'completed' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">Completed</a>
-    <a href="?status=delivered" class="btn {% if status_filter == 'delivered' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">Delivered</a>
+
+<style>
+/* Dashboard Theme for Job Cards Page (Consistent with Edit Vehicle / Vehicle Detail) */
+.job-list-wrapper {
+  max-width: 1150px;
+  margin: 0 auto;
+  font-family: inherit;
+}
+
+.btn-action-primary {
+  background: #6366f1;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-action-primary:hover {
+  background: #4f46e5;
+}
+
+/* Filters Card */
+.filters-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 0.85rem 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.filter-pills-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-pill {
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+}
+
+.filter-pill-active {
+  background: #6366f1;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.2);
+}
+
+.filter-pill-inactive {
+  background: #ffffff;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.filter-pill-inactive:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+/* Table Card */
+.job-table-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.job-table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 1rem;
+}
+
+.job-header-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.job-header-icon-box {
+  width: 34px;
+  height: 34px;
+  background: #eef2ff;
+  color: #6366f1;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+}
+
+.job-header-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+/* Buttons in Table */
+.btn-tb-view {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.btn-tb-view:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.btn-tb-update {
+  background: #ea580c;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.btn-tb-update:hover {
+  background: #c2410c;
+}
+
+.btn-tb-delete {
+  background: #ffffff;
+  border: 1px solid #fca5a5;
+  color: #ef4444;
+  font-weight: 600;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-tb-delete:hover {
+  background: #fef2f2;
+}
+
+.empty-state-box {
+  text-align: center;
+  padding: 2.5rem 1rem;
+}
+
+.empty-icon-circle {
+  width: 60px;
+  height: 60px;
+  background: #f1f5f9;
+  color: #6366f1;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 0.8rem;
+}
+</style>
+
+<div class="job-list-wrapper">
+
+  <!-- JOB CARD STATUS FILTER TABS -->
+  <div class="filters-card">
+    <div class="filter-pills-row">
+      <a href="{% url 'job_list' %}" class="filter-pill {% if not status_filter %}filter-pill-active{% else %}filter-pill-inactive{% endif %}">
+        All
+      </a>
+      <a href="?status=pending" class="filter-pill {% if status_filter == 'pending' %}filter-pill-active{% else %}filter-pill-inactive{% endif %}">
+        Pending
+      </a>
+      <a href="?status=in_progress" class="filter-pill {% if status_filter == 'in_progress' %}filter-pill-active{% else %}filter-pill-inactive{% endif %}">
+        In Progress
+      </a>
+      <a href="?status=completed" class="filter-pill {% if status_filter == 'completed' %}filter-pill-active{% else %}filter-pill-inactive{% endif %}">
+        Completed
+      </a>
+      <a href="?status=delivered" class="filter-pill {% if status_filter == 'delivered' %}filter-pill-active{% else %}filter-pill-inactive{% endif %}">
+        Delivered
+      </a>
+    </div>
   </div>
+
+  <!-- JOB CARDS TABLE CARD -->
+  <div class="job-table-card">
+    <div class="job-table-header">
+      <div class="job-header-title-group">
+        <div class="job-header-icon-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path></svg>
+        </div>
+        <h2 class="job-header-title">Job Cards</h2>
+      </div>
+      <span style="color:#64748b; font-size:0.85rem;">{{ jobs.count }} job card(s)</span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>JOB #</th>
+            <th>VEHICLE</th>
+            <th>CUSTOMER</th>
+            <th>MECHANIC</th>
+            <th>LABOUR</th>
+            <th>STATUS</th>
+            <th>CREATED</th>
+            <th>EST. COMPLETION</th>
+            <th style="width:180px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for job in jobs %}
+          <tr>
+            <td class="text-mono">
+              <a href="{% url 'job_detail' job.pk %}" style="font-weight:700; color:#6366f1; text-decoration:none;">{{ job.job_number }}</a>
+            </td>
+            <td>
+              <div style="font-weight:700; color:#0f172a;">{{ job.vehicle.make }} {{ job.vehicle.model }}</div>
+              <span class="font-mono" style="font-size:0.78rem; color:#ea580c; font-weight:700;">{{ job.vehicle.license_plate }}</span>
+            </td>
+            <td style="font-weight:600; color:#334155;">{{ job.vehicle.customer.name }}</td>
+            <td>
+              {% if job.mechanic %}
+                {{ job.mechanic.get_full_name|default:job.mechanic.username }}
+              {% else %}
+                <span style="color:#94a3b8; font-style:italic;">Unassigned</span>
+              {% endif %}
+            </td>
+            <td class="font-mono" style="font-weight:700; color:#10b981;">₹{{ job.labour_cost }}</td>
+            <td>
+              <span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span>
+            </td>
+            <td style="color:#64748b; font-size:0.85rem;">{{ job.created_at|date:"d M Y" }}</td>
+            <td style="color:#64748b; font-size:0.82rem;">{{ job.estimated_completion_time|date:"d M H:i"|default:"—" }}</td>
+            <td>
+              <div style="display:flex; align-items:center; gap:0.35rem; justify-content:flex-end;">
+                <a href="{% url 'job_detail' job.pk %}" class="btn-tb-view">View</a>
+                <a href="{% url 'job_update_status' job.pk %}" class="btn-tb-update">Update</a>
+                {% if user.profile.role == 'owner' or user.profile.role == 'advisor' or user.is_superuser %}
+                <form method="post" action="{% url 'job_delete' job.pk %}" onsubmit="return confirm('Delete Job Card {{ job.job_number }}?');" style="display:inline; margin:0;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-tb-delete">Delete</button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="9">
+              <div class="empty-state-box">
+                <div class="empty-icon-circle">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path></svg>
+                </div>
+                <h4 style="font-weight:700; color:#0f172a; font-size:1rem; margin:0 0 0.3rem 0;">No job cards found</h4>
+                <p style="color:#64748b; font-size:0.85rem; margin:0;">Create a new job card to get started.</p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
-<div class="card">
-  <div class="card-header"><span class="card-title">📋 Job Cards</span></div>
-  <div class="table-wrap"><table>
-    <thead><tr><th>Job #</th><th>Vehicle</th><th>Customer</th><th>Mechanic</th><th>Labour</th><th>Status</th><th>Created</th><th>Est. Completion</th><th></th></tr></thead>
-    <tbody>
-      {% for job in jobs %}
-      <tr>
-        <td><a href="{% url 'job_detail' job.pk %}" class="text-accent text-mono">{{ job.job_number }}</a></td>
-        <td>{{ job.vehicle.make }} {{ job.vehicle.model }}<br><span class="text-muted" style="font-size:0.78rem;">{{ job.vehicle.license_plate }}</span></td>
-        <td>{{ job.vehicle.customer.name }}</td>
-        <td>{% if job.mechanic %}{{ job.mechanic.get_full_name|default:job.mechanic.username }}{% else %}Unassigned{% endif %}</td>
-        <td class="text-mono">₹{{ job.labour_cost }}</td>
-        <td><span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span></td>
-        <td class="text-muted">{{ job.created_at|date:"d M Y" }}</td>
-        <td class="text-muted" style="font-size:0.8rem;">{{ job.estimated_completion_time|date:"d M H:i"|default:"—" }}</td>
-        <td>
-          <div style="display:flex; align-items:center; gap:0.3rem; white-space:nowrap;">
-            <a href="{% url 'job_detail' job.pk %}" class="btn btn-secondary btn-sm" style="padding:0.3rem 0.6rem; font-size:0.8rem;">View</a>
-            <a href="{% url 'job_update_status' job.pk %}" class="btn btn-primary btn-sm" style="padding:0.3rem 0.6rem; font-size:0.8rem;">Update</a>
-            {% if user.profile.role == 'owner' or user.profile.role == 'advisor' or user.is_superuser %}
-            <form method="post" action="{% url 'job_delete' job.pk %}" onsubmit="return confirm('Delete Job Card {{ job.job_number }}?');" style="display:inline; margin:0;">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-danger btn-sm" style="padding:0.3rem 0.6rem; font-size:0.8rem;">Delete</button>
-            </form>
-            {% endif %}
-          </div>
-        </td>
-      </tr>
-      {% empty %}<tr><td colspan="9" class="text-center text-muted">No job cards found</td></tr>
-      {% endfor %}
-    </tbody>
-  </table></div>
-</div>
+
 {% endblock %}
