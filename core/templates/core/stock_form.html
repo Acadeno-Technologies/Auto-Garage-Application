@@ -3,9 +3,6 @@
 {% block page_title %}{{ title }}{% endblock %}
 {% block content %}
 <div class="card" style="max-width:800px; border-radius:14px; border:1px solid #e1e5eb; box-shadow:0 4px 15px rgba(0,0,0,0.02);">
-  <div class="card-header" style="padding:1rem 1.25rem; border-bottom:1px solid #e1e5eb; background:#ffffff; border-top-left-radius:14px; border-top-right-radius:14px;">
-    <span class="card-title" style="font-weight:700; color:#1e293b; font-size:1.05rem;">{{ title }}</span>
-  </div>
   <div class="card-body" style="padding:1.25rem;">
     <form method="post">
       {% csrf_token %}
