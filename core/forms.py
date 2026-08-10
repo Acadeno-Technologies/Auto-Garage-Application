@@ -3,7 +3,7 @@ from django.db.models import Q
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 from .models import (
-    UserProfile, Customer, Vehicle, JobCard, JobCardPhoto,
+    UserProfile, RoleCustomization, Customer, Vehicle, JobCard, JobCardPhoto,
     SparePart, PartCategory, Supplier, StockTransaction, JobPartUsage, Invoice,
     AMCPlan, CustomerAMC, AMCServiceSchedule, WhatsAppLog, Expense
 )
@@ -15,6 +15,28 @@ ROLE_CHOICES = [
     ('store_manager', 'Store Manager'),
     ('custom', 'Custom Role'),
 ]
+
+def get_customized_role_choices(include_owner=False):
+    default_labels = [
+        ('owner', 'Owner'),
+        ('advisor', 'Service Advisor'),
+        ('mechanic', 'Mechanic'),
+        ('store_manager', 'Store Manager'),
+        ('custom', 'Custom Role'),
+    ]
+    try:
+        customizations = {rc.role_key: rc.display_name for rc in RoleCustomization.objects.all() if rc.display_name.strip()}
+    except Exception:
+        customizations = {}
+
+    choices = []
+    for key, default_label in default_labels:
+        if not include_owner and key == 'owner':
+            continue
+        label = customizations.get(key, default_label)
+        choices.append((key, label))
+    return choices
+
 
 class LoginForm(AuthenticationForm):
 
@@ -39,6 +61,10 @@ class LoginForm(AuthenticationForm):
         })
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['role'].choices = get_customized_role_choices(include_owner=True)
+
 
 class StaffCreationForm(forms.ModelForm):
     first_name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-input'}))
@@ -62,6 +88,10 @@ class StaffCreationForm(forms.ModelForm):
         model = User
         fields = ['first_name', 'last_name', 'username', 'email']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['role'].choices = get_customized_role_choices(include_owner=False)
+
 
 class StaffEditForm(forms.ModelForm):
     first_name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-input'}))
@@ -82,6 +112,10 @@ class StaffEditForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'email']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['role'].choices = get_customized_role_choices(include_owner=False)
 
 
 class CustomerForm(forms.ModelForm):
