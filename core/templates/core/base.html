@@ -43,9 +43,6 @@
         <a href="{% url 'owner_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'owner_dashboard' %}active{% endif %}">
           <span class="icon">📊</span><span>Dashboard</span>
         </a>
-        <a href="{% url 'reports' %}" class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
-          <span class="icon">📈</span><span>Reports</span>
-        </a>
         <a href="{% url 'incentive_calculator' %}" class="nav-link {% if request.resolver_match.url_name == 'incentive_calculator' %}active{% endif %}">
           <span class="icon">🎁</span><span>Incentives & Expenses</span>
         </a>
