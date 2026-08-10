@@ -393,6 +393,7 @@ def job_search_records(request):
                 'name': customer.name,
                 'phone': customer.phone,
                 'email': customer.email,
+                'address': customer.address,
                 'vehicles': vehicles_list
             }
 
@@ -412,7 +413,9 @@ def job_search_records(request):
                 'vehicle_make': vehicle.make,
                 'vehicle_color': vehicle.color,
                 'customer_name': vehicle.customer.name,
-                'customer_phone': vehicle.customer.phone
+                'customer_phone': vehicle.customer.phone,
+                'customer_email': vehicle.customer.email,
+                'customer_address': vehicle.customer.address
             }
 
     # 3. General query fallback search
@@ -461,6 +464,8 @@ def job_create(request):
             job = form.save(commit=False)
             c_name = form.cleaned_data['customer_name'].strip()
             c_phone = form.cleaned_data['customer_phone'].strip()
+            c_email = form.cleaned_data.get('customer_email', '').strip()
+            c_address = form.cleaned_data.get('customer_address', '').strip()
             v_num = form.cleaned_data['vehicle_number'].strip().upper()
             v_model_raw = form.cleaned_data['vehicle_model'].strip()
             v_color = form.cleaned_data.get('vehicle_color', '').strip()
@@ -471,11 +476,22 @@ def job_create(request):
                 customer = Customer.objects.create(
                     phone=c_phone,
                     name=c_name,
+                    email=c_email,
+                    address=c_address,
                     created_by=request.user
                 )
             else:
+                updated = False
                 if c_name and customer.name != c_name:
                     customer.name = c_name
+                    updated = True
+                if c_email and customer.email != c_email:
+                    customer.email = c_email
+                    updated = True
+                if c_address and customer.address != c_address:
+                    customer.address = c_address
+                    updated = True
+                if updated:
                     customer.save()
 
             # Split model string into make and model if space separated
