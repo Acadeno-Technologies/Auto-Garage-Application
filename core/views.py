@@ -310,7 +310,11 @@ def vehicle_create(request):
     files = request.FILES.copy() if request.FILES else None
     if files and 'image' in files and (not files['image'] or getattr(files['image'], 'size', 0) == 0):
         del files['image']
-    form = VehicleForm(request.POST or None, files or None)
+    initial = {}
+    customer_id = request.GET.get('customer')
+    if customer_id:
+        initial['customer'] = customer_id
+    form = VehicleForm(request.POST or None, files or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         try:
             vehicle = form.save()

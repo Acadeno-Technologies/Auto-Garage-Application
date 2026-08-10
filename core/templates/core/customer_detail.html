@@ -9,7 +9,7 @@
     {% csrf_token %}
     <button type="submit" class="btn btn-danger btn-sm" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; border-radius:6px; padding:0.35rem 0.75rem; font-size:0.82rem; font-weight:600; cursor:pointer;">Delete</button>
   </form>
-  <a href="{% url 'vehicle_create' %}" class="btn btn-primary btn-sm">+ Add Vehicle</a>
+  <a href="{% url 'vehicle_create' %}?customer={{ customer.pk }}" class="btn btn-primary btn-sm">+ Add Vehicle</a>
 </div>
 {% endblock %}
 {% block content %}
