@@ -1,40 +1,232 @@
 {% extends 'core/base.html' %}
 {% block title %}Vehicles{% endblock %}
 {% block page_title %}Vehicles{% endblock %}
-{% block topbar_actions %}<a href="{% url 'vehicle_create' %}" class="btn btn-primary">+ Add Vehicle</a>{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'vehicle_create' %}" class="btn-action-primary">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+  + Add Vehicle
+</a>
+{% endblock %}
+
 {% block content %}
-<div class="card">
-  <div class="card-header"><span class="card-title">🚗 All Vehicles</span></div>
-  <div class="table-wrap"><table>
-    <thead><tr><th>Photo</th><th>Vehicle</th><th>Owner</th><th>Plate</th><th>Year</th><th>Color</th><th>Mileage</th><th></th></tr></thead>
-    <tbody>
-      {% for v in vehicles %}
-      <tr>
-        <td style="width:50px;">
-          {% if v.image %}
-          <img src="{{ v.image.url }}" alt="{{ v }}" style="width:40px; height:40px; border-radius:6px; object-fit:cover; border:1px solid var(--border);" onerror="this.outerHTML='<div style=\'width:40px; height:40px; border-radius:6px; background:var(--bg-panel); display:grid; place-items:center; font-size:1.1rem; border:1px solid var(--border);\'>🚗</div>';">
-          {% else %}
-          <div style="width:40px; height:40px; border-radius:6px; background:var(--bg-panel); display:grid; place-items:center; font-size:1.1rem; border:1px solid var(--border);">🚗</div>
-          {% endif %}
-        </td>
-        <td><strong>{{ v.make }} {{ v.model }}</strong></td>
-        <td><a href="{% url 'customer_detail' v.customer.pk %}" style="color:var(--teal);">{{ v.customer.name }}</a></td>
-        <td class="text-mono text-accent">{{ v.license_plate }}</td>
-        <td>{{ v.year }}</td>
-        <td>{{ v.color|default:"—" }}</td>
-        <td class="text-mono">{{ v.mileage|default:"—" }} km</td>
-        <td style="white-space:nowrap;">
-          <a href="{% url 'vehicle_detail' v.pk %}" class="btn btn-secondary btn-sm">View</a>
-          <a href="{% url 'vehicle_edit' v.pk %}" class="btn btn-primary btn-sm">Edit</a>
-          <form method="post" action="{% url 'vehicle_delete' v.pk %}" onsubmit="return confirm('Are you sure you want to delete vehicle {{ v.license_plate }} ({{ v.make }} {{ v.model }})?');" style="display:inline; margin:0;">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-secondary btn-sm" style="color:var(--red, #ef4444); border-color:rgba(239, 68, 68, 0.4);">Delete</button>
-          </form>
-        </td>
-      </tr>
-      {% empty %}<tr><td colspan="8" class="text-center text-muted">No vehicles registered</td></tr>
-      {% endfor %}
-    </tbody>
-  </table></div>
+
+<style>
+/* Dashboard Theme for Vehicle List Page (Identical to Edit Vehicle / Vehicle Detail) */
+.vehicle-list-wrapper {
+  max-width: 1150px;
+  margin: 0 auto;
+  font-family: inherit;
+}
+
+.btn-action-primary {
+  background: #6366f1;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-action-primary:hover {
+  background: #4f46e5;
+}
+
+/* Vehicle Table Card */
+.vehicle-table-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.vehicle-table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 1rem;
+}
+
+.header-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.header-icon-box {
+  width: 34px;
+  height: 34px;
+  background: #eff6ff;
+  color: #2563eb;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+}
+
+.header-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+/* Action Buttons inside Table */
+.btn-tb-view {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.btn-tb-view:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.btn-tb-edit {
+  background: #ffffff;
+  border: 1.5px solid #2563eb;
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.btn-tb-edit:hover {
+  background: #eff6ff;
+}
+
+.btn-tb-delete {
+  background: #ffffff;
+  border: 1px solid #fca5a5;
+  color: #ef4444;
+  font-weight: 600;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-tb-delete:hover {
+  background: #fef2f2;
+}
+
+.empty-state-box {
+  text-align: center;
+  padding: 2.5rem 1rem;
+}
+
+.empty-icon-circle {
+  width: 60px;
+  height: 60px;
+  background: #f1f5f9;
+  color: #2563eb;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 0.8rem;
+}
+</style>
+
+<div class="vehicle-list-wrapper">
+
+  <!-- VEHICLES TABLE CARD -->
+  <div class="vehicle-table-card">
+    <div class="vehicle-table-header">
+      <div class="header-title-group">
+        <div class="header-icon-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><path d="M9 17h6"></path><circle cx="17" cy="17" r="2"></circle></svg>
+        </div>
+        <h2 class="header-title">All Vehicles</h2>
+      </div>
+      <span style="color:#64748b; font-size:0.85rem;">{{ vehicles.count }} vehicle(s)</span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:60px;">Photo</th>
+            <th>Vehicle</th>
+            <th>Owner</th>
+            <th>Plate</th>
+            <th>Year</th>
+            <th>Color</th>
+            <th>Mileage</th>
+            <th style="width:180px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for v in vehicles %}
+          <tr>
+            <td>
+              {% if v.image %}
+                <img src="{{ v.image.url }}" alt="{{ v }}" style="width:42px; height:42px; border-radius:8px; object-fit:cover; border:1px solid #e2e8f0;" onerror="this.outerHTML='<div style=\'width:42px; height:42px; border-radius:8px; background:#f8fafc; display:grid; place-items:center; font-size:1.1rem; border:1px solid #e2e8f0;\'>🚗</div>';">
+              {% else %}
+                <div style="width:42px; height:42px; border-radius:8px; background:#f8fafc; display:grid; place-items:center; font-size:1.1rem; border:1px solid #e2e8f0;">🚗</div>
+              {% endif %}
+            </td>
+            <td>
+              <strong style="color:#0f172a; font-size:0.92rem;">{{ v.make }} {{ v.model }}</strong>
+            </td>
+            <td>
+              <a href="{% url 'customer_detail' v.customer.pk %}" style="color:#2563eb; font-weight:600; text-decoration:none;">
+                {{ v.customer.name }}
+              </a>
+            </td>
+            <td>
+              <span class="font-mono" style="font-weight:700; color:#ea580c;">{{ v.license_plate }}</span>
+            </td>
+            <td style="color:#475569;">{{ v.year }}</td>
+            <td style="color:#475569;">{{ v.color|default:"—" }}</td>
+            <td class="font-mono" style="color:#0f172a; font-weight:600;">{{ v.mileage|default:"—" }} km</td>
+            <td>
+              <div style="display:flex; align-items:center; gap:0.35rem; justify-content:flex-end;">
+                <a href="{% url 'vehicle_detail' v.pk %}" class="btn-tb-view">View</a>
+                <a href="{% url 'vehicle_edit' v.pk %}" class="btn-tb-edit">Edit</a>
+                <form method="post" action="{% url 'vehicle_delete' v.pk %}" onsubmit="return confirm('Are you sure you want to delete vehicle {{ v.license_plate }} ({{ v.make }} {{ v.model }})?');" style="display:inline; margin:0;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-tb-delete">Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8">
+              <div class="empty-state-box">
+                <div class="empty-icon-circle">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><path d="M9 17h6"></path><circle cx="17" cy="17" r="2"></circle></svg>
+                </div>
+                <h4 style="font-weight:700; color:#0f172a; font-size:1rem; margin:0 0 0.3rem 0;">No vehicles registered</h4>
+                <p style="color:#64748b; font-size:0.85rem; margin:0;">Click "+ Add Vehicle" above to add your first vehicle.</p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
+
 {% endblock %}
