@@ -1,13 +1,11 @@
 {% extends 'core/base.html' %}
 {% block title %}{{ title }}{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
+{% block topbar_actions %}
+  {% if job %}<a href="{% url 'job_detail' job.pk %}" class="btn btn-secondary btn-sm">← Job {{ job.job_number }}</a>{% endif %}
+{% endblock %}
 {% block content %}
 <div class="card" style="max-width:800px;">
-  {% if job %}
-  <div class="card-header" style="justify-content:flex-end;">
-    <a href="{% url 'job_detail' job.pk %}" class="btn btn-secondary btn-sm">← Job {{ job.job_number }}</a>
-  </div>
-  {% endif %}
   {% if job %}
   <div class="card-body" style="background:var(--bg-panel);border-bottom:1px solid var(--border);">
     <div class="job-meta-grid">
