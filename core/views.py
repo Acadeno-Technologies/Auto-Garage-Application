@@ -359,19 +359,75 @@ def job_list(request):
 
 @login_required
 def job_search_records(request):
+    phone = request.GET.get('phone', '').strip()
+    vehicle_number = request.GET.get('vehicle_number', '').strip()
     q = request.GET.get('q', '').strip()
-    results = []
-    if len(q) >= 2:
+
+    response_data = {
+        'customer_found': False,
+        'customer': None,
+        'vehicle_found': False,
+        'vehicle': None,
+        'results': []
+    }
+
+    # 1. Customer search by phone
+    if phone:
+        customer = Customer.objects.filter(phone__iexact=phone).first()
+        if not customer:
+            # Fallback to icontains if exact phone didn't hit
+            customer = Customer.objects.filter(phone__icontains=phone).first()
+        
+        if customer:
+            vehicles_list = [
+                {
+                    'vehicle_number': v.license_plate,
+                    'vehicle_model': f"{v.make} {v.model}".strip(),
+                    'vehicle_color': v.color
+                }
+                for v in customer.vehicles.all()
+            ]
+            response_data['customer_found'] = True
+            response_data['customer'] = {
+                'id': customer.pk,
+                'name': customer.name,
+                'phone': customer.phone,
+                'email': customer.email,
+                'vehicles': vehicles_list
+            }
+
+    # 2. Vehicle search by vehicle number / license plate
+    if vehicle_number:
+        v_clean = vehicle_number.replace(" ", "").upper()
+        vehicle = Vehicle.objects.filter(license_plate__iexact=v_clean).select_related('customer').first()
+        if not vehicle:
+            vehicle = Vehicle.objects.filter(license_plate__icontains=vehicle_number).select_related('customer').first()
+
+        if vehicle:
+            response_data['vehicle_found'] = True
+            response_data['vehicle'] = {
+                'id': vehicle.pk,
+                'vehicle_number': vehicle.license_plate,
+                'vehicle_model': f"{vehicle.make} {vehicle.model}".strip(),
+                'vehicle_make': vehicle.make,
+                'vehicle_color': vehicle.color,
+                'customer_name': vehicle.customer.name,
+                'customer_phone': vehicle.customer.phone
+            }
+
+    # 3. General query fallback search
+    search_query = q or phone or vehicle_number
+    if search_query and len(search_query) >= 2:
         vehicles = Vehicle.objects.filter(
-            Q(license_plate__icontains=q) |
-            Q(model__icontains=q) |
-            Q(make__icontains=q) |
-            Q(customer__name__icontains=q) |
-            Q(customer__phone__icontains=q)
+            Q(license_plate__icontains=search_query) |
+            Q(model__icontains=search_query) |
+            Q(make__icontains=search_query) |
+            Q(customer__name__icontains=search_query) |
+            Q(customer__phone__icontains=search_query)
         ).select_related('customer')[:10]
         
         for v in vehicles:
-            results.append({
+            response_data['results'].append({
                 'customer_name': v.customer.name,
                 'customer_phone': v.customer.phone,
                 'vehicle_number': v.license_plate,
@@ -379,102 +435,112 @@ def job_search_records(request):
                 'vehicle_color': v.color
             })
             
-        if len(results) < 5:
-            existing_phones = {r['customer_phone'] for r in results}
+        if len(response_data['results']) < 5:
+            existing_phones = {r['customer_phone'] for r in response_data['results']}
             customers = Customer.objects.filter(
-                Q(name__icontains=q) | Q(phone__icontains=q)
+                Q(name__icontains=search_query) | Q(phone__icontains=search_query)
             ).exclude(phone__in=existing_phones)[:5]
             for c in customers:
-                results.append({
+                response_data['results'].append({
                     'customer_name': c.name,
                     'customer_phone': c.phone,
                     'vehicle_number': '',
                     'vehicle_model': '',
                     'vehicle_color': ''
                 })
-                
-    return JsonResponse({'results': results})
+
+    return JsonResponse(response_data)
 
 
 @login_required
 @role_required('owner', 'advisor')
 def job_create(request):
     form = JobCardForm(request.POST or None, request.FILES or None)
-    if request.method == 'POST' and form.is_valid():
-        job = form.save(commit=False)
-        c_name = form.cleaned_data['customer_name'].strip()
-        c_phone = form.cleaned_data['customer_phone'].strip()
-        v_num = form.cleaned_data['vehicle_number'].strip().upper()
-        v_model_raw = form.cleaned_data['vehicle_model'].strip()
-        v_color = form.cleaned_data.get('vehicle_color', '').strip()
+    if request.method == 'POST':
+        if form.is_valid():
+            job = form.save(commit=False)
+            c_name = form.cleaned_data['customer_name'].strip()
+            c_phone = form.cleaned_data['customer_phone'].strip()
+            v_num = form.cleaned_data['vehicle_number'].strip().upper()
+            v_model_raw = form.cleaned_data['vehicle_model'].strip()
+            v_color = form.cleaned_data.get('vehicle_color', '').strip()
 
-        # Find or create customer by phone number
-        customer, _ = Customer.objects.get_or_create(
-            phone=c_phone,
-            defaults={'name': c_name, 'created_by': request.user}
-        )
-        if customer.name != c_name:
-            customer.name = c_name
-            customer.save()
+            # Find or create customer by phone number (prevent duplicates)
+            customer = Customer.objects.filter(phone__iexact=c_phone).first()
+            if not customer:
+                customer = Customer.objects.create(
+                    phone=c_phone,
+                    name=c_name,
+                    created_by=request.user
+                )
+            else:
+                if c_name and customer.name != c_name:
+                    customer.name = c_name
+                    customer.save()
 
-        # Split model string into make and model if space separated
-        model_parts = v_model_raw.split()
-        v_make = model_parts[0] if model_parts else "Vehicle"
-        v_model = ' '.join(model_parts[1:]) if len(model_parts) > 1 else v_model_raw
+            # Split model string into make and model if space separated
+            model_parts = v_model_raw.split()
+            v_make = model_parts[0] if model_parts else "Vehicle"
+            v_model = ' '.join(model_parts[1:]) if len(model_parts) > 1 else v_model_raw
 
-        # Get or create Vehicle record dynamically
-        vehicle, _ = Vehicle.objects.get_or_create(
-            license_plate=v_num,
-            defaults={
-                'customer': customer,
-                'make': v_make,
-                'model': v_model,
-                'color': v_color,
-                'year': timezone.now().year
-            }
-        )
-        # Update vehicle details if existing
-        vehicle.customer = customer
-        if v_make: vehicle.make = v_make
-        if v_model: vehicle.model = v_model
-        if v_color: vehicle.color = v_color
-        vehicle.save()
+            # Find or create Vehicle by license plate (prevent duplicates)
+            vehicle = Vehicle.objects.filter(license_plate__iexact=v_num).first()
+            if vehicle:
+                # Update customer relationship and vehicle info
+                if vehicle.customer != customer:
+                    messages.info(request, f"Vehicle '{v_num}' was previously registered under customer '{vehicle.customer.name}'. Re-associated to '{customer.name}'.")
+                    vehicle.customer = customer
+                if v_make: vehicle.make = v_make
+                if v_model: vehicle.model = v_model
+                if v_color: vehicle.color = v_color
+                vehicle.save()
+            else:
+                vehicle = Vehicle.objects.create(
+                    license_plate=v_num,
+                    customer=customer,
+                    make=v_make,
+                    model=v_model,
+                    color=v_color,
+                    year=timezone.now().year
+                )
 
-        # Prevent rapid double-click duplicate job creation
-        recent_cutoff = timezone.now() - timedelta(seconds=15)
-        existing_duplicate = JobCard.objects.filter(
-            vehicle=vehicle,
-            problem_description=job.problem_description,
-            created_at__gte=recent_cutoff
-        ).first()
+            # Prevent rapid double-click duplicate job creation
+            recent_cutoff = timezone.now() - timedelta(seconds=15)
+            existing_duplicate = JobCard.objects.filter(
+                vehicle=vehicle,
+                problem_description=job.problem_description,
+                created_at__gte=recent_cutoff
+            ).first()
 
-        if existing_duplicate:
-            messages.info(request, f"Job card {existing_duplicate.job_number} was already created.")
-            return redirect('job_detail', pk=existing_duplicate.pk)
+            if existing_duplicate:
+                messages.info(request, f"Job card {existing_duplicate.job_number} was already created.")
+                return redirect('job_detail', pk=existing_duplicate.pk)
 
-        job.vehicle = vehicle
-        job.advisor = request.user
-        job.save()
+            job.vehicle = vehicle
+            job.advisor = request.user
+            job.save()
 
-        images = request.FILES.getlist('photos')
-        for img in images:
-            JobCardPhoto.objects.create(job_card=job, image=img)
-        
-        # Trigger SMS Notification on Job Card Creation
-        est_str = job.estimated_completion_time.strftime('%d %b %Y %H:%M') if job.estimated_completion_time else 'Not specified'
-        sms_body = (
-            f"Dear {customer.name}, your Job Card {job.job_number} for {job.vehicle.make} {job.vehicle.model} "
-            f"({job.vehicle.license_plate}) has been created at Auto Garage. Est. Completion: {est_str}. Status: {job.get_status_display()}."
-        )
-        WhatsAppLog.objects.create(
-            recipient_name=customer.name,
-            phone=customer.phone,
-            message_type='job_created',
-            message_body=sms_body,
-            sent_by=request.user
-        )
-        messages.success(request, f"Job card {job.job_number} created with {len(images)} photo(s). SMS notification sent to customer ({customer.phone}).")
-        return redirect('job_detail', pk=job.pk)
+            images = request.FILES.getlist('photos')
+            for img in images:
+                JobCardPhoto.objects.create(job_card=job, image=img)
+            
+            # Trigger SMS / WhatsApp Notification on Job Card Creation
+            est_str = job.estimated_completion_time.strftime('%d %b %Y %H:%M') if job.estimated_completion_time else 'Not specified'
+            sms_body = (
+                f"Dear {customer.name}, your Job Card {job.job_number} for {job.vehicle.make} {job.vehicle.model} "
+                f"({job.vehicle.license_plate}) has been created at Auto Garage. Est. Completion: {est_str}. Status: {job.get_status_display()}."
+            )
+            WhatsAppLog.objects.create(
+                recipient_name=customer.name,
+                phone=customer.phone,
+                message_type='job_created',
+                message_body=sms_body,
+                sent_by=request.user
+            )
+            messages.success(request, f"Job card {job.job_number} created successfully with {len(images)} photo(s). Notification logged for customer ({customer.phone}).")
+            return redirect('job_detail', pk=job.pk)
+        else:
+            messages.error(request, "Please correct the errors in the form before submitting.")
     return render(request, 'core/job_form.html', {'form': form, 'title': 'Create Job Card'})
 
 

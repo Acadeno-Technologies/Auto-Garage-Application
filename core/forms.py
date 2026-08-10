@@ -205,6 +205,19 @@ class JobCardForm(forms.ModelForm):
         if self.instance and self.instance.estimated_completion_time:
             self.initial['estimated_completion_time'] = self.instance.estimated_completion_time.strftime('%Y-%m-%dT%H:%M')
 
+    def clean_customer_phone(self):
+        phone = self.cleaned_data.get('customer_phone', '').strip()
+        cleaned_phone = ''.join(c for c in phone if c.isdigit() or c == '+')
+        if not phone or len(cleaned_phone) < 7:
+            raise forms.ValidationError("Please enter a valid phone number (at least 7 digits).")
+        return phone
+
+    def clean_vehicle_number(self):
+        vehicle_num = self.cleaned_data.get('vehicle_number', '').strip().upper()
+        if not vehicle_num or len(vehicle_num) < 3:
+            raise forms.ValidationError("Please enter a valid vehicle registration number.")
+        return vehicle_num
+
 
 class JobCardPhotoForm(forms.ModelForm):
     class Meta:

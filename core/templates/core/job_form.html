@@ -2,42 +2,153 @@
 {% block title %}{{ title }}{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
 {% block content %}
-<div class="card" style="max-width:800px;">
-  <div class="card-header"><span class="card-title">{{ title }}</span></div>
-  <div class="card-body">
+<div class="card" style="max-width:850px; margin: 0 auto;">
+  <div class="card-header flex justify-between items-center">
+    <span class="card-title">📝 {{ title }}</span>
+    <span class="text-muted" style="font-size:0.85rem;">Step-by-step auto-fetching customer & vehicle records</span>
+  </div>
 
-    <!-- Quick Search Box for Existing Customer/Vehicle Records -->
-    <div style="background:var(--bg-hover, #1e293b); padding:1rem; border-radius:8px; margin-bottom:1.5rem; border:1px solid var(--border);">
+  <div class="card-body">
+    <!-- Quick Search Header -->
+    <div style="background:var(--bg-hover, #1e293b); padding:1rem 1.25rem; border-radius:10px; margin-bottom:1.5rem; border:1px solid var(--border);">
       <label style="font-weight:600; font-size:0.9rem; display:block; margin-bottom:0.4rem; color:var(--teal, #14b8a6);">
-        🔍 Quick Search Existing Customer / Vehicle
+        🔍 Search All Records (Quick Search)
       </label>
       <div style="position:relative;">
-        <input type="text" id="quick-search-input" class="form-input" placeholder="Type Customer Name, Phone, or Vehicle Number to auto-fill..." autocomplete="off">
-        <div id="quick-search-results" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:100; background:var(--bg-card, #0f172a); border:1px solid var(--teal, #14b8a6); border-radius:6px; max-height:220px; overflow-y:auto; box-shadow:0 10px 25px rgba(0,0,0,0.5); margin-top:4px;"></div>
+        <input type="text" id="quick-search-input" class="form-input" placeholder="Search by Phone, Name, or Vehicle Number..." autocomplete="off">
+        <div id="quick-search-results" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:100; background:var(--bg-card, #0f172a); border:1px solid var(--teal, #14b8a6); border-radius:6px; max-height:240px; overflow-y:auto; box-shadow:0 10px 25px rgba(0,0,0,0.5); margin-top:4px;"></div>
       </div>
-      <span class="text-muted" style="font-size:0.78rem; display:block; margin-top:0.3rem;">Type 2+ characters to search and auto-populate existing customer and vehicle details.</span>
+      <span class="text-muted" style="font-size:0.78rem; display:block; margin-top:0.35rem;">Enter phone number or vehicle number below directly to search & auto-fill.</span>
     </div>
 
     <form method="post" enctype="multipart/form-data" id="job-card-main-form">
       {% csrf_token %}
-      {% for field in form %}
-      <div class="form-group mb-2">
-        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {{ field }}
-        {% if field.name == 'photos' %}
-        <div id="photo-preview-container" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; margin-top: 0.5rem;"></div>
-        {% endif %}
-        {% if field.errors %}
-        <span style="color:var(--red);font-size:0.78rem;">{{ field.errors.0 }}</span>
-        {% endif %}
-        {% if field.help_text %}
-        <span class="text-muted" style="font-size:0.78rem; display:block;">{{ field.help_text }}</span>
-        {% endif %}
+
+      <!-- SECTION 1: CUSTOMER DETAILS -->
+      <div style="border:1px solid var(--border); border-radius:8px; padding:1.25rem; margin-bottom:1.5rem; background:rgba(255,255,255,0.01);">
+        <div style="font-weight:600; font-size:1.05rem; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.5rem; color:var(--primary-light, #38bdf8);" class="flex justify-between items-center">
+          <span>👤 1. Customer Information</span>
+          <span id="customer-status-badge" class="badge" style="display:none; font-size:0.8rem; font-weight:normal;"></span>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1rem;">
+          <div class="form-group mb-2">
+            <label for="{{ form.customer_phone.id_for_label }}">{{ form.customer_phone.label }} *</label>
+            {{ form.customer_phone }}
+            {% if form.customer_phone.errors %}
+              <span style="color:var(--red); font-size:0.78rem; display:block; margin-top:0.2rem;">{{ form.customer_phone.errors.0 }}</span>
+            {% endif %}
+            <span class="text-muted" style="font-size:0.75rem; display:block; margin-top:0.2rem;">Enter phone to search existing customer automatically</span>
+          </div>
+
+          <div class="form-group mb-2">
+            <label for="{{ form.customer_name.id_for_label }}">{{ form.customer_name.label }} *</label>
+            {{ form.customer_name }}
+            {% if form.customer_name.errors %}
+              <span style="color:var(--red); font-size:0.78rem; display:block; margin-top:0.2rem;">{{ form.customer_name.errors.0 }}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Owned Vehicles Pill List -->
+        <div id="customer-vehicles-pills" style="display:none; margin-top:0.75rem; padding-top:0.75rem; border-top:1px dashed var(--border);">
+          <span style="font-size:0.8rem; color:var(--text-muted); display:block; margin-bottom:0.4rem;">Select an existing vehicle for this customer:</span>
+          <div id="pills-container" style="display:flex; flex-wrap:wrap; gap:0.5rem;"></div>
+        </div>
       </div>
-      {% endfor %}
+
+      <!-- SECTION 2: VEHICLE DETAILS -->
+      <div style="border:1px solid var(--border); border-radius:8px; padding:1.25rem; margin-bottom:1.5rem; background:rgba(255,255,255,0.01);">
+        <div style="font-weight:600; font-size:1.05rem; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.5rem; color:var(--primary-light, #38bdf8);" class="flex justify-between items-center">
+          <span>🚘 2. Vehicle Information</span>
+          <span id="vehicle-status-badge" class="badge" style="display:none; font-size:0.8rem; font-weight:normal;"></span>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:1rem;">
+          <div class="form-group mb-2">
+            <label for="{{ form.vehicle_number.id_for_label }}">{{ form.vehicle_number.label }} *</label>
+            {{ form.vehicle_number }}
+            {% if form.vehicle_number.errors %}
+              <span style="color:var(--red); font-size:0.78rem; display:block; margin-top:0.2rem;">{{ form.vehicle_number.errors.0 }}</span>
+            {% endif %}
+            <span class="text-muted" style="font-size:0.75rem; display:block; margin-top:0.2rem;">Enter vehicle number to search existing vehicle details</span>
+          </div>
+
+          <div class="form-group mb-2">
+            <label for="{{ form.vehicle_model.id_for_label }}">{{ form.vehicle_model.label }} *</label>
+            {{ form.vehicle_model }}
+            {% if form.vehicle_model.errors %}
+              <span style="color:var(--red); font-size:0.78rem; display:block; margin-top:0.2rem;">{{ form.vehicle_model.errors.0 }}</span>
+            {% endif %}
+          </div>
+
+          <div class="form-group mb-2">
+            <label for="{{ form.vehicle_color.id_for_label }}">{{ form.vehicle_color.label }}</label>
+            {{ form.vehicle_color }}
+            {% if form.vehicle_color.errors %}
+              <span style="color:var(--red); font-size:0.78rem; display:block; margin-top:0.2rem;">{{ form.vehicle_color.errors.0 }}</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 3: JOB / SERVICE DETAILS -->
+      <div style="border:1px solid var(--border); border-radius:8px; padding:1.25rem; margin-bottom:1.5rem; background:rgba(255,255,255,0.01);">
+        <div style="font-weight:600; font-size:1.05rem; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.5rem; color:var(--primary-light, #38bdf8);">
+          ⚙️ 3. Service & Job Details
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1rem;">
+          <div class="form-group mb-2">
+            <label for="{{ form.mechanic.id_for_label }}">{{ form.mechanic.label }}</label>
+            {{ form.mechanic }}
+            {% if form.mechanic.errors %}<span style="color:var(--red); font-size:0.78rem;">{{ form.mechanic.errors.0 }}</span>{% endif %}
+          </div>
+
+          <div class="form-group mb-2">
+            <label for="{{ form.estimated_completion_time.id_for_label }}">{{ form.estimated_completion_time.label }}</label>
+            {{ form.estimated_completion_time }}
+            {% if form.estimated_completion_time.errors %}<span style="color:var(--red); font-size:0.78rem;">{{ form.estimated_completion_time.errors.0 }}</span>{% endif %}
+          </div>
+
+          <div class="form-group mb-2">
+            <label for="{{ form.labour_cost.id_for_label }}">{{ form.labour_cost.label }} (₹)</label>
+            {{ form.labour_cost }}
+            {% if form.labour_cost.errors %}<span style="color:var(--red); font-size:0.78rem;">{{ form.labour_cost.errors.0 }}</span>{% endif %}
+          </div>
+        </div>
+
+        <div class="form-group mb-2 mt-2">
+          <label for="{{ form.problem_description.id_for_label }}">{{ form.problem_description.label }} *</label>
+          {{ form.problem_description }}
+          {% if form.problem_description.errors %}<span style="color:var(--red); font-size:0.78rem;">{{ form.problem_description.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div class="form-group mb-2">
+          <label for="{{ form.repair_instructions.id_for_label }}">{{ form.repair_instructions.label }}</label>
+          {{ form.repair_instructions }}
+          {% if form.repair_instructions.errors %}<span style="color:var(--red); font-size:0.78rem;">{{ form.repair_instructions.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div class="form-group mb-2">
+          <label for="{{ form.notes.id_for_label }}">{{ form.notes.label }}</label>
+          {{ form.notes }}
+          {% if form.notes.errors %}<span style="color:var(--red); font-size:0.78rem;">{{ form.notes.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div class="form-group mb-2">
+          <label for="{{ form.photos.id_for_label }}">{{ form.photos.label }}</label>
+          {{ form.photos }}
+          {% if form.photos.help_text %}
+            <span class="text-muted" style="font-size:0.78rem; display:block; margin-top:0.2rem;">{{ form.photos.help_text }}</span>
+          {% endif %}
+          <div id="photo-preview-container" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; margin-top: 0.5rem;"></div>
+        </div>
+      </div>
+
       <hr class="divider">
       <div class="flex gap-2">
-        <button type="submit" class="btn btn-primary">💾 Save</button>
+        <button type="submit" class="btn btn-primary" style="padding:0.6rem 1.5rem; font-weight:600;">💾 Save Job Card</button>
         <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
       </div>
     </form>
@@ -45,117 +156,260 @@
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const mainForm = document.getElementById('job-card-main-form');
-    if (mainForm) {
-      mainForm.addEventListener('submit', function() {
-        const btn = mainForm.querySelector('button[type="submit"]');
-        if (btn) {
-          btn.disabled = true;
-          btn.innerHTML = '⏳ Saving Job Card...';
-        }
-      });
-    }
-    // Quick Search & Auto-fill logic
-    const searchInput = document.getElementById('quick-search-input');
-    const searchResults = document.getElementById('quick-search-results');
-    
-    const nameInput = document.querySelector('[name="customer_name"]');
-    const phoneInput = document.querySelector('[name="customer_phone"]');
-    const numInput = document.querySelector('[name="vehicle_number"]');
-    const modelInput = document.querySelector('[name="vehicle_model"]');
-    const colorInput = document.querySelector('[name="vehicle_color"]');
+document.addEventListener('DOMContentLoaded', function() {
+  const mainForm = document.getElementById('job-card-main-form');
+  if (mainForm) {
+    mainForm.addEventListener('submit', function(e) {
+      const btn = mainForm.querySelector('button[type="submit"]');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Saving Job Card...';
+      }
+    });
+  }
 
-    if (searchInput && searchResults) {
-      let timeout = null;
-      searchInput.addEventListener('input', function() {
-        clearTimeout(timeout);
-        const query = this.value.trim();
-        if (query.length < 2) {
-          searchResults.style.display = 'none';
-          return;
-        }
-        timeout = setTimeout(() => {
-          fetch(`{% url 'job_search_records' %}?q=${encodeURIComponent(query)}`)
-            .then(res => res.json())
-            .then(data => {
-              searchResults.innerHTML = '';
-              if (data.results && data.results.length > 0) {
-                data.results.forEach(item => {
-                  const div = document.createElement('div');
-                  div.style.padding = '0.6rem 1rem';
-                  div.style.cursor = 'pointer';
-                  div.style.borderBottom = '1px solid var(--border)';
-                  div.style.fontSize = '0.88rem';
+  const phoneInput = document.querySelector('[name="customer_phone"]');
+  const nameInput = document.querySelector('[name="customer_name"]');
+  const numInput = document.querySelector('[name="vehicle_number"]');
+  const modelInput = document.querySelector('[name="vehicle_model"]');
+  const colorInput = document.querySelector('[name="vehicle_color"]');
 
-                  const title = item.vehicle_number ? `🚘 ${item.vehicle_number} (${item.vehicle_model})` : `👤 ${item.customer_name}`;
-                  const details = `👤 ${item.customer_name} | 📞 ${item.customer_phone}` + (item.vehicle_color ? ` | 🎨 ${item.vehicle_color}` : '');
-                  
-                  div.innerHTML = `<strong>${title}</strong><div style="font-size:0.78rem; color:var(--text-muted, #94a3b8);">${details}</div>`;
-                  
-                  div.addEventListener('mouseenter', () => div.style.background = 'var(--bg-hover, #334155)');
-                  div.addEventListener('mouseleave', () => div.style.background = 'transparent');
-                  
-                  div.addEventListener('click', function() {
-                    if (nameInput && item.customer_name) nameInput.value = item.customer_name;
-                    if (phoneInput && item.customer_phone) phoneInput.value = item.customer_phone;
-                    if (numInput && item.vehicle_number) numInput.value = item.vehicle_number;
-                    if (modelInput && item.vehicle_model) modelInput.value = item.vehicle_model;
-                    if (colorInput && item.vehicle_color) colorInput.value = item.vehicle_color;
-                    
-                    searchResults.style.display = 'none';
-                    searchInput.value = `${item.customer_name} (${item.vehicle_number || item.customer_phone})`;
-                  });
-                  searchResults.appendChild(div);
-                });
-                searchResults.style.display = 'block';
-              } else {
-                searchResults.innerHTML = '<div style="padding:0.6rem 1rem; color:var(--text-muted); font-size:0.85rem;">No matching record found</div>';
-                searchResults.style.display = 'block';
+  const customerBadge = document.getElementById('customer-status-badge');
+  const vehicleBadge = document.getElementById('vehicle-status-badge');
+  const pillsSection = document.getElementById('customer-vehicles-pills');
+  const pillsContainer = document.getElementById('pills-container');
+
+  // Debounced search logic for Customer Phone
+  if (phoneInput) {
+    let phoneTimer = null;
+    phoneInput.addEventListener('input', function() {
+      clearTimeout(phoneTimer);
+      const val = this.value.trim();
+      if (val.length < 3) {
+        customerBadge.style.display = 'none';
+        pillsSection.style.display = 'none';
+        return;
+      }
+      phoneTimer = setTimeout(() => {
+        fetch(`{% url 'job_search_records' %}?phone=${encodeURIComponent(val)}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.customer_found && data.customer) {
+              customerBadge.className = 'badge badge-success';
+              customerBadge.style.background = 'rgba(34, 197, 94, 0.2)';
+              customerBadge.style.color = '#4ade80';
+              customerBadge.style.border = '1px solid #22c55e';
+              customerBadge.style.display = 'inline-block';
+              customerBadge.innerHTML = `✓ Customer found: <strong>${data.customer.name}</strong>`;
+              
+              if (!nameInput.value || nameInput.value === data.customer.name) {
+                nameInput.value = data.customer.name;
               }
-            });
-        }, 200);
-      });
-      
-      document.addEventListener('click', function(e) {
-        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
-          searchResults.style.display = 'none';
+
+              // Show vehicle pills if customer owns vehicles
+              if (data.customer.vehicles && data.customer.vehicles.length > 0) {
+                pillsContainer.innerHTML = '';
+                data.customer.vehicles.forEach(v => {
+                  const btn = document.createElement('button');
+                  btn.type = 'button';
+                  btn.className = 'btn btn-sm btn-secondary';
+                  btn.style.fontSize = '0.78rem';
+                  btn.style.padding = '0.2rem 0.6rem';
+                  btn.style.borderRadius = '20px';
+                  btn.style.border = '1px solid var(--teal, #14b8a6)';
+                  btn.style.background = 'var(--bg-hover, #334155)';
+                  btn.innerHTML = `🚘 <strong>${v.vehicle_number}</strong> (${v.vehicle_model})`;
+                  
+                  btn.addEventListener('click', () => {
+                    numInput.value = v.vehicle_number;
+                    modelInput.value = v.vehicle_model;
+                    if (v.vehicle_color) colorInput.value = v.vehicle_color;
+                    triggerVehicleSearch(v.vehicle_number);
+                  });
+                  pillsContainer.appendChild(btn);
+                });
+                pillsSection.style.display = 'block';
+              } else {
+                pillsSection.style.display = 'none';
+              }
+            } else {
+              customerBadge.className = 'badge badge-info';
+              customerBadge.style.background = 'rgba(56, 189, 248, 0.15)';
+              customerBadge.style.color = '#38bdf8';
+              customerBadge.style.border = '1px solid #0284c7';
+              customerBadge.style.display = 'inline-block';
+              customerBadge.innerHTML = `ℹ️ Customer not found (New Customer)`;
+              pillsSection.style.display = 'none';
+            }
+          })
+          .catch(() => {});
+      }, 300);
+    });
+  }
+
+  // Helper function for Vehicle search
+  function triggerVehicleSearch(vehicleNum) {
+    if (!vehicleNum || vehicleNum.length < 2) {
+      vehicleBadge.style.display = 'none';
+      return;
+    }
+    fetch(`{% url 'job_search_records' %}?vehicle_number=${encodeURIComponent(vehicleNum)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.vehicle_found && data.vehicle) {
+          const v = data.vehicle;
+          if (!modelInput.value) modelInput.value = v.vehicle_model;
+          if (!colorInput.value && v.vehicle_color) colorInput.value = v.vehicle_color;
+
+          // Check relationship with current phone
+          const currentPhone = phoneInput ? phoneInput.value.trim() : '';
+          if (currentPhone && v.customer_phone && currentPhone !== v.customer_phone) {
+            vehicleBadge.className = 'badge badge-warning';
+            vehicleBadge.style.background = 'rgba(234, 179, 8, 0.2)';
+            vehicleBadge.style.color = '#fde047';
+            vehicleBadge.style.border = '1px solid #eab308';
+            vehicleBadge.style.display = 'inline-block';
+            vehicleBadge.innerHTML = `⚠️ Belongs to ${v.customer_name} (${v.customer_phone}). Will re-associate upon save.`;
+          } else {
+            vehicleBadge.className = 'badge badge-success';
+            vehicleBadge.style.background = 'rgba(34, 197, 94, 0.2)';
+            vehicleBadge.style.color = '#4ade80';
+            vehicleBadge.style.border = '1px solid #22c55e';
+            vehicleBadge.style.display = 'inline-block';
+            vehicleBadge.innerHTML = `✓ Vehicle found: ${v.vehicle_model}`;
+
+            // Auto fill customer details if empty
+            if (phoneInput && !phoneInput.value && v.customer_phone) {
+              phoneInput.value = v.customer_phone;
+              if (nameInput && !nameInput.value) nameInput.value = v.customer_name;
+              phoneInput.dispatchEvent(new Event('input'));
+            }
+          }
+        } else {
+          vehicleBadge.className = 'badge badge-info';
+          vehicleBadge.style.background = 'rgba(56, 189, 248, 0.15)';
+          vehicleBadge.style.color = '#38bdf8';
+          vehicleBadge.style.border = '1px solid #0284c7';
+          vehicleBadge.style.display = 'inline-block';
+          vehicleBadge.innerHTML = `ℹ️ Vehicle not found (New Vehicle)`;
+        }
+      })
+      .catch(() => {});
+  }
+
+  // Debounced search logic for Vehicle Number
+  if (numInput) {
+    let vehicleTimer = null;
+    numInput.addEventListener('input', function() {
+      clearTimeout(vehicleTimer);
+      const val = this.value.trim();
+      if (val.length < 2) {
+        vehicleBadge.style.display = 'none';
+        return;
+      }
+      vehicleTimer = setTimeout(() => triggerVehicleSearch(val), 300);
+    });
+  }
+
+  // Global Quick Search Bar Logic
+  const searchInput = document.getElementById('quick-search-input');
+  const searchResults = document.getElementById('quick-search-results');
+  if (searchInput && searchResults) {
+    let searchTimer = null;
+    searchInput.addEventListener('input', function() {
+      clearTimeout(searchTimer);
+      const query = this.value.trim();
+      if (query.length < 2) {
+        searchResults.style.display = 'none';
+        return;
+      }
+      searchTimer = setTimeout(() => {
+        fetch(`{% url 'job_search_records' %}?q=${encodeURIComponent(query)}`)
+          .then(res => res.json())
+          .then(data => {
+            searchResults.innerHTML = '';
+            if (data.results && data.results.length > 0) {
+              data.results.forEach(item => {
+                const div = document.createElement('div');
+                div.style.padding = '0.6rem 1rem';
+                div.style.cursor = 'pointer';
+                div.style.borderBottom = '1px solid var(--border)';
+                div.style.fontSize = '0.88rem';
+
+                const title = item.vehicle_number ? `🚘 ${item.vehicle_number} (${item.vehicle_model})` : `👤 ${item.customer_name}`;
+                const details = `👤 ${item.customer_name} | 📞 ${item.customer_phone}` + (item.vehicle_color ? ` | 🎨 ${item.vehicle_color}` : '');
+                
+                div.innerHTML = `<strong>${title}</strong><div style="font-size:0.78rem; color:var(--text-muted, #94a3b8);">${details}</div>`;
+                
+                div.addEventListener('mouseenter', () => div.style.background = 'var(--bg-hover, #334155)');
+                div.addEventListener('mouseleave', () => div.style.background = 'transparent');
+                
+                div.addEventListener('click', function() {
+                  if (nameInput && item.customer_name) nameInput.value = item.customer_name;
+                  if (phoneInput && item.customer_phone) {
+                    phoneInput.value = item.customer_phone;
+                    phoneInput.dispatchEvent(new Event('input'));
+                  }
+                  if (numInput && item.vehicle_number) {
+                    numInput.value = item.vehicle_number;
+                    triggerVehicleSearch(item.vehicle_number);
+                  }
+                  if (modelInput && item.vehicle_model) modelInput.value = item.vehicle_model;
+                  if (colorInput && item.vehicle_color) colorInput.value = item.vehicle_color;
+                  
+                  searchResults.style.display = 'none';
+                  searchInput.value = `${item.customer_name} (${item.vehicle_number || item.customer_phone})`;
+                });
+                searchResults.appendChild(div);
+              });
+              searchResults.style.display = 'block';
+            } else {
+              searchResults.innerHTML = '<div style="padding:0.6rem 1rem; color:var(--text-muted); font-size:0.85rem;">No matching record found</div>';
+              searchResults.style.display = 'block';
+            }
+          });
+      }, 250);
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+        searchResults.style.display = 'none';
+      }
+    });
+  }
+
+  // Photo Preview logic
+  const photoInput = document.querySelector('input[type="file"][name="photos"]');
+  const previewContainer = document.getElementById('photo-preview-container');
+  if (photoInput && previewContainer) {
+    photoInput.addEventListener('change', function(e) {
+      previewContainer.innerHTML = '';
+      const files = Array.from(e.target.files);
+      files.forEach(file => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+            const div = document.createElement('div');
+            div.style.position = 'relative';
+            div.style.borderRadius = '8px';
+            div.style.overflow = 'hidden';
+            div.style.border = '1px solid var(--border)';
+            div.style.aspectRatio = '1 / 1';
+            
+            const img = document.createElement('img');
+            img.src = evt.target.result;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            
+            div.appendChild(img);
+            previewContainer.appendChild(div);
+          };
+          reader.readAsDataURL(file);
         }
       });
-    }
-
-    // Photo Preview logic
-    const photoInput = document.querySelector('input[type="file"][name="photos"]');
-    const previewContainer = document.getElementById('photo-preview-container');
-    if (photoInput && previewContainer) {
-      photoInput.addEventListener('change', function(e) {
-        previewContainer.innerHTML = '';
-        const files = Array.from(e.target.files);
-        files.forEach(file => {
-          if (file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-              const div = document.createElement('div');
-              div.style.position = 'relative';
-              div.style.borderRadius = '8px';
-              div.style.overflow = 'hidden';
-              div.style.border = '1px solid var(--border)';
-              div.style.aspectRatio = '1 / 1';
-              
-              const img = document.createElement('img');
-              img.src = evt.target.result;
-              img.style.width = '100%';
-              img.style.height = '100%';
-              img.style.objectFit = 'cover';
-              
-              div.appendChild(img);
-              previewContainer.appendChild(div);
-            };
-            reader.readAsDataURL(file);
-          }
-        });
-      });
-    }
-  });
+    });
+  }
+});
 </script>
 {% endblock %}
