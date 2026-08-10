@@ -4,6 +4,10 @@
 {% block breadcrumb %}<a href="{% url 'vehicle_list' %}" style="color:var(--text-3);">Vehicles</a> / {{ vehicle.license_plate }}{% endblock %}
 {% block topbar_actions %}
 <a href="{% url 'vehicle_edit' vehicle.pk %}" class="btn btn-secondary btn-sm">✏️ Edit Vehicle</a>
+<form method="post" action="{% url 'vehicle_delete' vehicle.pk %}" onsubmit="return confirm('Are you sure you want to delete vehicle {{ vehicle.license_plate }}?');" style="display:inline; margin:0;">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-secondary btn-sm" style="color:var(--red, #ef4444); border-color:rgba(239, 68, 68, 0.4);">🗑️ Delete Vehicle</button>
+</form>
 <a href="{% url 'job_create' %}" class="btn btn-primary btn-sm">+ New Job Card</a>
 {% endblock %}
 {% block content %}
@@ -168,11 +172,17 @@
       <p style="margin:0.15rem 0 0 0; font-size:0.83rem; color:#64748b;">View and manage vehicle details</p>
     </div>
   </div>
-  <div>
+  <div style="display:flex; gap:0.5rem; align-items:center;">
     <a href="{% url 'vehicle_edit' vehicle.pk %}" class="btn btn-secondary btn-sm" style="display:inline-flex; align-items:center; gap:0.35rem; padding:0.45rem 0.9rem; font-size:0.85rem; font-weight:600; border-radius:8px;">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
       Edit Vehicle
     </a>
+    <form method="post" action="{% url 'vehicle_delete' vehicle.pk %}" onsubmit="return confirm('Are you sure you want to delete vehicle {{ vehicle.license_plate }}?');" style="display:inline; margin:0;">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-secondary btn-sm" style="color:#ef4444; border-color:rgba(239, 68, 68, 0.4); padding:0.45rem 0.9rem; font-size:0.85rem; font-weight:600; border-radius:8px;">
+        🗑️ Delete
+      </button>
+    </form>
   </div>
 </div>
 

@@ -344,6 +344,18 @@ def vehicle_detail(request, pk):
     return render(request, 'core/vehicle_detail.html', {'vehicle': vehicle, 'jobs': jobs})
 
 
+@login_required
+@role_required('owner', 'advisor')
+def vehicle_delete(request, pk):
+    vehicle = get_object_or_404(Vehicle, pk=pk)
+    plate = vehicle.license_plate
+    if request.method == 'POST':
+        vehicle.delete()
+        messages.success(request, f"Vehicle '{plate}' deleted successfully.")
+        return redirect('vehicle_list')
+    return render(request, 'core/confirm_delete.html', {'obj': vehicle, 'type': 'Vehicle'})
+
+
 # ─── Job Card Management ─────────────────────────────────────────────────────
 
 @login_required

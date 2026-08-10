@@ -23,9 +23,13 @@
         <td>{{ v.year }}</td>
         <td>{{ v.color|default:"—" }}</td>
         <td class="text-mono">{{ v.mileage|default:"—" }} km</td>
-        <td>
+        <td style="white-space:nowrap;">
           <a href="{% url 'vehicle_detail' v.pk %}" class="btn btn-secondary btn-sm">View</a>
           <a href="{% url 'vehicle_edit' v.pk %}" class="btn btn-primary btn-sm">Edit</a>
+          <form method="post" action="{% url 'vehicle_delete' v.pk %}" onsubmit="return confirm('Are you sure you want to delete vehicle {{ v.license_plate }} ({{ v.make }} {{ v.model }})?');" style="display:inline; margin:0;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-secondary btn-sm" style="color:var(--red, #ef4444); border-color:rgba(239, 68, 68, 0.4);">Delete</button>
+          </form>
         </td>
       </tr>
       {% empty %}<tr><td colspan="8" class="text-center text-muted">No vehicles registered</td></tr>
