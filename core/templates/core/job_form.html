@@ -850,16 +850,14 @@
       <div class="custom-form-group">
         <label for="{{ form.repair_instructions.id_for_label }}">Repair Instructions</label>
         {{ form.repair_instructions }}
-        {% if form.repair_instructions.errors %}<span style="color:var(--red); font-size:0.78rem;">{{
-          form.repair_instructions.errors.0 }}</span>{% endif %}
+        {% if form.repair_instructions.errors %}<span style="color:var(--red); font-size:0.78rem;">{{ form.repair_instructions.errors.0 }}</span>{% endif %}
       </div>
 
       <!-- NOTES -->
       <div class="custom-form-group">
         <label for="{{ form.notes.id_for_label }}">Notes</label>
         {{ form.notes }}
-        {% if form.notes.errors %}<span style="color:var(--red); font-size:0.78rem;">{{ form.notes.errors.0 }}</span>{%
-        endif %}
+        {% if form.notes.errors %}<span style="color:var(--red); font-size:0.78rem;">{{ form.notes.errors.0 }}</span>{% endif %}
       </div>
 
       <!-- PHOTO UPLOAD DRAG & DROP BOX -->
