@@ -669,9 +669,7 @@
 
       <!-- STATUS BADGE -->
       <div style="margin-top:0.75rem;">
-        <span id="customer-status-badge" class="badge-status-pill badge-info-blue" style="display:inline-flex;">
-          ✨ Add New Customer Mode
-        </span>
+        <span id="customer-status-badge" class="badge-status-pill badge-info-blue" style="display:none;"></span>
       </div>
 
       <!-- Owned Vehicles Pill List -->
@@ -972,9 +970,9 @@
           phoneInput.focus();
         }
 
-        customerBadge.className = 'badge-status-pill badge-info-blue';
-        customerBadge.style.display = 'inline-flex';
-        customerBadge.innerHTML = `✨ Add New Customer Mode`;
+        if (customerBadge) {
+          customerBadge.style.display = 'none';
+        }
         pillsSection.style.display = 'none';
       } else {
         btnExisting.className = 'tab-btn tab-btn-outline';
