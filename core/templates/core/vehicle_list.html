@@ -20,7 +20,7 @@
 }
 
 .btn-action-primary {
-  background: #6366f1;
+  background: #dc2626;
   color: #ffffff;
   font-weight: 600;
   font-size: 0.85rem;
@@ -30,12 +30,12 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
   transition: all 0.2s ease;
 }
 
 .btn-action-primary:hover {
-  background: #4f46e5;
+  background: #b91c1c;
 }
 
 /* Vehicle Table Card */
@@ -65,8 +65,8 @@
 .header-icon-box {
   width: 34px;
   height: 34px;
-  background: #eff6ff;
-  color: #2563eb;
+  background: rgba(220, 38, 38, 0.08);
+  color: #dc2626;
   border-radius: 8px;
   display: grid;
   place-items: center;
@@ -99,8 +99,8 @@
 
 .btn-tb-edit {
   background: #ffffff;
-  border: 1.5px solid #2563eb;
-  color: #2563eb;
+  border: 1.5px solid #dc2626;
+  color: #dc2626;
   font-weight: 600;
   font-size: 0.78rem;
   padding: 0.3rem 0.65rem;
@@ -110,7 +110,7 @@
 }
 
 .btn-tb-edit:hover {
-  background: #eff6ff;
+  background: #fef2f2;
 }
 
 .btn-tb-delete {
@@ -188,7 +188,7 @@
               <strong style="color:#0f172a; font-size:0.92rem;">{{ v.make }} {{ v.model }}</strong>
             </td>
             <td>
-              <a href="{% url 'customer_detail' v.customer.pk %}" style="color:#2563eb; font-weight:600; text-decoration:none;">
+              <a href="{% url 'customer_detail' v.customer.pk %}" style="color:#dc2626; font-weight:600; text-decoration:none;">
                 {{ v.customer.name }}
               </a>
             </td>
