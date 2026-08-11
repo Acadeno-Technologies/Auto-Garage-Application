@@ -103,7 +103,7 @@
       {% if garage_settings.gst_number %}<p>GSTIN: {{ garage_settings.gst_number }}</p>{% endif %}
     </div>
     <div class="company-logo">
-      <img src="{% static 'core/images/logo.png' %}" alt="Logo" style="width:100px;height:100px;border-radius:12px;object-fit:cover;border:1px solid var(--invoice-border);box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+      <img src="{% if garage_settings and garage_settings.logo %}{{ garage_settings.logo.url }}{% else %}{% static 'core/images/logo.png' %}{% endif %}" alt="Logo" style="width:100px;height:100px;border-radius:12px;object-fit:cover;border:1px solid var(--invoice-border);box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
     </div>
   </div>
 

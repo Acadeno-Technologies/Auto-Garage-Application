@@ -501,7 +501,7 @@ class UserProfileUpdateForm(forms.ModelForm):
 class GarageSettingsForm(forms.ModelForm):
     class Meta:
         model = GarageSettings
-        fields = ['name', 'tagline', 'phone', 'email', 'address', 'city', 'state', 'pincode', 'gst_number']
+        fields = ['name', 'tagline', 'phone', 'email', 'address', 'city', 'state', 'pincode', 'gst_number', 'logo']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Krishna Auto Care'}),
             'tagline': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Multi-Brand Precision Car Clinic'}),
@@ -512,6 +512,7 @@ class GarageSettingsForm(forms.ModelForm):
             'state': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'State'}),
             'pincode': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Pincode'}),
             'gst_number': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'GSTIN / Registration Number'}),
+            'logo': forms.FileInput(attrs={'class': 'form-input', 'accept': 'image/*'}),
         }
 
 
