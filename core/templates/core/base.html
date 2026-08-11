@@ -32,18 +32,6 @@
       </a>
     </div>
 
-    <!-- Admin User Mini-Profile -->
-    <a href="{% url 'profile' %}" class="sidebar-user">
-      <div class="user-avatar-red">{{ request.user.username|first|upper }}</div>
-      <div class="user-info-text">
-        <div class="user-name">{{ request.user.username }}</div>
-        <div class="user-role-red">
-          {% if request.user.is_superuser %}OWNER{% else %}{{ request.user.profile.get_role_display_name|default:request.user.profile.get_role_display|upper }}{% endif %}
-        </div>
-      </div>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-    </a>
-
     <nav class="sidebar-nav">
       {% with role=request.user.profile.role|default:"owner" %}
 
