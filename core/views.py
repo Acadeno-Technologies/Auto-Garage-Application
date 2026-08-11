@@ -1145,18 +1145,37 @@ def invoice_list(request):
 
 @login_required
 @role_required('owner', 'advisor')
-def invoice_create(request, job_pk):
-    job = get_object_or_404(JobCard, pk=job_pk)
-    if hasattr(job, 'invoice'):
-        return redirect('invoice_detail', pk=job.invoice.pk)
-    form = InvoiceForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        inv = form.save(commit=False)
-        inv.job_card = job
-        inv.save()
-        messages.success(request, f"Invoice {inv.invoice_number} created.")
-        return redirect('invoice_detail', pk=inv.pk)
-    return render(request, 'core/invoice_form.html', {'form': form, 'job': job, 'title': 'Create Invoice'})
+def invoice_create(request, job_pk=None):
+    if not job_pk and request.GET.get('job_id'):
+        try:
+            job_pk = int(request.GET.get('job_id'))
+        except (ValueError, TypeError):
+            pass
+
+    if job_pk:
+        job = get_object_or_404(JobCard, pk=job_pk)
+        if hasattr(job, 'invoice'):
+            messages.info(request, f"Invoice already exists for Job Card {job.job_number}.")
+            return redirect('invoice_detail', pk=job.invoice.pk)
+        form = InvoiceForm(request.POST or None)
+        if request.method == 'POST' and form.is_valid():
+            inv = form.save(commit=False)
+            inv.job_card = job
+            inv.save()
+            messages.success(request, f"Invoice {inv.invoice_number} created successfully for Job Card {job.job_number}.")
+            return redirect('invoice_detail', pk=inv.pk)
+        return render(request, 'core/invoice_form.html', {
+            'form': form,
+            'job': job,
+            'title': f'Create Invoice for {job.job_number}'
+        })
+
+    # If no job selected yet, present Job Card selection dropdown
+    available_jobs = JobCard.objects.filter(invoice__isnull=True).select_related('vehicle__customer').order_by('-created_at')
+    return render(request, 'core/invoice_form.html', {
+        'available_jobs': available_jobs,
+        'title': 'Create Invoice'
+    })
 
 
 @login_required

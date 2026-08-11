@@ -494,6 +494,24 @@ textarea.input-style-saas {
     <!-- LEFT COLUMN: INVOICE FORM CARD -->
     <div class="invoice-form-card">
       
+      {% if not job %}
+      <!-- JOB CARD SELECTOR SECTION -->
+      <div style="margin-bottom:1.5rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:1.25rem;">
+        <label class="custom-form-label" style="color:#dc2626;">SELECT JOB CARD TO CREATE INVOICE *</label>
+        <select name="job_id" class="input-style-saas" required onchange="if(this.value) window.location.href='{% url 'invoice_create_select' %}?job_id=' + this.value;">
+          <option value="">-- Choose a Job Card to Invoice --</option>
+          {% for j in available_jobs %}
+          <option value="{{ j.pk }}">
+            {{ j.job_number }} — {{ j.vehicle.make }} {{ j.vehicle.model }} ({{ j.vehicle.license_plate }}) | {{ j.vehicle.customer.name }} (₹{{ j.total_cost }})
+          </option>
+          {% empty %}
+          <option value="" disabled>No unbilled job cards available</option>
+          {% endfor %}
+        </select>
+      </div>
+      <hr class="form-divider">
+      {% endif %}
+
       {% if job %}
       <!-- SUMMARY CARDS GRID AT TOP OF FORM -->
       <div class="invoice-summary-grid">
