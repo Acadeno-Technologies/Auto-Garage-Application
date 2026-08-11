@@ -1,0 +1,458 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}My Profile & Garage Settings{% endblock %}
+
+{% block page_title %}Account Profile{% endblock %}
+
+{% block breadcrumb %}
+<span class="text-muted">/ Settings</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .profile-container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  /* User Header Banner */
+  .profile-header-card {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25);
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .profile-header-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+    pointer-events: none;
+  }
+
+  .user-header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: #ffffff;
+    font-size: 2.2rem;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+    border: 3px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .user-header-name {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin: 0 0 0.25rem 0;
+    letter-spacing: -0.02em;
+
+  .role-pill {
+    display: inline-block;
+    padding: 0.3rem 0.85rem;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(4px);
+    color: #e0e7ff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .user-meta-sub {
+    font-size: 0.88rem;
+    color: #94a3b8;
+    margin-top: 0.35rem;
+  }
+
+  /* Navigation Tabs */
+  .profile-tabs-nav {
+    display: flex;
+    gap: 0.75rem;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 1.75rem;
+  }
+
+  .tab-btn {
+    padding: 0.85rem 1.4rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #64748b;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: -2px;
+  }
+
+  .tab-btn:hover {
+    color: #4f46e5;
+  }
+
+  .tab-btn.active {
+    color: #4f46e5;
+    border-bottom-color: #4f46e5;
+  }
+
+  /* Form Card Styling */
+  .settings-card {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .card-section-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .form-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+
+  .form-group-full {
+    grid-column: span 2;
+  }
+
+  @media (max-width: 768px) {
+    .profile-header-card {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .form-grid-2 {
+      grid-template-columns: 1fr;
+    }
+    .form-group-full {
+      grid-column: span 1;
+    }
+  }
+
+  .btn-save-primary {
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+    color: white;
+    padding: 0.75rem 1.75rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    transition: all 0.2s ease;
+  }
+
+  .btn-save-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+  }
+
+  .info-badge-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+
+  <!-- Header User Info -->
+  <div class="profile-header-card">
+    <div class="user-header-left">
+      <div class="avatar-large">
+        {{ request.user.username|first|upper }}
+      </div>
+      <div>
+        <h1 class="user-header-name">{{ request.user.get_full_name|default:request.user.username }}</h1>
+        <div>
+          <span class="role-pill">
+            🛡️ {{ user_profile.get_role_display_name }}
+          </span>
+          {% if request.user.is_superuser %}
+            <span class="role-pill" style="background:rgba(239,68,68,0.2); border-color:rgba(239,68,68,0.4); color:#fca5a5; margin-left:0.3rem;">
+              ⭐ Super Admin
+            </span>
+          {% endif %}
+        </div>
+        <div class="user-meta-sub">
+          ✉️ {{ request.user.email|default:"No email set" }} &nbsp;•&nbsp; 🗓️ Joined {{ request.user.date_joined|date:"M Y" }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="profile-tabs-nav">
+    <button type="button" class="tab-btn {% if active_tab == 'profile' %}active{% endif %}" onclick="switchTab('tab-profile', this)">
+      👤 My Profile
+    </button>
+    <button type="button" class="tab-btn {% if active_tab == 'security' %}active{% endif %}" onclick="switchTab('tab-security', this)">
+      🔒 Security & Password
+    </button>
+    {% if is_admin_or_owner %}
+    <button type="button" class="tab-btn {% if active_tab == 'garage' %}active{% endif %}" onclick="switchTab('tab-garage', this)">
+      🏢 Garage & Workshop Details
+    </button>
+    {% endif %}
+  </div>
+
+  <!-- TAB 1: USER PROFILE -->
+  <div id="tab-profile" class="tab-content" style="{% if active_tab != 'profile' %}display:none;{% endif %}">
+    <div class="settings-card">
+      <div class="card-section-title">
+        <span>👤 Personal Information</span>
+      </div>
+
+      <form method="post" action="{% url 'profile' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_profile">
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Username (Read-Only)</label>
+            <input type="text" class="form-input" value="{{ request.user.username }}" disabled style="background:#f1f5f9; cursor:not-allowed;">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Role Title</label>
+            <input type="text" class="form-input" value="{{ user_profile.get_role_display_name }}" disabled style="background:#f1f5f9; cursor:not-allowed;">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">First Name</label>
+            {{ profile_form.first_name }}
+            {% if profile_form.first_name.errors %}
+              <div class="form-error">{{ profile_form.first_name.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Last Name</label>
+            {{ profile_form.last_name }}
+            {% if profile_form.last_name.errors %}
+              <div class="form-error">{{ profile_form.last_name.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            {{ profile_form.email }}
+            {% if profile_form.email.errors %}
+              <div class="form-error">{{ profile_form.email.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            {{ profile_form.phone }}
+            {% if profile_form.phone.errors %}
+              <div class="form-error">{{ profile_form.phone.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; text-align: right;">
+          <button type="submit" class="btn-save-primary">Save Profile Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TAB 2: SECURITY & PASSWORD -->
+  <div id="tab-security" class="tab-content" style="{% if active_tab != 'security' %}display:none;{% endif %}">
+    <div class="settings-card">
+      <div class="card-section-title">
+        <span>🔒 Change Account Password</span>
+      </div>
+
+      <form method="post" action="{% url 'profile' %}" style="max-width:550px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_password">
+
+        {% for field in password_form %}
+        <div class="form-group" style="margin-bottom:1.25rem;">
+          <label class="form-label">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}
+            <div style="font-size:0.8rem; color:#64748b; margin-top:0.25rem;">{{ field.help_text }}</div>
+          {% endif %}
+          {% if field.errors %}
+            <div class="form-error" style="color:#ef4444; font-size:0.85rem; margin-top:0.25rem;">{{ field.errors.0 }}</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+
+        <div style="margin-top: 1.5rem;">
+          <button type="submit" class="btn-save-primary">Update Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TAB 3: GARAGE SETTINGS (ADMIN / OWNER ONLY) -->
+  {% if is_admin_or_owner %}
+  <div id="tab-garage" class="tab-content" style="{% if active_tab != 'garage' %}display:none;{% endif %}">
+    <div class="settings-card">
+      <div class="card-section-title">
+        <span>🏢 Garage & Workshop Profile Details</span>
+      </div>
+
+      <p style="color:#64748b; font-size:0.9rem; margin-bottom:1.5rem;">
+        Edit your workshop name, location, address, contact details, and GSTIN number. These details will be updated across your application, invoices, and customer receipts.
+      </p>
+
+      <form method="post" action="{% url 'profile' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_garage">
+
+        <div class="form-grid-2">
+          
+          <div class="form-group">
+            <label class="form-label">Garage / Workshop Name <span style="color:#ef4444;">*</span></label>
+            {{ garage_form.name }}
+            {% if garage_form.name.errors %}
+              <div class="form-error">{{ garage_form.name.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tagline / Motto</label>
+            {{ garage_form.tagline }}
+            {% if garage_form.tagline.errors %}
+              <div class="form-error">{{ garage_form.tagline.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Contact Phone</label>
+            {{ garage_form.phone }}
+            {% if garage_form.phone.errors %}
+              <div class="form-error">{{ garage_form.phone.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Contact Email</label>
+            {{ garage_form.email }}
+            {% if garage_form.email.errors %}
+              <div class="form-error">{{ garage_form.email.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group form-group-full">
+            <label class="form-label">Street Address / Location Details</label>
+            {{ garage_form.address }}
+            {% if garage_form.address.errors %}
+              <div class="form-error">{{ garage_form.address.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">City / Place</label>
+            {{ garage_form.city }}
+            {% if garage_form.city.errors %}
+              <div class="form-error">{{ garage_form.city.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">State</label>
+            {{ garage_form.state }}
+            {% if garage_form.state.errors %}
+              <div class="form-error">{{ garage_form.state.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Pincode / Zip Code</label>
+            {{ garage_form.pincode }}
+            {% if garage_form.pincode.errors %}
+              <div class="form-error">{{ garage_form.pincode.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">GST / Registration Number</label>
+            {{ garage_form.gst_number }}
+            {% if garage_form.gst_number.errors %}
+              <div class="form-error">{{ garage_form.gst_number.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+        </div>
+
+        <div style="margin-top: 1.5rem; text-align: right;">
+          <button type="submit" class="btn-save-primary">Save Garage Settings</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchTab(tabId, btn) {
+  document.querySelectorAll('.tab-content').forEach(function(content) {
+    content.style.display = 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach(function(b) {
+    b.classList.remove('active');
+  });
+  document.getElementById(tabId).style.display = 'block';
+  btn.classList.add('active');
+}
+
+// Add form-input class to all password form inputs dynamically
+document.querySelectorAll('#tab-security input').forEach(function(input) {
+  input.classList.add('form-input');
+});
+</script>
+{% endblock %}

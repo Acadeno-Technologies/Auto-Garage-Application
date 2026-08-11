@@ -354,3 +354,38 @@ class Expense(models.Model):
     def __str__(self):
         return f"{self.title} - ₹{self.amount} ({self.expense_date})"
 
+
+class GarageSettings(models.Model):
+    name = models.CharField(max_length=150, default="Krishna Auto Care", verbose_name="Garage / Workshop Name")
+    tagline = models.CharField(max_length=200, default="Precision Workshop", blank=True, verbose_name="Tagline / Subtitle")
+    phone = models.CharField(max_length=30, default="+91 98765 43210", blank=True, verbose_name="Contact Phone")
+    email = models.EmailField(default="info@krishnaautocare.com", blank=True, verbose_name="Contact Email")
+    address = models.TextField(default="Main Road, Near Bus Stand", blank=True, verbose_name="Street Address")
+    city = models.CharField(max_length=100, default="Kochi", blank=True, verbose_name="City / Place")
+    state = models.CharField(max_length=100, default="Kerala", blank=True, verbose_name="State")
+    pincode = models.CharField(max_length=20, default="682001", blank=True, verbose_name="Pincode / Zip")
+    gst_number = models.CharField(max_length=50, blank=True, verbose_name="GST / Tax ID Number")
+    logo = models.ImageField(upload_to='garage/', null=True, blank=True, verbose_name="Garage Logo")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @classmethod
+    def get_settings(cls):
+        settings_obj, _ = cls.objects.get_or_create(
+            id=1,
+            defaults={
+                'name': 'Krishna Auto Care',
+                'tagline': 'Precision Workshop',
+                'phone': '+91 98765 43210',
+                'email': 'info@krishnaautocare.com',
+                'address': 'Main Road, Near Bus Stand',
+                'city': 'Kochi',
+                'state': 'Kerala',
+                'pincode': '682001'
+            }
+        )
+        return settings_obj
+
+    def __str__(self):
+        return f"Garage Settings ({self.name})"
+
+

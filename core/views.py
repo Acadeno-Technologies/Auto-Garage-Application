@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.http import JsonResponse
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -13,13 +14,13 @@ from functools import wraps
 from .models import (
     UserProfile, RoleCustomization, Customer, Vehicle, JobCard, JobCardPhoto,
     SparePart, PartCategory, Supplier, StockTransaction, JobPartUsage, Invoice,
-    AMCPlan, CustomerAMC, AMCServiceSchedule, WhatsAppLog, Expense
+    AMCPlan, CustomerAMC, AMCServiceSchedule, WhatsAppLog, Expense, GarageSettings
 )
 from .forms import (
     LoginForm, StaffCreationForm, StaffEditForm, CustomerForm, VehicleForm, JobCardForm, JobCardPhotoForm,
     JobStatusForm, SparePartForm, PartCategoryForm, SupplierForm,
     StockTransactionForm, JobPartUsageForm, InvoiceForm,
-    AMCPlanForm, CustomerAMCForm, ExpenseForm
+    AMCPlanForm, CustomerAMCForm, ExpenseForm, UserProfileUpdateForm, GarageSettingsForm
 )
 
 
@@ -81,6 +82,65 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+
+@login_required
+def user_profile(request):
+    user = request.user
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    garage = GarageSettings.get_settings()
+
+    is_admin_or_owner = user.is_superuser or profile.role == 'owner'
+
+    profile_form = UserProfileUpdateForm(instance=user, user_profile=profile)
+    password_form = PasswordChangeForm(user=user)
+    garage_form = GarageSettingsForm(instance=garage) if is_admin_or_owner else None
+
+    active_tab = 'profile'
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'update_profile':
+            active_tab = 'profile'
+            profile_form = UserProfileUpdateForm(request.POST, instance=user, user_profile=profile)
+            if profile_form.is_valid():
+                profile_form.save()
+                profile.phone = profile_form.cleaned_data.get('phone', '')
+                profile.save()
+                messages.success(request, 'Your profile details have been updated successfully!')
+                return redirect('profile')
+
+        elif action == 'update_password':
+            active_tab = 'security'
+            password_form = PasswordChangeForm(user=user, data=request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Your password was updated successfully!')
+                return redirect('profile')
+            else:
+                messages.error(request, 'Please correct the password errors below.')
+
+        elif action == 'update_garage' and is_admin_or_owner:
+            active_tab = 'garage'
+            garage_form = GarageSettingsForm(request.POST, request.FILES, instance=garage)
+            if garage_form.is_valid():
+                garage_form.save()
+                messages.success(request, 'Garage profile and location details updated successfully!')
+                return redirect('profile')
+            else:
+                messages.error(request, 'Please check the form inputs for garage settings.')
+
+    return render(request, 'core/profile.html', {
+        'profile_form': profile_form,
+        'password_form': password_form,
+        'garage_form': garage_form,
+        'is_admin_or_owner': is_admin_or_owner,
+        'garage': garage,
+        'user_profile': profile,
+        'active_tab': active_tab,
+    })
 
 
 @login_required

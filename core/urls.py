@@ -6,6 +6,7 @@ urlpatterns = [
     path('', views.landing_page, name='landing'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
+    path('profile/', views.user_profile, name='profile'),
     path('dashboard/', views.dashboard, name='dashboard'),
 
     # Role dashboards

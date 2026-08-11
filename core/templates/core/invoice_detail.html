@@ -96,10 +96,11 @@
 <div class="invoice-paper">
   <div class="invoice-row" style="align-items: flex-start;">
     <div class="company-info">
-      <h2 style="font-weight: 800; color: #1a1a1a; margin-bottom: 0.5rem;">Krishna Auto Care</h2>
-      <p>Old Petrol Pump Road, Meppayur - Perambra Rd</p>
-      <p>Perambra, Kozhikode, Kerala 673525</p>
-      <p>Phone: +91 98765 43210</p>
+      <h2 style="font-weight: 800; color: #1a1a1a; margin-bottom: 0.5rem;">{{ garage_settings.name|default:"Krishna Auto Care" }}</h2>
+      <p>{{ garage_settings.address|default:"Old Petrol Pump Road, Meppayur - Perambra Rd" }}</p>
+      <p>{{ garage_settings.city|default:"Perambra" }}{% if garage_settings.state %}, {{ garage_settings.state }}{% endif %}{% if garage_settings.pincode %} - {{ garage_settings.pincode }}{% endif %}</p>
+      <p>Phone: {{ garage_settings.phone|default:"+91 98765 43210" }}</p>
+      {% if garage_settings.gst_number %}<p>GSTIN: {{ garage_settings.gst_number }}</p>{% endif %}
     </div>
     <div class="company-logo">
       <img src="{% static 'core/images/logo.png' %}" alt="Logo" style="width:100px;height:100px;border-radius:12px;object-fit:cover;border:1px solid var(--invoice-border);box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
@@ -185,7 +186,7 @@
 
   <div class="footer-section">
     <div class="terms-title">Terms and Conditions</div>
-    <p class="terms-text">Payment is due in 14 days<br>Please make checks payable to: Krishna Auto Care</p>
+    <p class="terms-text">Payment is due in 14 days<br>Please make checks payable to: {{ garage_settings.name|default:"Krishna Auto Care" }}</p>
   </div>
 </div>
 {% endblock %}

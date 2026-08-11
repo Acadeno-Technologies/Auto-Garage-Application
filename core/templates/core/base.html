@@ -18,21 +18,21 @@
       <a href="{% url 'dashboard' %}" class="logo">
         <img src="{% static 'core/images/logo.png' %}" alt="Logo" style="width:40px;height:40px;border-radius:4px;object-fit:cover;">
         <div>
-          <div class="logo-text" style="font-size:1.05rem;">Krishna Auto Care</div>
-          <div class="logo-sub">Precision Workshop</div>
+          <div class="logo-text" style="font-size:1.05rem;">{{ garage_settings.name|default:"Krishna Auto Care" }}</div>
+          <div class="logo-sub">{{ garage_settings.tagline|default:"Precision Workshop" }}</div>
         </div>
       </a>
     </div>
 
-    <div class="sidebar-user">
+    <a href="{% url 'profile' %}" class="sidebar-user" style="text-decoration:none; color:inherit; cursor:pointer; transition:background 0.2s;">
       <div class="user-avatar">{{ request.user.username|first|upper }}</div>
       <div>
         <div class="user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
         <div class="user-role">
-          {% if request.user.is_superuser %}Owner{% else %}{{ request.user.profile.get_role_display }}{% endif %}
+          {% if request.user.is_superuser %}Owner{% else %}{{ request.user.profile.get_role_display_name|default:request.user.profile.get_role_display }}{% endif %}
         </div>
       </div>
-    </div>
+    </a>
 
     <nav class="sidebar-nav">
       {% with role=request.user.profile.role|default:"owner" %}
@@ -131,6 +131,9 @@
     </nav>
 
     <div class="sidebar-footer">
+      <a href="{% url 'profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+        <span>👤 My Profile</span>
+      </a>
       <a href="{% url 'logout' %}" class="nav-link">
         <span>Sign Out</span>
       </a>

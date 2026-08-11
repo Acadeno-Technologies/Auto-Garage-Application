@@ -5,7 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from .models import (
     UserProfile, RoleCustomization, Customer, Vehicle, JobCard, JobCardPhoto,
     SparePart, PartCategory, Supplier, StockTransaction, JobPartUsage, Invoice,
-    AMCPlan, CustomerAMC, AMCServiceSchedule, WhatsAppLog, Expense
+    AMCPlan, CustomerAMC, AMCServiceSchedule, WhatsAppLog, Expense, GarageSettings
 )
 
 ROLE_CHOICES = [
@@ -479,4 +479,39 @@ class ExpenseForm(forms.ModelForm):
             'expense_date': forms.DateInput(attrs={'class': 'form-input', 'type': 'date'}),
             'notes': forms.Textarea(attrs={'class': 'form-input', 'rows': 2, 'placeholder': 'Optional details'}),
         }
+
+
+class UserProfileUpdateForm(forms.ModelForm):
+    first_name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-input'}))
+    last_name = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-input'}))
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-input'}))
+    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={'class': 'form-input'}))
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+
+    def __init__(self, *args, **kwargs):
+        user_profile = kwargs.pop('user_profile', None)
+        super().__init__(*args, **kwargs)
+        if user_profile:
+            self.fields['phone'].initial = user_profile.phone
+
+
+class GarageSettingsForm(forms.ModelForm):
+    class Meta:
+        model = GarageSettings
+        fields = ['name', 'tagline', 'phone', 'email', 'address', 'city', 'state', 'pincode', 'gst_number']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Krishna Auto Care'}),
+            'tagline': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Multi-Brand Precision Car Clinic'}),
+            'phone': forms.TextInput(attrs={'class': 'form-input', 'placeholder': '+91 98765 43210'}),
+            'email': forms.EmailInput(attrs={'class': 'form-input', 'placeholder': 'info@krishnaautocare.com'}),
+            'address': forms.Textarea(attrs={'class': 'form-input', 'rows': 2, 'placeholder': 'Street Address / Landmark'}),
+            'city': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'City / Location'}),
+            'state': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'State'}),
+            'pincode': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Pincode'}),
+            'gst_number': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'GSTIN / Registration Number'}),
+        }
+
 
