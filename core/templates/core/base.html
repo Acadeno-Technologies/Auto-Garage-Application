@@ -41,40 +41,40 @@
       <div class="nav-section">
         <div class="nav-section-label">Overview</div>
         <a href="{% url 'owner_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'owner_dashboard' %}active{% endif %}">
-          <span class="icon">📊</span><span>Dashboard</span>
+          <span>Dashboard</span>
         </a>
         <a href="{% url 'incentive_calculator' %}" class="nav-link {% if request.resolver_match.url_name == 'incentive_calculator' %}active{% endif %}">
-          <span class="icon">🎁</span><span>Incentives & Expenses</span>
+          <span>Incentives & Expenses</span>
         </a>
       </div>
       <div class="nav-section">
         <div class="nav-section-label">People</div>
         <a href="{% url 'staff_list' %}" class="nav-link {% if 'staff' in request.resolver_match.url_name %}active{% endif %}">
-          <span class="icon">👥</span><span>Staff</span>
+          <span>Staff</span>
         </a>
         <a href="{% url 'customer_list' %}" class="nav-link {% if 'customer' in request.resolver_match.url_name %}active{% endif %}">
-          <span class="icon">🙋</span><span>Customers</span>
+          <span>Customers</span>
         </a>
       </div>
       <div class="nav-section">
         <div class="nav-section-label">Operations</div>
         <a href="{% url 'vehicle_list' %}" class="nav-link {% if 'vehicle' in request.resolver_match.url_name %}active{% endif %}">
-          <span class="icon">🚗</span><span>Vehicles</span>
+          <span>Vehicles</span>
         </a>
         <a href="{% url 'job_list' %}" class="nav-link {% if 'job' in request.resolver_match.url_name %}active{% endif %}">
-          <span class="icon">📋</span><span>Job Cards</span>
+          <span>Job Cards</span>
         </a>
         <a href="{% url 'invoice_list' %}" class="nav-link {% if 'invoice' in request.resolver_match.url_name %}active{% endif %}">
-          <span class="icon">🧾</span><span>Invoices</span>
+          <span>Invoices</span>
         </a>
         <a href="{% url 'amc_list' %}" class="nav-link {% if 'amc' in request.resolver_match.url_name %}active{% endif %}">
-          <span class="icon">🛡️</span><span>AMC Contracts</span>
+          <span>AMC Contracts</span>
         </a>
       </div>
       <div class="nav-section">
         <div class="nav-section-label">Inventory</div>
         <a href="{% url 'parts_list' %}" class="nav-link {% if 'part' in request.resolver_match.url_name or 'category' in request.resolver_match.url_name or 'supplier' in request.resolver_match.url_name %}active{% endif %}">
-          <span class="icon">📦</span><span>Inventory</span>
+          <span>Inventory</span>
         </a>
       </div>
 
@@ -82,25 +82,25 @@
       <div class="nav-section">
         <div class="nav-section-label">Dashboard</div>
         <a href="{% url 'advisor_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'advisor_dashboard' %}active{% endif %}">
-          <span class="icon">📊</span><span>My Dashboard</span>
+          <span>My Dashboard</span>
         </a>
       </div>
       <div class="nav-section">
         <div class="nav-section-label">Service</div>
         <a href="{% url 'customer_list' %}" class="nav-link {% if 'customer' in request.resolver_match.url_name %}active{% endif %}">
-          <span class="icon">🙋</span><span>Customers</span>
+          <span>Customers</span>
         </a>
         <a href="{% url 'vehicle_list' %}" class="nav-link {% if 'vehicle' in request.resolver_match.url_name %}active{% endif %}">
-          <span class="icon">🚗</span><span>Vehicles</span>
+          <span>Vehicles</span>
         </a>
         <a href="{% url 'job_list' %}" class="nav-link {% if 'job' in request.resolver_match.url_name %}active{% endif %}">
-          <span class="icon">📋</span><span>Job Cards</span>
+          <span>Job Cards</span>
         </a>
         <a href="{% url 'invoice_list' %}" class="nav-link {% if 'invoice' in request.resolver_match.url_name %}active{% endif %}">
-          <span class="icon">🧾</span><span>Invoices</span>
+          <span>Invoices</span>
         </a>
         <a href="{% url 'amc_list' %}" class="nav-link {% if 'amc' in request.resolver_match.url_name %}active{% endif %}">
-          <span class="icon">🛡️</span><span>AMC Contracts</span>
+          <span>AMC Contracts</span>
         </a>
       </div>
 
@@ -108,7 +108,7 @@
       <div class="nav-section">
         <div class="nav-section-label">My Work</div>
         <a href="{% url 'mechanic_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'mechanic_dashboard' %}active{% endif %}">
-          <span class="icon">🔧</span><span>My Jobs</span>
+          <span>My Jobs</span>
         </a>
       </div>
 
@@ -116,13 +116,13 @@
       <div class="nav-section">
         <div class="nav-section-label">Store</div>
         <a href="{% url 'store_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'store_dashboard' %}active{% endif %}">
-          <span class="icon">📊</span><span>Dashboard</span>
+          <span>Dashboard</span>
         </a>
         <a href="{% url 'parts_list' %}" class="nav-link {% if 'part' in request.resolver_match.url_name or 'category' in request.resolver_match.url_name or 'supplier' in request.resolver_match.url_name %}active{% endif %}">
-          <span class="icon">📦</span><span>Inventory</span>
+          <span>Inventory</span>
         </a>
         <a href="{% url 'stock_transaction' %}" class="nav-link {% if 'stock' in request.resolver_match.url_name %}active{% endif %}">
-          <span class="icon">🔄</span><span>Stock Tx</span>
+          <span>Stock Tx</span>
         </a>
       </div>
       {% endif %}
@@ -132,7 +132,7 @@
 
     <div class="sidebar-footer">
       <a href="{% url 'logout' %}" class="nav-link">
-        <span class="icon">🚪</span><span>Sign Out</span>
+        <span>Sign Out</span>
       </a>
     </div>
   </aside>

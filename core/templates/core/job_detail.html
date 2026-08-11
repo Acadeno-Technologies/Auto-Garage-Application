@@ -6,15 +6,15 @@
 {% block topbar_actions %}
 <a href="{% url 'job_list' %}" class="btn btn-secondary btn-sm" style="border-radius:8px; font-weight:600; padding:0.5rem 1.1rem; text-decoration:none;">← Back to Job Cards</a>
 <a href="{% url 'send_whatsapp' %}?type=job_status&job_id={{ job.id }}&phone={{ job.vehicle.customer.phone }}&name={{ job.vehicle.customer.name }}" target="_blank" class="btn btn-sm" style="background:#25D366; color:white; border-radius:8px; font-weight:600; padding:0.5rem 1.1rem; border:none; box-shadow:0 3px 10px rgba(37,211,102,0.3); text-decoration:none;">
-  📱 Send via WA
+  Send via WhatsApp
 </a>
 {% if not job.invoice %}
 <a href="{% url 'invoice_create' job.pk %}" class="btn btn-primary btn-sm" style="background:#ea580c; color:white; border-radius:8px; font-weight:600; padding:0.5rem 1.2rem; border:none; box-shadow:0 3px 10px rgba(234,88,12,0.3);">
-  🧾 Create Invoice
+  Create Invoice
 </a>
 {% else %}
 <a href="{% url 'invoice_detail' job.invoice.pk %}" class="btn btn-teal btn-sm" style="border-radius:8px; font-weight:600; padding:0.5rem 1.2rem;">
-  🧾 View Invoice
+  View Invoice
 </a>
 {% endif %}
 {% endblock %}
