@@ -66,6 +66,77 @@
     gap: 0.4rem;
   }
 
+  /* Selected Customer Banner styling (Replaces Quick Search when customer selected) */
+  .selected-customer-card {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 14px;
+    padding: 1.15rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.05);
+    flex-wrap: wrap;
+    transition: all 0.25s ease;
+  }
+
+  .selected-customer-left {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .selected-customer-icon-box {
+    width: 40px;
+    height: 40px;
+    background: #16a34a;
+    color: #ffffff;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .selected-customer-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #14532d;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .selected-customer-meta {
+    font-size: 0.84rem;
+    color: #15803d;
+    margin-top: 0.2rem;
+    font-weight: 500;
+  }
+
+  .badge-existing-record {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .input-auto-populated {
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: inset 0 0 0 1px #e2e8f0;
+  }
+
   /* Quick Search Container */
   .quick-search-container {
     background: #f8fafc;
@@ -74,6 +145,7 @@
     padding: 1.25rem 1.5rem;
     margin-bottom: 1.5rem;
     box-shadow: 0 2px 8px rgba(99, 102, 241, 0.03);
+    transition: all 0.25s ease;
   }
 
   .quick-search-header {
@@ -489,8 +561,31 @@
 
 <div class="job-card-wrapper">
 
+  <!-- SELECTED CUSTOMER BANNER (Replaces Quick Search when an existing customer is chosen) -->
+  <div id="selected-customer-container" class="selected-customer-card" style="display:none;">
+    <div class="selected-customer-left">
+      <div class="selected-customer-icon-box">✓</div>
+      <div>
+        <div style="display:flex; align-items:center; gap:0.65rem; flex-wrap:wrap;">
+          <h4 id="selected-customer-name" class="selected-customer-title">Customer Name</h4>
+          <span class="badge-existing-record">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Existing Customer Record
+          </span>
+        </div>
+        <div id="selected-customer-meta" class="selected-customer-meta">Phone: +91 98765 43210</div>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:0.65rem;">
+      <button type="button" class="btn btn-secondary btn-sm" onclick="resetCustomerSelection()" style="padding:0.45rem 0.85rem; font-size:0.82rem; font-weight:600; display:inline-flex; align-items:center; gap:0.35rem; border-radius:8px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <span>Change Customer / Search Again</span>
+      </button>
+    </div>
+  </div>
+
   <!-- QUICK SEARCH AREA -->
-  <div class="quick-search-container">
+  <div id="quick-search-container" class="quick-search-container">
     <div class="quick-search-header">
       <div class="quick-search-icon-box">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -930,8 +1025,90 @@
     const notesInput = document.querySelector('[name="notes"]');
     if (notesInput && !notesInput.placeholder) notesInput.placeholder = 'Additional notes (if any)...';
 
-    // Customer Mode Tab Switcher
+    // Customer Mode & Selection State Helper
     let currentCustomerMode = 'existing';
+
+    function setSelectedCustomerState(customer) {
+      const quickSearchBox = document.getElementById('quick-search-container');
+      const selectedContainer = document.getElementById('selected-customer-container');
+      const selectedName = document.getElementById('selected-customer-name');
+      const selectedMeta = document.getElementById('selected-customer-meta');
+      const btnExisting = document.getElementById('tab-btn-existing');
+      const btnNew = document.getElementById('tab-btn-new');
+      const modeBanner = document.getElementById('customer-mode-banner');
+
+      if (customer) {
+        // Existing customer selected -> HIDE Quick Search, SHOW Selected Customer Card
+        if (quickSearchBox) quickSearchBox.style.display = 'none';
+
+        if (selectedContainer && selectedName && selectedMeta) {
+          selectedName.textContent = customer.name;
+          const metaParts = [];
+          if (customer.phone) metaParts.push(`📞 ${customer.phone}`);
+          if (customer.email) metaParts.push(`✉️ ${customer.email}`);
+          if (customer.address) metaParts.push(`📍 ${customer.address}`);
+          selectedMeta.textContent = metaParts.join('  •  ');
+          selectedContainer.style.display = 'flex';
+        }
+
+        // Auto-fill fields & apply visual indication
+        if (nameInput) {
+          nameInput.value = customer.name || '';
+          nameInput.classList.add('input-auto-populated');
+        }
+        if (phoneInput) {
+          phoneInput.value = customer.phone || '';
+          phoneInput.classList.add('input-auto-populated');
+        }
+        if (emailInput) {
+          emailInput.value = customer.email || '';
+          emailInput.classList.add('input-auto-populated');
+        }
+        if (addressInput) {
+          addressInput.value = customer.address || '';
+          addressInput.classList.add('input-auto-populated');
+        }
+
+        // Update tab buttons
+        if (btnExisting) btnExisting.className = 'tab-btn tab-btn-filled';
+        if (btnNew) btnNew.className = 'tab-btn tab-btn-inactive';
+        if (modeBanner) modeBanner.style.display = 'none';
+
+      } else {
+        // Clear customer selection -> SHOW Quick Search
+        if (quickSearchBox) quickSearchBox.style.display = 'block';
+        if (selectedContainer) selectedContainer.style.display = 'none';
+
+        [nameInput, phoneInput, emailInput, addressInput].forEach(inp => {
+          if (inp) inp.classList.remove('input-auto-populated');
+        });
+      }
+    }
+
+    window.resetCustomerSelection = function () {
+      setSelectedCustomerState(null);
+      if (nameInput) nameInput.value = '';
+      if (phoneInput) phoneInput.value = '';
+      if (emailInput) emailInput.value = '';
+      if (addressInput) addressInput.value = '';
+      if (pillsSection) pillsSection.style.display = 'none';
+      if (customerBadge) customerBadge.style.display = 'none';
+
+      const btnExisting = document.getElementById('tab-btn-existing');
+      const btnNew = document.getElementById('tab-btn-new');
+      const modeBanner = document.getElementById('customer-mode-banner');
+
+      if (btnExisting) btnExisting.className = 'tab-btn tab-btn-outline';
+      if (btnNew) btnNew.className = 'tab-btn tab-btn-inactive';
+      if (modeBanner) modeBanner.style.display = 'none';
+
+      const searchInput = document.getElementById('quick-search-input');
+      if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+      }
+    };
+
     window.switchCustomerMode = function (mode) {
       currentCustomerMode = mode;
       const btnExisting = document.getElementById('tab-btn-existing');
@@ -940,9 +1117,10 @@
       const phoneHint = document.getElementById('phone-hint');
 
       if (mode === 'new') {
-        btnNew.className = 'tab-btn tab-btn-filled';
-        btnExisting.className = 'tab-btn tab-btn-inactive';
-        modeBanner.style.display = 'flex';
+        setSelectedCustomerState(null);
+        if (btnNew) btnNew.className = 'tab-btn tab-btn-filled';
+        if (btnExisting) btnExisting.className = 'tab-btn tab-btn-inactive';
+        if (modeBanner) modeBanner.style.display = 'flex';
         if (phoneHint) phoneHint.textContent = 'Enter phone number for new customer registration';
 
         // Reset customer fields for fresh entry
@@ -950,23 +1128,22 @@
         if (emailInput) emailInput.value = '';
         if (addressInput) addressInput.value = '';
         if (phoneInput) {
+          phoneInput.value = '';
           phoneInput.focus();
         }
 
-        if (customerBadge) {
-          customerBadge.style.display = 'none';
-        }
-        pillsSection.style.display = 'none';
+        if (customerBadge) customerBadge.style.display = 'none';
+        if (pillsSection) pillsSection.style.display = 'none';
       } else {
-        btnExisting.className = 'tab-btn tab-btn-outline';
-        btnNew.className = 'tab-btn tab-btn-inactive';
-        modeBanner.style.display = 'none';
+        setSelectedCustomerState(null);
+        if (btnExisting) btnExisting.className = 'tab-btn tab-btn-outline';
+        if (btnNew) btnNew.className = 'tab-btn tab-btn-inactive';
+        if (modeBanner) modeBanner.style.display = 'none';
         if (phoneHint) phoneHint.textContent = 'Enter phone number to search existing customer';
 
-        if (phoneInput && phoneInput.value.trim().length >= 3) {
-          phoneInput.dispatchEvent(new Event('input'));
-        } else {
-          customerBadge.style.display = 'none';
+        const searchInput = document.getElementById('quick-search-input');
+        if (searchInput) {
+          searchInput.focus();
         }
       }
     };
@@ -989,13 +1166,18 @@
             .then(res => res.json())
             .then(data => {
               if (data.customer_found && data.customer) {
-                customerBadge.className = 'badge-status-pill badge-success-green';
-                customerBadge.style.display = 'inline-flex';
-                customerBadge.innerHTML = `✓ Customer Found: <strong>${data.customer.name.toUpperCase()}</strong>`;
+                setSelectedCustomerState({
+                  name: data.customer.name,
+                  phone: data.customer.phone || val,
+                  email: data.customer.email || '',
+                  address: data.customer.address || ''
+                });
 
-                if (nameInput) nameInput.value = data.customer.name;
-                if (emailInput && data.customer.email) emailInput.value = data.customer.email;
-                if (addressInput && data.customer.address) addressInput.value = data.customer.address;
+                if (customerBadge) {
+                  customerBadge.className = 'badge-status-pill badge-success-green';
+                  customerBadge.style.display = 'inline-flex';
+                  customerBadge.innerHTML = `✓ Customer Found: <strong>${data.customer.name.toUpperCase()}</strong>`;
+                }
 
                 // Show vehicle pills if customer owns vehicles
                 if (data.customer.vehicles && data.customer.vehicles.length > 0) {
@@ -1073,10 +1255,12 @@
 
               // Auto fill customer details if empty
               if (phoneInput && !phoneInput.value && v.customer_phone) {
-                phoneInput.value = v.customer_phone;
-                if (nameInput && !nameInput.value) nameInput.value = v.customer_name;
-                if (emailInput && !emailInput.value && v.customer_email) emailInput.value = v.customer_email;
-                if (addressInput && !addressInput.value && v.customer_address) addressInput.value = v.customer_address;
+                setSelectedCustomerState({
+                  name: v.customer_name,
+                  phone: v.customer_phone,
+                  email: v.customer_email || '',
+                  address: v.customer_address || ''
+                });
                 phoneInput.dispatchEvent(new Event('input'));
               }
             }
@@ -1137,12 +1321,13 @@
                   div.addEventListener('mouseleave', () => div.style.background = '#ffffff');
 
                   div.addEventListener('click', function () {
-                    switchCustomerMode('existing');
-                    if (nameInput && item.customer_name) nameInput.value = item.customer_name;
-                    if (phoneInput && item.customer_phone) {
-                      phoneInput.value = item.customer_phone;
-                      phoneInput.dispatchEvent(new Event('input'));
-                    }
+                    setSelectedCustomerState({
+                      name: item.customer_name,
+                      phone: item.customer_phone,
+                      email: item.customer_email || '',
+                      address: item.customer_address || ''
+                    });
+
                     if (numInput && item.vehicle_number) {
                       numInput.value = item.vehicle_number;
                       triggerVehicleSearch(item.vehicle_number);
@@ -1151,7 +1336,6 @@
                     if (colorInput && item.vehicle_color) colorInput.value = item.vehicle_color;
 
                     searchResults.style.display = 'none';
-                    searchInput.value = `${item.customer_name} (${item.vehicle_number || item.customer_phone})`;
                   });
                   searchResults.appendChild(div);
                 });
