@@ -300,8 +300,17 @@ def customer_delete(request, pk):
 @login_required
 @role_required('owner', 'advisor')
 def vehicle_list(request):
+    q = request.GET.get('q', '').strip()
     vehicles = Vehicle.objects.select_related('customer').all()
-    return render(request, 'core/vehicle_list.html', {'vehicles': vehicles})
+    if q:
+        vehicles = vehicles.filter(
+            Q(license_plate__icontains=q) |
+            Q(make__icontains=q) |
+            Q(model__icontains=q) |
+            Q(customer__name__icontains=q) |
+            Q(customer__phone__icontains=q)
+        )
+    return render(request, 'core/vehicle_list.html', {'vehicles': vehicles, 'q': q})
 
 
 @login_required
