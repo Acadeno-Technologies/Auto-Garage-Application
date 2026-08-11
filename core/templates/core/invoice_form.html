@@ -488,31 +488,94 @@ textarea.input-style-saas {
 
 <div class="edit-invoice-wrapper">
 
+  {% if not job %}
+  <!-- STEP 1: SELECT JOB CARD WORKFLOW -->
+  <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:1.75rem; box-shadow:0 1px 3px rgba(0,0,0,0.04); margin-bottom:1.5rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.25rem;">
+      <div>
+        <h2 style="font-size:1.25rem; font-weight:800; color:#0f172a; margin:0;">Select Job Card</h2>
+        <p style="color:#64748b; font-size:0.84rem; margin:0.15rem 0 0 0;">Search and select an unbilled job card to generate its invoice directly</p>
+      </div>
+    </div>
+
+    <!-- Search Job Card Form -->
+    <form method="get" style="display:flex; gap:0.75rem; align-items:center; margin-bottom:1.5rem;">
+      <div style="position:relative; flex:1; max-width:500px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute; left:14px; top:50%; transform:translateY(-50%);"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" name="q" value="{{ q }}" class="form-input" style="padding-left:2.5rem; width:100%; height:44px; border-radius:10px;" placeholder="🔍 Search Job Card #, Customer Name, Vehicle Plate…">
+      </div>
+      <button type="submit" class="btn btn-secondary" style="height:44px; padding:0 1.25rem;">Search</button>
+      {% if q %}<a href="{% url 'invoice_create_select' %}" class="btn btn-secondary" style="height:44px; display:inline-flex; align-items:center;">Clear</a>{% endif %}
+    </form>
+
+    <div style="font-size:0.78rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.85rem;">Recent / Available Job Cards</div>
+
+    <!-- Job Cards Cards Grid -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:1.25rem;">
+      {% for j in available_jobs %}
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:1.25rem; display:flex; flex-direction:column; justify-space:between; transition:all 0.2s ease;">
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+            <span style="font-family:var(--font-data, monospace); font-weight:800; color:#dc2626; font-size:1.05rem;">{{ j.job_number }}</span>
+            <span class="badge badge-{{ j.status }}">{{ j.get_status_display }}</span>
+          </div>
+
+          <div style="margin-bottom:0.4rem; font-size:0.92rem; color:#0f172a; font-weight:700;">
+            👤 {{ j.vehicle.customer.name }}
+          </div>
+
+          <div style="margin-bottom:0.5rem; font-size:0.86rem; color:#475569;">
+            🚘 {{ j.vehicle.make }} {{ j.vehicle.model }}
+            <span style="font-family:var(--font-data, monospace); color:#ea580c; font-weight:700; font-size:0.8rem; margin-left:0.25rem;">({{ j.vehicle.license_plate }})</span>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.82rem; color:#64748b; margin-top:0.75rem; padding-top:0.65rem; border-top:1px dashed #e2e8f0;">
+            <span>📅 {{ j.created_at|date:"d M Y" }}</span>
+            <span style="font-size:1.05rem; font-weight:800; color:#16a34a; font-family:var(--font-data, monospace);">₹{{ j.total_cost|floatformat:2 }}</span>
+          </div>
+        </div>
+
+        <div style="margin-top:1.1rem;">
+          <a href="{% url 'invoice_create_select' %}?job_id={{ j.pk }}" class="btn btn-primary" style="width:100%; text-align:center; justify-content:center; padding:0.55rem; font-weight:700; border-radius:8px;">
+            Select Job Card
+          </a>
+        </div>
+      </div>
+      {% empty %}
+      <div style="grid-column: 1 / -1; text-align:center; padding:3rem 1rem; background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px;">
+        <div style="font-size:2.5rem; margin-bottom:0.5rem;">📋</div>
+        <h4 style="font-weight:700; color:#0f172a; margin:0 0 0.25rem 0;">No Pending Job Cards Found</h4>
+        <p style="color:#64748b; font-size:0.85rem; margin:0;">All job cards have already been invoiced or no unbilled cards match your search query.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+
+  {% if job %}
+  <!-- STEP 2: SELECTED JOB CARD BANNER & AUTO-POPULATED INVOICE FORM -->
+  <div style="background:#eff6ff; border:1.5px solid #3b82f6; border-radius:14px; padding:1rem 1.25rem; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem;">
+    <div style="display:flex; align-items:center; gap:0.85rem;">
+      <div style="width:40px; height:40px; border-radius:10px; background:#3b82f6; color:#ffffff; display:grid; place-items:center; font-weight:800; font-size:1.1rem;">✓</div>
+      <div>
+        <div style="font-size:0.72rem; font-weight:800; color:#1d4ed8; text-transform:uppercase; letter-spacing:0.5px;">SELECTED JOB CARD</div>
+        <div style="font-size:1.05rem; font-weight:800; color:#1e3a8a;">
+          {{ job.job_number }} &bull; {{ job.vehicle.customer.name }} &bull; {{ job.vehicle.make }} {{ job.vehicle.model }} ({{ job.vehicle.license_plate }})
+        </div>
+      </div>
+    </div>
+    <a href="{% url 'invoice_create_select' %}" class="btn btn-secondary btn-sm" style="border-color:#3b82f6; color:#1d4ed8; font-weight:700; background:#ffffff; text-decoration:none;">
+      🔄 Change Job Card
+    </a>
+  </div>
+
   <!-- MAIN TWO COLUMN LAYOUT -->
   <div class="invoice-grid-layout">
 
     <!-- LEFT COLUMN: INVOICE FORM CARD -->
     <div class="invoice-form-card">
       
-      {% if not job %}
-      <!-- JOB CARD SELECTOR SECTION -->
-      <div style="margin-bottom:1.5rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:1.25rem;">
-        <label class="custom-form-label" style="color:#dc2626;">SELECT JOB CARD TO CREATE INVOICE *</label>
-        <select name="job_id" class="input-style-saas" required onchange="if(this.value) window.location.href='{% url 'invoice_create_select' %}?job_id=' + this.value;">
-          <option value="">-- Choose a Job Card to Invoice --</option>
-          {% for j in available_jobs %}
-          <option value="{{ j.pk }}">
-            {{ j.job_number }} — {{ j.vehicle.make }} {{ j.vehicle.model }} ({{ j.vehicle.license_plate }}) | {{ j.vehicle.customer.name }} (₹{{ j.total_cost }})
-          </option>
-          {% empty %}
-          <option value="" disabled>No unbilled job cards available</option>
-          {% endfor %}
-        </select>
-      </div>
-      <hr class="form-divider">
-      {% endif %}
-
-      {% if job %}
       <!-- SUMMARY CARDS GRID AT TOP OF FORM -->
       <div class="invoice-summary-grid">
         
@@ -555,15 +618,54 @@ textarea.input-style-saas {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
           </div>
           <div>
-            <div class="summary-meta-label">ESTIMATED TOTAL</div>
-            <div class="summary-meta-value green-accent">₹{{ job.total_cost }}</div>
+            <div class="summary-meta-label">TOTAL SERVICE AMOUNT</div>
+            <div class="summary-meta-value green-accent">₹{{ job.total_cost|floatformat:2 }}</div>
           </div>
         </div>
 
       </div>
 
+      <!-- INVOICE ITEMS BREAKDOWN TABLE -->
+      <div style="margin:1.5rem 0; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:1.25rem;">
+        <div style="font-size:0.78rem; font-weight:800; color:#475569; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.75rem;">INVOICE ITEMS BREAKDOWN</div>
+        <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
+          <thead>
+            <tr style="border-bottom:1px solid #cbd5e1; text-align:left; color:#64748b; font-size:0.78rem; text-transform:uppercase;">
+              <th style="padding:0.5rem 0;">Service / Part</th>
+              <th style="padding:0.5rem 0; text-align:center;">Qty</th>
+              <th style="padding:0.5rem 0; text-align:right;">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px dashed #e2e8f0;">
+              <td style="padding:0.65rem 0;">
+                <strong style="color:#0f172a;">Labour Charge / Service Instruction</strong>
+                {% if job.problem_description %}<br><span style="font-size:0.78rem; color:#64748b;">{{ job.problem_description|truncatewords:10 }}</span>{% endif %}
+              </td>
+              <td style="padding:0.65rem 0; text-align:center; color:#475569;">1</td>
+              <td style="padding:0.65rem 0; text-align:right; font-family:var(--font-data, monospace); font-weight:700;">₹{{ job.labour_cost|floatformat:2 }}</td>
+            </tr>
+            {% for p in parts_used %}
+            <tr style="border-bottom:1px dashed #e2e8f0;">
+              <td style="padding:0.65rem 0;">
+                <strong style="color:#0f172a;">{{ p.part.name }}</strong>
+                <span style="font-size:0.78rem; color:#64748b; margin-left:0.25rem;">({{ p.part.part_number }})</span>
+              </td>
+              <td style="padding:0.65rem 0; text-align:center; color:#475569;">{{ p.quantity }}</td>
+              <td style="padding:0.65rem 0; text-align:right; font-family:var(--font-data, monospace); font-weight:700;">₹{{ p.total_price|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2" style="padding:0.75rem 0 0 0; font-weight:700; color:#0f172a;">Subtotal (Labour + Parts)</td>
+              <td style="padding:0.75rem 0 0 0; text-align:right; font-family:var(--font-data, monospace); font-weight:800; color:#16a34a; font-size:1rem;">₹{{ job.total_cost|floatformat:2 }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
       <hr class="form-divider">
-      {% endif %}
 
       <!-- INVOICE FORM -->
       <form method="post" id="invoice-edit-form">
@@ -638,9 +740,9 @@ textarea.input-style-saas {
         <div class="form-actions-row">
           <button type="submit" class="btn-save-saas">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-            Save Invoice
+            Create Invoice
           </button>
-          <a href="javascript:history.back()" class="btn-cancel-saas">
+          <a href="{% url 'invoice_list' %}" class="btn-cancel-saas">
             Cancel
           </a>
         </div>
@@ -736,7 +838,7 @@ textarea.input-style-saas {
         <div class="summary-row-item">
           <div class="summary-row-left">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-            <span>Estimated Total</span>
+            <span>Subtotal (Labour + Parts)</span>
           </div>
           <div class="summary-row-right green-text">₹{{ job.total_cost|default:"0.00" }}</div>
         </div>
@@ -770,6 +872,7 @@ textarea.input-style-saas {
     </div>
 
   </div>
+  {% endif %}
 
 </div>
 

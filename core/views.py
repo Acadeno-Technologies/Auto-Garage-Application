@@ -1153,10 +1153,14 @@ def invoice_create(request, job_pk=None):
             pass
 
     if job_pk:
-        job = get_object_or_404(JobCard, pk=job_pk)
+        job = get_object_or_404(JobCard.objects.select_related('vehicle__customer', 'mechanic', 'advisor'), pk=job_pk)
         if hasattr(job, 'invoice'):
             messages.info(request, f"Invoice already exists for Job Card {job.job_number}.")
             return redirect('invoice_detail', pk=job.invoice.pk)
+        
+        parts_used = job.parts_used.select_related('part').all()
+        parts_total = sum(p.total_price() for p in parts_used)
+
         form = InvoiceForm(request.POST or None)
         if request.method == 'POST' and form.is_valid():
             inv = form.save(commit=False)
@@ -1164,16 +1168,31 @@ def invoice_create(request, job_pk=None):
             inv.save()
             messages.success(request, f"Invoice {inv.invoice_number} created successfully for Job Card {job.job_number}.")
             return redirect('invoice_detail', pk=inv.pk)
+        
         return render(request, 'core/invoice_form.html', {
             'form': form,
             'job': job,
+            'parts_used': parts_used,
+            'parts_total': parts_total,
             'title': f'Create Invoice for {job.job_number}'
         })
 
-    # If no job selected yet, present Job Card selection dropdown
-    available_jobs = JobCard.objects.filter(invoice__isnull=True).select_related('vehicle__customer').order_by('-created_at')
+    # Step 1: Select Job Card workflow
+    q = request.GET.get('q', '').strip()
+    available_jobs = JobCard.objects.filter(invoice__isnull=True).select_related('vehicle__customer', 'mechanic').order_by('-created_at')
+    if q:
+        available_jobs = available_jobs.filter(
+            Q(job_number__icontains=q) |
+            Q(vehicle__license_plate__icontains=q) |
+            Q(vehicle__make__icontains=q) |
+            Q(vehicle__model__icontains=q) |
+            Q(vehicle__customer__name__icontains=q) |
+            Q(vehicle__customer__phone__icontains=q)
+        )
+
     return render(request, 'core/invoice_form.html', {
         'available_jobs': available_jobs,
+        'q': q,
         'title': 'Create Invoice'
     })
 
