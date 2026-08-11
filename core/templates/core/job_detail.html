@@ -174,15 +174,6 @@
     <div class="job-summary-value font-mono">{{ job.vehicle.customer.phone }}</div>
   </div>
 
-  <!-- Advisor -->
-  <div class="job-summary-card">
-    <div class="job-summary-label">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle></svg>
-      ADVISOR
-    </div>
-    <div class="job-summary-value">{% if job.advisor %}{{ job.advisor.get_full_name|default:job.advisor.username }}{% else %}—{% endif %}</div>
-  </div>
-
   <!-- Mechanic -->
   <div class="job-summary-card">
     <div class="job-summary-label">
