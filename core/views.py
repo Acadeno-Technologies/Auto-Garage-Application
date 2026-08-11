@@ -540,6 +540,8 @@ def job_search_records(request):
             response_data['results'].append({
                 'customer_name': v.customer.name,
                 'customer_phone': v.customer.phone,
+                'customer_email': v.customer.email,
+                'customer_address': v.customer.address,
                 'vehicle_number': v.license_plate,
                 'vehicle_model': f"{v.make} {v.model}".strip(),
                 'vehicle_color': v.color
@@ -554,6 +556,8 @@ def job_search_records(request):
                 response_data['results'].append({
                     'customer_name': c.name,
                     'customer_phone': c.phone,
+                    'customer_email': c.email,
+                    'customer_address': c.address,
                     'vehicle_number': '',
                     'vehicle_model': '',
                     'vehicle_color': ''

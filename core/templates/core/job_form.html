@@ -1330,8 +1330,22 @@
       });
     }
 
-    // Initialize default state
-    switchCustomerState('new');
+    // Initialize state
+    const initialName = nameInput ? nameInput.value.trim() : '';
+    const initialPhone = phoneInput ? phoneInput.value.trim() : '';
+    const initialEmail = emailInput ? emailInput.value.trim() : '';
+    const initialAddress = addressInput ? addressInput.value.trim() : '';
+
+    if (initialName || initialPhone) {
+      switchCustomerState('selected', {
+        name: initialName,
+        phone: initialPhone,
+        email: initialEmail,
+        address: initialAddress
+      });
+    } else {
+      switchCustomerState('new');
+    }
 
     // Drag & Drop Photo Upload Preview logic
     const photoInput = document.getElementById('id_photos') || document.querySelector('input[type="file"][name="photos"]');
