@@ -131,6 +131,22 @@
     gap: 0.3rem;
   }
 
+  .btn-select-customer {
+    background: #e51f2a;
+    color: #ffffff;
+    border: none;
+    padding: 0.35rem 0.85rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-select-customer:hover {
+    background: #b91c1c;
+  }
+
   .input-auto-populated {
     background-color: #f8fafc !important;
     border-color: #cbd5e1 !important;
@@ -561,59 +577,11 @@
 
 <div class="job-card-wrapper">
 
-  <!-- SELECTED CUSTOMER BANNER (Replaces Quick Search when an existing customer is chosen) -->
-  <div id="selected-customer-container" class="selected-customer-card" style="display:none;">
-    <div class="selected-customer-left">
-      <div class="selected-customer-icon-box">✓</div>
-      <div>
-        <div style="display:flex; align-items:center; gap:0.65rem; flex-wrap:wrap;">
-          <h4 id="selected-customer-name" class="selected-customer-title">Customer Name</h4>
-          <span class="badge-existing-record">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            Existing Customer Record
-          </span>
-        </div>
-        <div id="selected-customer-meta" class="selected-customer-meta">Phone: +91 98765 43210</div>
-      </div>
-    </div>
-    <div style="display:flex; align-items:center; gap:0.65rem;">
-      <button type="button" class="btn btn-secondary btn-sm" onclick="resetCustomerSelection()" style="padding:0.45rem 0.85rem; font-size:0.82rem; font-weight:600; display:inline-flex; align-items:center; gap:0.35rem; border-radius:8px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <span>Change Customer / Search Again</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- QUICK SEARCH AREA -->
-  <div id="quick-search-container" class="quick-search-container">
-    <div class="quick-search-header">
-      <div class="quick-search-icon-box">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-      </div>
-      <h3 class="quick-search-title">Quick Search (Phone, Name or Vehicle Number)</h3>
-    </div>
-    <div class="search-input-wrapper">
-      <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"></circle>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-      </svg>
-      <input type="text" id="quick-search-input" class="search-input-field"
-        placeholder="Search by Phone, Name, or Vehicle Number..." autocomplete="off">
-      <div id="quick-search-results" class="search-results-dropdown"></div>
-    </div>
-    <span class="quick-search-hint">Enter phone number or vehicle number below directly to search & auto-fill.</span>
-  </div>
-
   <form method="post" enctype="multipart/form-data" id="job-card-main-form">
     {% csrf_token %}
 
-    <!-- SECTION 1: CUSTOMER INFORMATION -->
-    <div class="form-section-card">
+    <!-- SECTION 1: SINGLE-CARD CUSTOMER INFORMATION -->
+    <div class="form-section-card" id="customer-info-section">
       <div class="section-header">
         <div class="section-title-group">
           <div class="number-badge number-badge-purple">1</div>
@@ -625,125 +593,157 @@
           <h2 class="section-title">Customer Information</h2>
         </div>
 
-        <!-- ACTION BUTTONS / TABS -->
-        <div class="tab-switcher-box">
-          <button type="button" id="tab-btn-existing" class="tab-btn tab-btn-outline"
-            onclick="switchCustomerMode('existing')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
+        <!-- DYNAMIC ACTION BUTTONS IN HEADER -->
+        <div class="tab-switcher-box" id="customer-header-actions">
+          <!-- Rendered by JS based on current state -->
+        </div>
+      </div>
+
+      <!-- IN-CARD BODY A: FORM VIEW (New Customer OR Selected Customer) -->
+      <div id="customer-form-body">
+        <!-- NEW CUSTOMER MODE BANNER -->
+        <div id="customer-mode-banner" class="info-banner-new-customer" style="display:none;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:1px;">
+            <polygon
+              points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+            </polygon>
+          </svg>
+          <div>
+            <strong>New Customer Mode:</strong> Fill in the customer's details below. A new customer record will
+            automatically be created and linked to this Job Card.
+          </div>
+        </div>
+
+        <!-- SELECTED EXISTING CUSTOMER BANNER -->
+        <div id="selected-customer-banner" class="selected-customer-card" style="display:none;">
+          <div class="selected-customer-left">
+            <div class="selected-customer-icon-box">✓</div>
+            <div>
+              <div style="display:flex; align-items:center; gap:0.65rem; flex-wrap:wrap;">
+                <h4 id="selected-customer-name" class="selected-customer-title">Customer Name</h4>
+                <span class="badge-existing-record">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  Existing Customer Record
+                </span>
+              </div>
+              <div id="selected-customer-meta" class="selected-customer-meta">Phone: +91 98765 43210</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-grid-3">
+          <!-- CUSTOMER PHONE -->
+          <div class="custom-form-group">
+            <label for="{{ form.customer_phone.id_for_label }}">Customer Phone Number *</label>
+            <div class="input-icon-wrapper">
+              <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+                </path>
+              </svg>
+              {{ form.customer_phone }}
+            </div>
+            {% if form.customer_phone.errors %}
+            <span style="color:var(--red); font-size:0.78rem; display:block; margin-top:0.2rem;">{{
+              form.customer_phone.errors.0 }}</span>
+            {% endif %}
+            <span id="phone-hint" class="field-help-text">Enter phone number for customer registration</span>
+          </div>
+
+          <!-- CUSTOMER NAME -->
+          <div class="custom-form-group">
+            <label for="{{ form.customer_name.id_for_label }}">Customer Name *</label>
+            <div class="input-icon-wrapper">
+              <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              {{ form.customer_name }}
+            </div>
+            {% if form.customer_name.errors %}
+            <span style="color:var(--red); font-size:0.78rem; display:block; margin-top:0.2rem;">{{
+              form.customer_name.errors.0 }}</span>
+            {% endif %}
+          </div>
+
+          <!-- CUSTOMER EMAIL -->
+          <div class="custom-form-group">
+            <label for="{{ form.customer_email.id_for_label }}">Customer Email</label>
+            <div class="input-icon-wrapper">
+              <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              {{ form.customer_email }}
+            </div>
+            {% if form.customer_email.errors %}
+            <span style="color:var(--red); font-size:0.78rem; display:block; margin-top:0.2rem;">{{
+              form.customer_email.errors.0 }}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- CUSTOMER ADDRESS -->
+        <div class="custom-form-group">
+          <label for="{{ form.customer_address.id_for_label }}">Customer Address</label>
+          <div class="input-icon-wrapper">
+            <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="top:18px;">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            {{ form.customer_address }}
+          </div>
+          {% if form.customer_address.errors %}
+          <span style="color:var(--red); font-size:0.78rem; display:block; margin-top:0.2rem;">{{
+            form.customer_address.errors.0 }}</span>
+          {% endif %}
+        </div>
+
+        <!-- STATUS BADGE -->
+        <div style="margin-top:0.75rem;">
+          <span id="customer-status-badge" class="badge-status-pill badge-info-blue" style="display:none;"></span>
+        </div>
+
+        <!-- Owned Vehicles Pill List -->
+        <div id="customer-vehicles-pills"
+          style="display:none; margin-top:1rem; padding-top:1rem; border-top:1px dashed #e2e8f0;">
+          <span style="font-size:0.8rem; color:#64748b; font-weight:600; display:block; margin-bottom:0.5rem;">Select an
+            existing vehicle for this customer:</span>
+          <div id="pills-container" style="display:flex; flex-wrap:wrap; gap:0.6rem;"></div>
+        </div>
+      </div>
+
+      <!-- IN-CARD BODY B: EXISTING CUSTOMER SEARCH VIEW -->
+      <div id="customer-search-body" style="display:none;">
+        <div style="font-weight:700; font-size:0.95rem; color:#1e293b; margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <span>Search Existing Customer</span>
+        </div>
+
+        <div style="display:flex; gap:0.75rem; margin-bottom:1.25rem; flex-wrap:wrap;">
+          <div class="search-input-wrapper" style="flex:1; min-width:260px;">
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            Search Existing Customer
-          </button>
-          <button type="button" id="tab-btn-new" class="tab-btn tab-btn-filled" onclick="switchCustomerMode('new')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Add New Customer
+            <input type="text" id="in-card-search-input" class="search-input-field" placeholder="Search by Phone Number, Name, or Vehicle Number..." autocomplete="off">
+          </div>
+          <button type="button" id="in-card-search-btn" class="btn btn-secondary" style="padding:0.7rem 1.4rem; font-weight:700; border-radius:10px; flex-shrink:0;">
+            Search
           </button>
         </div>
-      </div>
 
-      <!-- NEW CUSTOMER MODE BANNER -->
-      <div id="customer-mode-banner" class="info-banner-new-customer" style="display:none;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:1px;">
-          <polygon
-            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-          </polygon>
-        </svg>
-        <div>
-          <strong>New Customer Mode:</strong> Fill in the customer's details below. A new customer record will
-          automatically be created and linked to this Job Card.
-        </div>
-      </div>
-
-      <div class="field-grid-3">
-        <!-- CUSTOMER PHONE -->
-        <div class="custom-form-group">
-          <label for="{{ form.customer_phone.id_for_label }}">Customer Phone Number *</label>
-          <div class="input-icon-wrapper">
-            <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path
-                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
-              </path>
-            </svg>
-            {{ form.customer_phone }}
+        <!-- SEARCH RESULTS CONTAINER -->
+        <div id="in-card-search-results">
+          <div style="padding:1.5rem; text-align:center; color:#64748b; font-size:0.88rem; background:#f8fafc; border-radius:10px; border:1px dashed #cbd5e1;">
+            Type a phone number, customer name, or vehicle number above to search existing records.
           </div>
-          {% if form.customer_phone.errors %}
-          <span style="color:var(--red); font-size:0.78rem; display:block; margin-top:0.2rem;">{{
-            form.customer_phone.errors.0 }}</span>
-          {% endif %}
-          <span id="phone-hint" class="field-help-text">Enter phone number for new customer registration</span>
         </div>
-
-        <!-- CUSTOMER NAME -->
-        <div class="custom-form-group">
-          <label for="{{ form.customer_name.id_for_label }}">Customer Name *</label>
-          <div class="input-icon-wrapper">
-            <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-            {{ form.customer_name }}
-          </div>
-          {% if form.customer_name.errors %}
-          <span style="color:var(--red); font-size:0.78rem; display:block; margin-top:0.2rem;">{{
-            form.customer_name.errors.0 }}</span>
-          {% endif %}
-        </div>
-
-        <!-- CUSTOMER EMAIL -->
-        <div class="custom-form-group">
-          <label for="{{ form.customer_email.id_for_label }}">Customer Email</label>
-          <div class="input-icon-wrapper">
-            <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-              <polyline points="22,6 12,13 2,6"></polyline>
-            </svg>
-            {{ form.customer_email }}
-          </div>
-          {% if form.customer_email.errors %}
-          <span style="color:var(--red); font-size:0.78rem; display:block; margin-top:0.2rem;">{{
-            form.customer_email.errors.0 }}</span>
-          {% endif %}
-        </div>
-      </div>
-
-      <!-- CUSTOMER ADDRESS -->
-      <div class="custom-form-group">
-        <label for="{{ form.customer_address.id_for_label }}">Customer Address</label>
-        <div class="input-icon-wrapper">
-          <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="top:18px;">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-            <circle cx="12" cy="10" r="3"></circle>
-          </svg>
-          {{ form.customer_address }}
-        </div>
-        {% if form.customer_address.errors %}
-        <span style="color:var(--red); font-size:0.78rem; display:block; margin-top:0.2rem;">{{
-          form.customer_address.errors.0 }}</span>
-        {% endif %}
-      </div>
-
-      <!-- STATUS BADGE -->
-      <div style="margin-top:0.75rem;">
-        <span id="customer-status-badge" class="badge-status-pill badge-info-blue" style="display:none;"></span>
-      </div>
-
-      <!-- Owned Vehicles Pill List -->
-      <div id="customer-vehicles-pills"
-        style="display:none; margin-top:1rem; padding-top:1rem; border-top:1px dashed #e2e8f0;">
-        <span style="font-size:0.8rem; color:#64748b; font-weight:600; display:block; margin-bottom:0.5rem;">Select an
-          existing vehicle for this customer:</span>
-        <div id="pills-container" style="display:flex; flex-wrap:wrap; gap:0.6rem;"></div>
       </div>
     </div>
 
@@ -1025,206 +1025,249 @@
     const notesInput = document.querySelector('[name="notes"]');
     if (notesInput && !notesInput.placeholder) notesInput.placeholder = 'Additional notes (if any)...';
 
-    // Customer Mode & Selection State Helper
-    let currentCustomerMode = 'existing';
+    // Single-Card State Management: 'new', 'search', 'selected'
+    let customerState = 'new';
+    let selectedCustomerData = null;
 
-    function setSelectedCustomerState(customer) {
-      const quickSearchBox = document.getElementById('quick-search-container');
-      const selectedContainer = document.getElementById('selected-customer-container');
-      const selectedName = document.getElementById('selected-customer-name');
-      const selectedMeta = document.getElementById('selected-customer-meta');
-      const btnExisting = document.getElementById('tab-btn-existing');
-      const btnNew = document.getElementById('tab-btn-new');
-      const modeBanner = document.getElementById('customer-mode-banner');
+    const headerActions = document.getElementById('customer-header-actions');
+    const formBody = document.getElementById('customer-form-body');
+    const searchBody = document.getElementById('customer-search-body');
+    const modeBanner = document.getElementById('customer-mode-banner');
+    const selectedBanner = document.getElementById('selected-customer-banner');
+    const selectedName = document.getElementById('selected-customer-name');
+    const selectedMeta = document.getElementById('selected-customer-meta');
+    const inCardSearchInput = document.getElementById('in-card-search-input');
+    const inCardSearchBtn = document.getElementById('in-card-search-btn');
+    const inCardSearchResults = document.getElementById('in-card-search-results');
 
-      if (customer) {
-        // Existing customer selected -> HIDE Quick Search, SHOW Selected Customer Card
-        if (quickSearchBox) quickSearchBox.style.display = 'none';
+    function renderCustomerHeaderActions() {
+      if (!headerActions) return;
+      headerActions.innerHTML = '';
 
-        if (selectedContainer && selectedName && selectedMeta) {
-          selectedName.textContent = customer.name;
-          const metaParts = [];
-          if (customer.phone) metaParts.push(`📞 ${customer.phone}`);
-          if (customer.email) metaParts.push(`✉️ ${customer.email}`);
-          if (customer.address) metaParts.push(`📍 ${customer.address}`);
-          selectedMeta.textContent = metaParts.join('  •  ');
-          selectedContainer.style.display = 'flex';
-        }
-
-        // Auto-fill fields & apply visual indication
-        if (nameInput) {
-          nameInput.value = customer.name || '';
-          nameInput.classList.add('input-auto-populated');
-        }
-        if (phoneInput) {
-          phoneInput.value = customer.phone || '';
-          phoneInput.classList.add('input-auto-populated');
-        }
-        if (emailInput) {
-          emailInput.value = customer.email || '';
-          emailInput.classList.add('input-auto-populated');
-        }
-        if (addressInput) {
-          addressInput.value = customer.address || '';
-          addressInput.classList.add('input-auto-populated');
-        }
-
-        // Update tab buttons
-        if (btnExisting) btnExisting.className = 'tab-btn tab-btn-filled';
-        if (btnNew) btnNew.className = 'tab-btn tab-btn-inactive';
-        if (modeBanner) modeBanner.style.display = 'none';
-
-      } else {
-        // Clear customer selection -> SHOW Quick Search
-        if (quickSearchBox) quickSearchBox.style.display = 'block';
-        if (selectedContainer) selectedContainer.style.display = 'none';
-
-        [nameInput, phoneInput, emailInput, addressInput].forEach(inp => {
-          if (inp) inp.classList.remove('input-auto-populated');
-        });
+      if (customerState === 'new') {
+        headerActions.innerHTML = `
+          <button type="button" class="tab-btn tab-btn-outline" onclick="switchCustomerState('search')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            Search Existing Customer
+          </button>
+          <button type="button" class="tab-btn tab-btn-filled" onclick="switchCustomerState('new')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            + Add New Customer
+          </button>
+        `;
+      } else if (customerState === 'search') {
+        headerActions.innerHTML = `
+          <button type="button" class="tab-btn tab-btn-outline" onclick="switchCustomerState('new')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Back to New Customer
+          </button>
+          <button type="button" class="tab-btn tab-btn-filled" onclick="switchCustomerState('new')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            + Add New Customer
+          </button>
+        `;
+      } else if (customerState === 'selected') {
+        headerActions.innerHTML = `
+          <button type="button" class="tab-btn tab-btn-outline" onclick="switchCustomerState('search')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            Change Customer / Search Again
+          </button>
+          <button type="button" class="tab-btn tab-btn-filled" onclick="switchCustomerState('new')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            + Add New Customer
+          </button>
+        `;
       }
     }
 
-    window.resetCustomerSelection = function () {
-      setSelectedCustomerState(null);
-      if (nameInput) nameInput.value = '';
-      if (phoneInput) phoneInput.value = '';
-      if (emailInput) emailInput.value = '';
-      if (addressInput) addressInput.value = '';
-      if (pillsSection) pillsSection.style.display = 'none';
-      if (customerBadge) customerBadge.style.display = 'none';
+    window.switchCustomerState = function(state, customerData = null) {
+      customerState = state;
+      renderCustomerHeaderActions();
 
-      const btnExisting = document.getElementById('tab-btn-existing');
-      const btnNew = document.getElementById('tab-btn-new');
-      const modeBanner = document.getElementById('customer-mode-banner');
-
-      if (btnExisting) btnExisting.className = 'tab-btn tab-btn-outline';
-      if (btnNew) btnNew.className = 'tab-btn tab-btn-inactive';
-      if (modeBanner) modeBanner.style.display = 'none';
-
-      const searchInput = document.getElementById('quick-search-input');
-      if (searchInput) {
-        searchInput.value = '';
-        searchInput.focus();
-      }
-    };
-
-    window.switchCustomerMode = function (mode) {
-      currentCustomerMode = mode;
-      const btnExisting = document.getElementById('tab-btn-existing');
-      const btnNew = document.getElementById('tab-btn-new');
-      const modeBanner = document.getElementById('customer-mode-banner');
-      const phoneHint = document.getElementById('phone-hint');
-
-      if (mode === 'new') {
-        setSelectedCustomerState(null);
-        if (btnNew) btnNew.className = 'tab-btn tab-btn-filled';
-        if (btnExisting) btnExisting.className = 'tab-btn tab-btn-inactive';
+      if (state === 'new') {
+        selectedCustomerData = null;
+        if (formBody) formBody.style.display = 'block';
+        if (searchBody) searchBody.style.display = 'none';
         if (modeBanner) modeBanner.style.display = 'flex';
-        if (phoneHint) phoneHint.textContent = 'Enter phone number for new customer registration';
+        if (selectedBanner) selectedBanner.style.display = 'none';
 
-        // Reset customer fields for fresh entry
-        if (nameInput) nameInput.value = '';
-        if (emailInput) emailInput.value = '';
-        if (addressInput) addressInput.value = '';
-        if (phoneInput) {
-          phoneInput.value = '';
-          phoneInput.focus();
-        }
+        // Clear fields & reset styles
+        if (nameInput) { nameInput.value = ''; nameInput.classList.remove('input-auto-populated'); }
+        if (phoneInput) { phoneInput.value = ''; phoneInput.classList.remove('input-auto-populated'); phoneInput.focus(); }
+        if (emailInput) { emailInput.value = ''; emailInput.classList.remove('input-auto-populated'); }
+        if (addressInput) { addressInput.value = ''; addressInput.classList.remove('input-auto-populated'); }
 
         if (customerBadge) customerBadge.style.display = 'none';
         if (pillsSection) pillsSection.style.display = 'none';
-      } else {
-        setSelectedCustomerState(null);
-        if (btnExisting) btnExisting.className = 'tab-btn tab-btn-outline';
-        if (btnNew) btnNew.className = 'tab-btn tab-btn-inactive';
-        if (modeBanner) modeBanner.style.display = 'none';
-        if (phoneHint) phoneHint.textContent = 'Enter phone number to search existing customer';
 
-        const searchInput = document.getElementById('quick-search-input');
-        if (searchInput) {
-          searchInput.focus();
+      } else if (state === 'search') {
+        selectedCustomerData = null;
+        if (formBody) formBody.style.display = 'none';
+        if (searchBody) searchBody.style.display = 'block';
+        if (inCardSearchInput) {
+          inCardSearchInput.focus();
+        }
+
+      } else if (state === 'selected') {
+        selectedCustomerData = customerData;
+        if (formBody) formBody.style.display = 'block';
+        if (searchBody) searchBody.style.display = 'none';
+        if (modeBanner) modeBanner.style.display = 'none';
+
+        if (customerData) {
+          if (selectedBanner && selectedName && selectedMeta) {
+            selectedName.textContent = customerData.name || 'Existing Customer';
+            const metaParts = [];
+            if (customerData.phone) metaParts.push(`📞 ${customerData.phone}`);
+            if (customerData.email) metaParts.push(`✉️ ${customerData.email}`);
+            if (customerData.address) metaParts.push(`📍 ${customerData.address}`);
+            selectedMeta.textContent = metaParts.join('  •  ');
+            selectedBanner.style.display = 'flex';
+          }
+
+          if (nameInput) { nameInput.value = customerData.name || ''; nameInput.classList.add('input-auto-populated'); }
+          if (phoneInput) { phoneInput.value = customerData.phone || ''; phoneInput.classList.add('input-auto-populated'); }
+          if (emailInput) { emailInput.value = customerData.email || ''; emailInput.classList.add('input-auto-populated'); }
+          if (addressInput) { addressInput.value = customerData.address || ''; addressInput.classList.add('input-auto-populated'); }
         }
       }
     };
 
-    // Debounced search logic for Customer Phone
+    // In-card Search logic
+    function executeInCardSearch(query) {
+      if (!inCardSearchResults) return;
+      query = (query || '').trim();
+      if (query.length < 2) {
+        inCardSearchResults.innerHTML = `
+          <div style="padding:1.5rem; text-align:center; color:#64748b; font-size:0.88rem; background:#f8fafc; border-radius:10px; border:1px dashed #cbd5e1;">
+            Type a phone number, customer name, or vehicle number above to search existing records.
+          </div>
+        `;
+        return;
+      }
+
+      inCardSearchResults.innerHTML = `
+        <div style="padding:1.5rem; text-align:center; color:#64748b; font-size:0.88rem;">
+          Searching records...
+        </div>
+      `;
+
+      fetch(`{% url 'job_search_records' %}?q=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.results && data.results.length > 0) {
+            let html = `
+              <div class="table-responsive" style="border:1px solid #cbd5e1; border-radius:12px; overflow:hidden; background:#ffffff; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+                <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
+                  <thead>
+                    <tr style="background:#f1f5f9; border-bottom:1px solid #cbd5e1; text-align:left; color:#475569; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;">
+                      <th style="padding:0.75rem 1rem;">Customer</th>
+                      <th style="padding:0.75rem 1rem;">Phone</th>
+                      <th style="padding:0.75rem 1rem;">Vehicle No.</th>
+                      <th style="padding:0.75rem 1rem;">Email</th>
+                      <th style="padding:0.75rem 1rem; text-align:right;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+            `;
+
+            data.results.forEach((item) => {
+              const customerJson = JSON.stringify({
+                name: item.customer_name,
+                phone: item.customer_phone,
+                email: item.customer_email || '',
+                address: item.customer_address || '',
+                vehicle_number: item.vehicle_number || '',
+                vehicle_model: item.vehicle_model || '',
+                vehicle_color: item.vehicle_color || ''
+              }).replace(/"/g, '&quot;');
+
+              html += `
+                <tr style="border-bottom:1px solid #f1f5f9; transition:background 0.15s ease;">
+                  <td style="padding:0.75rem 1rem; font-weight:700; color:#0f172a;">👤 ${item.customer_name}</td>
+                  <td style="padding:0.75rem 1rem; color:#334155; font-weight:600;">${item.customer_phone}</td>
+                  <td style="padding:0.75rem 1rem; color:#475569;">${item.vehicle_number ? '🚘 ' + item.vehicle_number + (item.vehicle_model ? ' (' + item.vehicle_model + ')' : '') : '—'}</td>
+                  <td style="padding:0.75rem 1rem; color:#64748b;">${item.customer_email || '—'}</td>
+                  <td style="padding:0.75rem 1rem; text-align:right;">
+                    <button type="button" class="btn-select-customer" onclick="onSelectCustomerFromSearch(${customerJson})">
+                      Select
+                    </button>
+                  </td>
+                </tr>
+              `;
+            });
+
+            html += `
+                  </tbody>
+                </table>
+              </div>
+            `;
+            inCardSearchResults.innerHTML = html;
+          } else {
+            inCardSearchResults.innerHTML = `
+              <div style="padding:1.5rem; text-align:center; color:#e51f2a; font-size:0.88rem; background:#fef2f2; border-radius:10px; border:1px solid #fecaca; font-weight:600;">
+                No matching customer records found for "${query}".
+              </div>
+            `;
+          }
+        })
+        .catch(() => {
+          inCardSearchResults.innerHTML = `
+            <div style="padding:1rem; text-align:center; color:#dc2626; font-size:0.85rem;">
+              Error fetching records. Please try again.
+            </div>
+          `;
+        });
+    }
+
+    window.onSelectCustomerFromSearch = function(customerData) {
+      switchCustomerState('selected', customerData);
+
+      if (numInput && customerData.vehicle_number) {
+        numInput.value = customerData.vehicle_number;
+        triggerVehicleSearch(customerData.vehicle_number);
+      }
+      if (modelInput && customerData.vehicle_model) modelInput.value = customerData.vehicle_model;
+      if (colorInput && customerData.vehicle_color) colorInput.value = customerData.vehicle_color;
+    };
+
+    if (inCardSearchInput) {
+      let searchDebounce = null;
+      inCardSearchInput.addEventListener('input', function() {
+        clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(() => executeInCardSearch(this.value), 250);
+      });
+    }
+
+    if (inCardSearchBtn) {
+      inCardSearchBtn.addEventListener('click', function() {
+        if (inCardSearchInput) executeInCardSearch(inCardSearchInput.value);
+      });
+    }
+
+    // Debounced search logic for Customer Phone input in form view
     if (phoneInput) {
       let phoneTimer = null;
       phoneInput.addEventListener('input', function () {
-        if (currentCustomerMode === 'new') return;
-
-        clearTimeout(phoneTimer);
-        const val = this.value.trim();
-        if (val.length < 3) {
-          customerBadge.style.display = 'none';
-          pillsSection.style.display = 'none';
-          return;
-        }
-        phoneTimer = setTimeout(() => {
-          fetch(`{% url 'job_search_records' %}?phone=${encodeURIComponent(val)}`)
-            .then(res => res.json())
-            .then(data => {
-              if (data.customer_found && data.customer) {
-                setSelectedCustomerState({
-                  name: data.customer.name,
-                  phone: data.customer.phone || val,
-                  email: data.customer.email || '',
-                  address: data.customer.address || ''
-                });
-
-                if (customerBadge) {
-                  customerBadge.className = 'badge-status-pill badge-success-green';
-                  customerBadge.style.display = 'inline-flex';
-                  customerBadge.innerHTML = `✓ Customer Found: <strong>${data.customer.name.toUpperCase()}</strong>`;
-                }
-
-                // Show vehicle pills if customer owns vehicles
-                if (data.customer.vehicles && data.customer.vehicles.length > 0) {
-                  pillsContainer.innerHTML = '';
-                  data.customer.vehicles.forEach(v => {
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.className = 'tab-btn';
-                    btn.style.borderRadius = '20px';
-                    btn.style.border = '1.5px solid #cbd5e1';
-                    btn.style.background = '#ffffff';
-                    btn.style.color = '#1e293b';
-                    btn.style.fontSize = '0.82rem';
-                    btn.style.padding = '0.35rem 0.85rem';
-                    btn.innerHTML = `🚘 <strong>${v.vehicle_number}</strong> (${v.vehicle_model})`;
-
-                    btn.addEventListener('click', () => {
-                      // Highlight selected vehicle pill
-                      Array.from(pillsContainer.children).forEach(child => {
-                        child.style.borderColor = '#cbd5e1';
-                        child.style.background = '#ffffff';
-                        child.style.color = '#1e293b';
-                      });
-                      btn.style.borderColor = '#3b82f6';
-                      btn.style.background = '#eff6ff';
-                      btn.style.color = '#1d4ed8';
-
-                      numInput.value = v.vehicle_number;
-                      modelInput.value = v.vehicle_model;
-                      if (v.vehicle_color) colorInput.value = v.vehicle_color;
-                      triggerVehicleSearch(v.vehicle_number);
-                    });
-                    pillsContainer.appendChild(btn);
+        if (customerState === 'new' && this.value.trim().length >= 3) {
+          clearTimeout(phoneTimer);
+          const val = this.value.trim();
+          phoneTimer = setTimeout(() => {
+            fetch(`{% url 'job_search_records' %}?phone=${encodeURIComponent(val)}`)
+              .then(res => res.json())
+              .then(data => {
+                if (data.customer_found && data.customer) {
+                  switchCustomerState('selected', {
+                    name: data.customer.name,
+                    phone: data.customer.phone || val,
+                    email: data.customer.email || '',
+                    address: data.customer.address || ''
                   });
-                  pillsSection.style.display = 'block';
-                } else {
-                  pillsSection.style.display = 'none';
                 }
-              } else {
-                customerBadge.className = 'badge-status-pill badge-info-blue';
-                customerBadge.style.display = 'inline-flex';
-                customerBadge.innerHTML = `ℹ️ Customer not found (New Customer)`;
-                pillsSection.style.display = 'none';
-              }
-            })
-            .catch(() => { });
-        }, 300);
+              })
+              .catch(() => {});
+          }, 300);
+        }
       });
     }
 
@@ -1255,7 +1298,7 @@
 
               // Auto fill customer details if empty
               if (phoneInput && !phoneInput.value && v.customer_phone) {
-                setSelectedCustomerState({
+                switchCustomerState('selected', {
                   name: v.customer_name,
                   phone: v.customer_phone,
                   email: v.customer_email || '',
@@ -1287,73 +1330,8 @@
       });
     }
 
-    // Global Quick Search Bar Logic
-    const searchInput = document.getElementById('quick-search-input');
-    const searchResults = document.getElementById('quick-search-results');
-    if (searchInput && searchResults) {
-      let searchTimer = null;
-      searchInput.addEventListener('input', function () {
-        clearTimeout(searchTimer);
-        const query = this.value.trim();
-        if (query.length < 2) {
-          searchResults.style.display = 'none';
-          return;
-        }
-        searchTimer = setTimeout(() => {
-          fetch(`{% url 'job_search_records' %}?q=${encodeURIComponent(query)}`)
-            .then(res => res.json())
-            .then(data => {
-              searchResults.innerHTML = '';
-              if (data.results && data.results.length > 0) {
-                data.results.forEach(item => {
-                  const div = document.createElement('div');
-                  div.style.padding = '0.75rem 1.1rem';
-                  div.style.cursor = 'pointer';
-                  div.style.borderBottom = '1px solid #f1f5f9';
-                  div.style.fontSize = '0.88rem';
-
-                  const title = item.vehicle_number ? `🚘 ${item.vehicle_number} (${item.vehicle_model})` : `👤 ${item.customer_name}`;
-                  const details = `👤 ${item.customer_name} | 📞 ${item.customer_phone}` + (item.vehicle_color ? ` | 🎨 ${item.vehicle_color}` : '');
-
-                  div.innerHTML = `<strong style="color:#1e293b;">${title}</strong><div style="font-size:0.78rem; color:#64748b; margin-top:2px;">${details}</div>`;
-
-                  div.addEventListener('mouseenter', () => div.style.background = '#f8fafc');
-                  div.addEventListener('mouseleave', () => div.style.background = '#ffffff');
-
-                  div.addEventListener('click', function () {
-                    setSelectedCustomerState({
-                      name: item.customer_name,
-                      phone: item.customer_phone,
-                      email: item.customer_email || '',
-                      address: item.customer_address || ''
-                    });
-
-                    if (numInput && item.vehicle_number) {
-                      numInput.value = item.vehicle_number;
-                      triggerVehicleSearch(item.vehicle_number);
-                    }
-                    if (modelInput && item.vehicle_model) modelInput.value = item.vehicle_model;
-                    if (colorInput && item.vehicle_color) colorInput.value = item.vehicle_color;
-
-                    searchResults.style.display = 'none';
-                  });
-                  searchResults.appendChild(div);
-                });
-                searchResults.style.display = 'block';
-              } else {
-                searchResults.innerHTML = '<div style="padding:0.75rem 1.1rem; color:#64748b; font-size:0.85rem;">No matching record found</div>';
-                searchResults.style.display = 'block';
-              }
-            });
-        }, 250);
-      });
-
-      document.addEventListener('click', function (e) {
-        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
-          searchResults.style.display = 'none';
-        }
-      });
-    }
+    // Initialize default state
+    switchCustomerState('new');
 
     // Drag & Drop Photo Upload Preview logic
     const photoInput = document.getElementById('id_photos') || document.querySelector('input[type="file"][name="photos"]');
