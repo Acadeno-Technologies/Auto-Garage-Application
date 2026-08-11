@@ -1130,8 +1130,17 @@ def supplier_delete(request, pk):
 @login_required
 @role_required('owner', 'advisor')
 def invoice_list(request):
+    q = request.GET.get('q', '').strip()
     invoices = Invoice.objects.select_related('job_card__vehicle__customer').order_by('-id')
-    return render(request, 'core/invoice_list.html', {'invoices': invoices})
+    if q:
+        invoices = invoices.filter(
+            Q(invoice_number__icontains=q) |
+            Q(job_card__job_number__icontains=q) |
+            Q(job_card__vehicle__customer__name__icontains=q) |
+            Q(job_card__vehicle__customer__phone__icontains=q) |
+            Q(job_card__vehicle__license_plate__icontains=q)
+        )
+    return render(request, 'core/invoice_list.html', {'invoices': invoices, 'q': q})
 
 
 @login_required
