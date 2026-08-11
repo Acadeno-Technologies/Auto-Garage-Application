@@ -7,43 +7,79 @@
 {% endblock %}
 {% block content %}
 <div class="stats-grid">
-  <div class="stat-card yellow"><div class="stat-icon">⏳</div><div class="stat-value">{{ pending }}</div><div class="stat-label">Pending</div></div>
-  <div class="stat-card teal"><div class="stat-icon">🔧</div><div class="stat-value">{{ in_progress }}</div><div class="stat-label">In Progress</div></div>
-  <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-value">{{ completed }}</div><div class="stat-label">Completed</div></div>
+  <div class="stat-card yellow">
+    <div class="stat-icon">⏳</div>
+    <div class="stat-value">{{ pending }}</div>
+    <div class="stat-label">Pending</div>
+  </div>
+  <div class="stat-card teal">
+    <div class="stat-icon">🔧</div>
+    <div class="stat-value">{{ in_progress }}</div>
+    <div class="stat-label">In Progress</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-icon">✅</div>
+    <div class="stat-value">{{ completed }}</div>
+    <div class="stat-label">Completed</div>
+  </div>
 </div>
 <div class="grid-2">
   <div class="card">
-    <div class="card-header"><span class="card-title">📋 My Job Cards</span><a href="{% url 'job_create' %}" class="btn btn-primary btn-sm">+ New</a></div>
-    <div class="table-wrap"><table>
-      <thead><tr><th>Job #</th><th>Vehicle / Customer</th><th>Status</th><th></th></tr></thead>
-      <tbody>
-        {% for job in my_jobs %}
-        <tr>
-          <td><a href="{% url 'job_detail' job.pk %}" class="text-accent text-mono">{{ job.job_number }}</a></td>
-          <td>{{ job.vehicle.make }} {{ job.vehicle.model }}<br><span class="text-muted">{{ job.vehicle.customer.name }}</span></td>
-          <td><span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span></td>
-          <td><a href="{% url 'job_detail' job.pk %}" class="btn btn-secondary btn-sm">View</a></td>
-        </tr>
-        {% empty %}<tr><td colspan="4" class="text-center text-muted">No jobs created yet</td></tr>
-        {% endfor %}
-      </tbody>
-    </table></div>
+    <div class="card-header"><span class="card-title">📋 My Job Cards</span><a href="{% url 'job_create' %}"
+        class="btn btn-primary btn-sm">+ New</a></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Job #</th>
+            <th>Vehicle / Customer</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for job in my_jobs %}
+          <tr>
+            <td><a href="{% url 'job_detail' job.pk %}" class="text-accent text-mono">{{ job.job_number }}</a></td>
+            <td>{{ job.vehicle.make }} {{ job.vehicle.model }}<br><span class="text-muted">{{ job.vehicle.customer.name
+                }}</span></td>
+            <td><span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span></td>
+            <td><a href="{% url 'job_detail' job.pk %}" class="btn btn-secondary btn-sm">View</a></td>
+          </tr>
+          {% empty %}<tr>
+            <td colspan="4" class="text-center text-muted">No jobs created yet</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
   <div class="card">
-    <div class="card-header"><span class="card-title">🙋 Recent Customers</span><a href="{% url 'customer_create' %}" class="btn btn-primary btn-sm">+ New</a></div>
-    <div class="table-wrap"><table>
-      <thead><tr><th>Name</th><th>Phone</th><th></th></tr></thead>
-      <tbody>
-        {% for c in recent_customers %}
-        <tr>
-          <td>{{ c.name }}</td>
-          <td class="text-mono">{{ c.phone }}</td>
-          <td><a href="{% url 'customer_detail' c.pk %}" class="btn btn-secondary btn-sm">View</a></td>
-        </tr>
-        {% empty %}<tr><td colspan="3" class="text-center text-muted">No customers yet</td></tr>
-        {% endfor %}
-      </tbody>
-    </table></div>
+    <div class="card-header"><span class="card-title">🙋 Recent Customers</span><a href="{% url 'customer_create' %}"
+        class="btn btn-primary btn-sm">+ New</a></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in recent_customers %}
+          <tr>
+            <td>{{ c.name }}</td>
+            <td class="text-mono">{{ c.phone }}</td>
+            <td><a href="{% url 'customer_detail' c.pk %}" class="btn btn-secondary btn-sm">View</a></td>
+          </tr>
+          {% empty %}<tr>
+            <td colspan="3" class="text-center text-muted">No customers yet</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endblock %}
