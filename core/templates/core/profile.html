@@ -1,106 +1,151 @@
 {% extends 'core/base.html' %}
 {% load static %}
 
-{% block title %}My Profile & Garage Settings{% endblock %}
+{% block title %}Account Profile — Krishna Auto Care{% endblock %}
 
 {% block page_title %}Account Profile{% endblock %}
 
-{% block breadcrumb %}
-<span class="text-muted">/ Settings</span>
-{% endblock %}
+{% block breadcrumb %}Account Profile{% endblock %}
 
 {% block extra_css %}
 <style>
-  .profile-container {
-    max-width: 1000px;
+  .profile-wrapper {
+    max-width: 1100px;
     margin: 0 auto;
   }
 
-  /* User Header Banner */
-  .profile-header-card {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  /* Dark Navy Profile Banner Header */
+  .navy-profile-banner {
+    background: #131c2e;
     border-radius: 16px;
-    padding: 2rem;
+    padding: 2.25rem 2.5rem;
     color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1.5rem;
-    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25);
+    box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.2);
     margin-bottom: 2rem;
     position: relative;
     overflow: hidden;
   }
 
-  .profile-header-card::before {
+  /* Blueprint / Workshop SVG Pattern Background */
+  .navy-profile-banner::after {
     content: '';
     position: absolute;
-    top: -50%;
-    right: -20%;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+    right: -20px;
+    top: -30px;
+    bottom: -30px;
+    width: 420px;
+    background-image: url("data:image/svg+xml,%3Csvg width='400' height='300' viewBox='0 0 400 300' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M300 80L380 130V250H220V130L300 80Z' stroke='rgba(255,255,255,0.06)' stroke-width='2'/%3E%3Cpath d='M300 40L390 100V270H210V100L300 40Z' stroke='rgba(255,255,255,0.04)' stroke-width='1.5'/%3E%3Cpath d='M250 250V170H350V250' stroke='rgba(255,255,255,0.06)' stroke-width='2'/%3E%3Cpath d='M180 180L140 220' stroke='rgba(255,255,255,0.05)' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='130' cy='230' r='15' stroke='rgba(255,255,255,0.05)' stroke-width='2'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right center;
     pointer-events: none;
   }
 
-  .user-header-left {
+  .banner-left-info {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1.75rem;
+    position: relative;
+    z-index: 2;
   }
 
-  .avatar-large {
+  .avatar-red-large {
     width: 80px;
     height: 80px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    background: #e51f2a;
     color: #ffffff;
+    border-radius: 50%;
     font-size: 2.2rem;
-    font-weight: 700;
+    font-weight: 800;
     display: grid;
     place-items: center;
-    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
-    border: 3px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 6px 20px rgba(229, 31, 42, 0.4);
+    border: 3px solid rgba(255, 255, 255, 0.15);
+    flex-shrink: 0;
   }
 
-  .user-header-name {
-    font-size: 1.6rem;
+  .banner-text-details h2 {
+    font-size: 1.65rem;
     font-weight: 800;
-    margin: 0 0 0.25rem 0;
-    letter-spacing: -0.02em;
-
-  .role-pill {
-    display: inline-block;
-    padding: 0.3rem 0.85rem;
-    border-radius: 20px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(4px);
-    color: #e0e7ff;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    margin: 0 0 0.4rem 0;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
   }
 
-  .user-meta-sub {
-    font-size: 0.88rem;
-    color: #94a3b8;
-    margin-top: 0.35rem;
-  }
-
-  /* Navigation Tabs */
-  .profile-tabs-nav {
+  .badges-row {
     display: flex;
-    gap: 0.75rem;
-    border-bottom: 2px solid #e2e8f0;
-    margin-bottom: 1.75rem;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.65rem;
+    flex-wrap: wrap;
   }
 
-  .tab-btn {
-    padding: 0.85rem 1.4rem;
+  .badge-outline-white {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #f1f5f9;
+  }
+
+  .badge-red-filled {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
     font-weight: 700;
-    font-size: 0.95rem;
+    background: #991b1b;
+    color: #ffffff;
+  }
+
+  .banner-meta-line {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: #94a3b8;
+    flex-wrap: wrap;
+  }
+
+  .banner-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  /* Main Card with Tabs */
+  .main-card-container {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
+    overflow: hidden;
+  }
+
+  /* Tabs Header Bar */
+  .tabs-header-bar {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0 1.5rem;
+    background: #ffffff;
+    gap: 0.5rem;
+  }
+
+  .tab-item-btn {
+    padding: 1.15rem 1.25rem;
+    font-size: 0.92rem;
+    font-weight: 600;
     color: #64748b;
     background: none;
     border: none;
@@ -109,332 +154,465 @@
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    margin-bottom: -2px;
+    gap: 0.55rem;
+    margin-bottom: -1px;
   }
 
-  .tab-btn:hover {
-    color: #4f46e5;
-  }
-
-  .tab-btn.active {
-    color: #4f46e5;
-    border-bottom-color: #4f46e5;
-  }
-
-  /* Form Card Styling */
-  .settings-card {
-    background: #ffffff;
-    border-radius: 14px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-    padding: 2rem;
-    margin-bottom: 2rem;
-  }
-
-  .card-section-title {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: #0f172a;
-    margin-bottom: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid #f1f5f9;
-  }
-
-  .form-grid-2 {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.25rem;
-  }
-
-  .form-group-full {
-    grid-column: span 2;
-  }
-
-  @media (max-width: 768px) {
-    .profile-header-card {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    .form-grid-2 {
-      grid-template-columns: 1fr;
-    }
-    .form-group-full {
-      grid-column: span 1;
-    }
-  }
-
-  .btn-save-primary {
-    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
-    color: white;
-    padding: 0.75rem 1.75rem;
-    font-weight: 700;
-    font-size: 0.95rem;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  .tab-item-btn svg {
+    stroke: #64748b;
     transition: all 0.2s ease;
   }
 
-  .btn-save-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+  .tab-item-btn:hover {
+    color: #0f172a;
   }
 
-  .info-badge-box {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 1rem;
+  .tab-item-btn:hover svg {
+    stroke: #0f172a;
+  }
+
+  .tab-item-btn.active {
+    color: #e51f2a;
+    font-weight: 700;
+    border-bottom-color: #e51f2a;
+  }
+
+  .tab-item-btn.active svg {
+    stroke: #e51f2a;
+  }
+
+  /* Tab Body Container */
+  .tab-body-padding {
+    padding: 2.25rem;
+  }
+
+  .section-head-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.35rem 0;
+  }
+
+  .section-head-sub {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin: 0 0 2rem 0;
+    line-height: 1.5;
+  }
+
+  /* Two Column Responsive Form Grid */
+  .form-two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .form-field-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .field-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.45rem;
+  }
+
+  .req-star {
+    color: #e51f2a;
+  }
+
+  /* Input wrapper with interior icon */
+  .input-icon-wrapper {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 0.85rem;
+  }
+
+  .input-icon-wrapper svg {
+    position: absolute;
+    left: 14px;
+    width: 18px;
+    height: 18px;
+    stroke: #94a3b8;
+    pointer-events: none;
+    transition: stroke 0.2s ease;
+  }
+
+  .input-styled {
+    width: 100%;
+    height: 48px;
+    padding: 0.65rem 1rem 0.65rem 42px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 0.92rem;
+    color: #0f172a;
+    font-family: var(--font-body);
+    transition: all 0.2s ease;
+  }
+
+  textarea.input-styled {
+    height: 120px;
+    padding-top: 0.85rem;
+    resize: vertical;
+  }
+
+  .input-styled:hover {
+    border-color: #cbd5e1;
+  }
+
+  .input-styled:focus {
+    outline: none;
+    border-color: #e51f2a;
+    box-shadow: 0 0 0 3px rgba(229, 31, 42, 0.12);
+  }
+
+  .input-styled:focus + svg,
+  .input-icon-wrapper:focus-within svg {
+    stroke: #e51f2a;
+  }
+
+  .input-disabled {
+    background: #f8fafc;
+    color: #64748b;
+    cursor: not-allowed;
+  }
+
+  /* Bottom Panel & Action Buttons */
+  .form-bottom-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f1f5f9;
+    flex-wrap: wrap;
+  }
+
+  .info-alert-panel {
+    background: #fef2f2;
+    border: 1px solid #fee2e2;
+    border-radius: 10px;
+    padding: 0.85rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 0.85rem;
+    color: #b91c1c;
+    flex: 1;
+    min-width: 280px;
+  }
+
+  .info-alert-panel svg {
+    stroke: #e51f2a;
+    flex-shrink: 0;
+  }
+
+  .btn-submit-red {
+    background: #e51f2a;
+    color: #ffffff;
+    padding: 0.75rem 1.75rem;
+    font-weight: 700;
+    font-size: 0.92rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    box-shadow: 0 4px 14px rgba(229, 31, 42, 0.25);
+    transition: all 0.2s ease;
+  }
+
+  .btn-submit-red:hover {
+    background: #cc1823;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(229, 31, 42, 0.35);
+  }
+
+  @media (max-width: 868px) {
+    .navy-profile-banner {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 1.75rem;
+    }
+    .form-two-columns {
+      grid-template-columns: 1fr;
+    }
+    .tabs-header-bar {
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .tab-body-padding {
+      padding: 1.5rem;
+    }
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="profile-container">
+<div class="profile-wrapper">
 
-  <!-- Header User Info -->
-  <div class="profile-header-card">
-    <div class="user-header-left">
-      <div class="avatar-large">
+  <!-- 1. DARK NAVY PROFILE HEADER BANNER -->
+  <div class="navy-profile-banner">
+    <div class="banner-left-info">
+      <div class="avatar-red-large">
         {{ request.user.username|first|upper }}
       </div>
-      <div>
-        <h1 class="user-header-name">{{ request.user.get_full_name|default:request.user.username }}</h1>
-        <div>
-          <span class="role-pill">
-            🛡️ {{ user_profile.get_role_display_name }}
+      <div class="banner-text-details">
+        <h2>{{ request.user.username }}</h2>
+        <div class="badges-row">
+          <span class="badge-outline-white">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            {% if request.user.is_superuser %}Owner{% else %}{{ user_profile.get_role_display_name }}{% endif %}
           </span>
           {% if request.user.is_superuser %}
-            <span class="role-pill" style="background:rgba(239,68,68,0.2); border-color:rgba(239,68,68,0.4); color:#fca5a5; margin-left:0.3rem;">
-              ⭐ Super Admin
-            </span>
+          <span class="badge-red-filled">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            Super Admin
+          </span>
           {% endif %}
         </div>
-        <div class="user-meta-sub">
-          ✉️ {{ request.user.email|default:"No email set" }} &nbsp;•&nbsp; 🗓️ Joined {{ request.user.date_joined|date:"M Y" }}
+        <div class="banner-meta-line">
+          <div class="banner-meta-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            <span>{{ request.user.email|default:"admin@autogarage.com" }}</span>
+          </div>
+          <span>•</span>
+          <div class="banner-meta-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span>Joined {{ request.user.date_joined|date:"M Y" }}</span>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Tabs Navigation -->
-  <div class="profile-tabs-nav">
-    <button type="button" class="tab-btn {% if active_tab == 'profile' %}active{% endif %}" onclick="switchTab('tab-profile', this)">
-      👤 My Profile
-    </button>
-    <button type="button" class="tab-btn {% if active_tab == 'security' %}active{% endif %}" onclick="switchTab('tab-security', this)">
-      🔒 Security & Password
-    </button>
-    {% if is_admin_or_owner %}
-    <button type="button" class="tab-btn {% if active_tab == 'garage' %}active{% endif %}" onclick="switchTab('tab-garage', this)">
-      🏢 Garage & Workshop Details
-    </button>
-    {% endif %}
-  </div>
+  <!-- 2. MAIN WHITE CARD WITH TABS -->
+  <div class="main-card-container">
+    
+    <!-- Tab Navigation -->
+    <div class="tabs-header-bar">
+      <button type="button" class="tab-item-btn {% if active_tab == 'profile' %}active{% endif %}" onclick="switchTab('tab-profile', this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span>My Profile</span>
+      </button>
 
-  <!-- TAB 1: USER PROFILE -->
-  <div id="tab-profile" class="tab-content" style="{% if active_tab != 'profile' %}display:none;{% endif %}">
-    <div class="settings-card">
-      <div class="card-section-title">
-        <span>👤 Personal Information</span>
+      <button type="button" class="tab-item-btn {% if active_tab == 'security' %}active{% endif %}" onclick="switchTab('tab-security', this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        <span>Security & Password</span>
+      </button>
+
+      {% if is_admin_or_owner %}
+      <button type="button" class="tab-item-btn {% if active_tab == 'garage' %}active{% endif %}" onclick="switchTab('tab-garage', this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <span>Garage & Workshop Details</span>
+      </button>
+      {% endif %}
+    </div>
+
+    <div class="tab-body-padding">
+
+      <!-- TAB 1: MY PROFILE -->
+      <div id="tab-profile" class="tab-content" style="{% if active_tab != 'profile' %}display:none;{% endif %}">
+        <h3 class="section-head-title">Personal Profile Details</h3>
+        <p class="section-head-sub">Update your personal account information and contact numbers.</p>
+
+        <form method="post" action="{% url 'profile' %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="update_profile">
+
+          <div class="form-two-columns">
+            <div class="form-field-group">
+              <label class="field-label">Username</label>
+              <div class="input-icon-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <input type="text" class="input-styled input-disabled" value="{{ request.user.username }}" readonly>
+              </div>
+            </div>
+
+            <div class="form-field-group">
+              <label class="field-label">Role Title</label>
+              <div class="input-icon-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                <input type="text" class="input-styled input-disabled" value="{{ user_profile.get_role_display_name }}" readonly>
+              </div>
+            </div>
+
+            <div class="form-field-group">
+              <label class="field-label">First Name <span class="req-star">*</span></label>
+              <div class="input-icon-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <input type="text" name="first_name" class="input-styled" value="{{ profile_form.first_name.value|default:'' }}" required>
+              </div>
+            </div>
+
+            <div class="form-field-group">
+              <label class="field-label">Last Name</label>
+              <div class="input-icon-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <input type="text" name="last_name" class="input-styled" value="{{ profile_form.last_name.value|default:'' }}">
+              </div>
+            </div>
+
+            <div class="form-field-group">
+              <label class="field-label">Contact Email <span class="req-star">*</span></label>
+              <div class="input-icon-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                <input type="email" name="email" class="input-styled" value="{{ profile_form.email.value|default:'' }}" required>
+              </div>
+            </div>
+
+            <div class="form-field-group">
+              <label class="field-label">Phone Number</label>
+              <div class="input-icon-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                <input type="text" name="phone" class="input-styled" value="{{ profile_form.phone.value|default:'' }}" placeholder="+91 98765 43210">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-bottom-bar">
+            <div></div>
+            <button type="submit" class="btn-submit-red">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+              <span>Save Changes</span>
+            </button>
+          </div>
+        </form>
       </div>
 
-      <form method="post" action="{% url 'profile' %}">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="update_profile">
+      <!-- TAB 2: SECURITY & PASSWORD -->
+      <div id="tab-security" class="tab-content" style="{% if active_tab != 'security' %}display:none;{% endif %}">
+        <h3 class="section-head-title">Security & Password</h3>
+        <p class="section-head-sub">Manage your password settings to protect your account access.</p>
 
-        <div class="form-grid-2">
-          <div class="form-group">
-            <label class="form-label">Username (Read-Only)</label>
-            <input type="text" class="form-input" value="{{ request.user.username }}" disabled style="background:#f1f5f9; cursor:not-allowed;">
-          </div>
+        <form method="post" action="{% url 'profile' %}" style="max-width:560px;">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="update_password">
 
-          <div class="form-group">
-            <label class="form-label">Role Title</label>
-            <input type="text" class="form-input" value="{{ user_profile.get_role_display_name }}" disabled style="background:#f1f5f9; cursor:not-allowed;">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">First Name</label>
-            {{ profile_form.first_name }}
-            {% if profile_form.first_name.errors %}
-              <div class="form-error">{{ profile_form.first_name.errors.0 }}</div>
+          {% for field in password_form %}
+          <div class="form-field-group">
+            <label class="field-label">{{ field.label }}</label>
+            <div class="input-icon-wrapper">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              <input type="password" name="{{ field.name }}" class="input-styled" required>
+            </div>
+            {% if field.errors %}
+              <div style="color:#e51f2a; font-size:0.82rem; margin-top:0.3rem;">{{ field.errors.0 }}</div>
             {% endif %}
           </div>
+          {% endfor %}
 
-          <div class="form-group">
-            <label class="form-label">Last Name</label>
-            {{ profile_form.last_name }}
-            {% if profile_form.last_name.errors %}
-              <div class="form-error">{{ profile_form.last_name.errors.0 }}</div>
-            {% endif %}
+          <div class="form-bottom-bar" style="justify-content:flex-end;">
+            <button type="submit" class="btn-submit-red">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+              <span>Update Password</span>
+            </button>
           </div>
-
-          <div class="form-group">
-            <label class="form-label">Email Address</label>
-            {{ profile_form.email }}
-            {% if profile_form.email.errors %}
-              <div class="form-error">{{ profile_form.email.errors.0 }}</div>
-            {% endif %}
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Phone Number</label>
-            {{ profile_form.phone }}
-            {% if profile_form.phone.errors %}
-              <div class="form-error">{{ profile_form.phone.errors.0 }}</div>
-            {% endif %}
-          </div>
-        </div>
-
-        <div style="margin-top: 1.5rem; text-align: right;">
-          <button type="submit" class="btn-save-primary">Save Profile Changes</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- TAB 2: SECURITY & PASSWORD -->
-  <div id="tab-security" class="tab-content" style="{% if active_tab != 'security' %}display:none;{% endif %}">
-    <div class="settings-card">
-      <div class="card-section-title">
-        <span>🔒 Change Account Password</span>
+        </form>
       </div>
 
-      <form method="post" action="{% url 'profile' %}" style="max-width:550px;">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="update_password">
+      <!-- TAB 3: GARAGE & WORKSHOP DETAILS (ADMIN / OWNER) -->
+      {% if is_admin_or_owner %}
+      <div id="tab-garage" class="tab-content" style="{% if active_tab != 'garage' %}display:none;{% endif %}">
+        <h3 class="section-head-title">Garage & Workshop Profile Details</h3>
+        <p class="section-head-sub">Edit your workshop name, location, address, contact details, and GSTIN number. These details will be updated across your application, invoices, and customer receipts.</p>
 
-        {% for field in password_form %}
-        <div class="form-group" style="margin-bottom:1.25rem;">
-          <label class="form-label">{{ field.label }}</label>
-          {{ field }}
-          {% if field.help_text %}
-            <div style="font-size:0.8rem; color:#64748b; margin-top:0.25rem;">{{ field.help_text }}</div>
-          {% endif %}
-          {% if field.errors %}
-            <div class="form-error" style="color:#ef4444; font-size:0.85rem; margin-top:0.25rem;">{{ field.errors.0 }}</div>
-          {% endif %}
-        </div>
-        {% endfor %}
+        <form method="post" action="{% url 'profile' %}" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="update_garage">
 
-        <div style="margin-top: 1.5rem;">
-          <button type="submit" class="btn-save-primary">Update Password</button>
-        </div>
-      </form>
-    </div>
-  </div>
+          <div class="form-two-columns">
+            
+            <!-- LEFT COLUMN -->
+            <div>
+              <div class="form-field-group">
+                <label class="field-label">Garage / Workshop Name <span class="req-star">*</span></label>
+                <div class="input-icon-wrapper">
+                  <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                  <input type="text" name="name" class="input-styled" value="{{ garage_form.name.value|default:garage.name }}" placeholder="Krishna Auto Care" required>
+                </div>
+              </div>
 
-  <!-- TAB 3: GARAGE SETTINGS (ADMIN / OWNER ONLY) -->
-  {% if is_admin_or_owner %}
-  <div id="tab-garage" class="tab-content" style="{% if active_tab != 'garage' %}display:none;{% endif %}">
-    <div class="settings-card">
-      <div class="card-section-title">
-        <span>🏢 Garage & Workshop Profile Details</span>
+              <div class="form-field-group">
+                <label class="field-label">Tagline / Motto</label>
+                <div class="input-icon-wrapper">
+                  <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                  <input type="text" name="tagline" class="input-styled" value="{{ garage_form.tagline.value|default:garage.tagline }}" placeholder="Precision Workshop">
+                </div>
+              </div>
+
+              <div class="form-field-group">
+                <label class="field-label">Contact Phone</label>
+                <div class="input-icon-wrapper">
+                  <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                  <input type="text" name="phone" class="input-styled" value="{{ garage_form.phone.value|default:garage.phone }}" placeholder="+91 98765 43210">
+                </div>
+              </div>
+
+              <div class="form-field-group">
+                <label class="field-label">Contact Email</label>
+                <div class="input-icon-wrapper">
+                  <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                  <input type="email" name="email" class="input-styled" value="{{ garage_form.email.value|default:garage.email }}" placeholder="info@krishnaautocare.com">
+                </div>
+              </div>
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div>
+              <div class="form-field-group">
+                <label class="field-label">Street Address / Location Details</label>
+                <div class="input-icon-wrapper" style="align-items:flex-start;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke-width="2" style="top:14px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                  <textarea name="address" class="input-styled" placeholder="Main Road, Near Bus Stand">{{ garage_form.address.value|default:garage.address }}</textarea>
+                </div>
+              </div>
+
+              <div class="form-field-group">
+                <label class="field-label">City / Place</label>
+                <div class="input-icon-wrapper">
+                  <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path></svg>
+                  <input type="text" name="city" class="input-styled" value="{{ garage_form.city.value|default:garage.city }}" placeholder="Kochi">
+                </div>
+              </div>
+
+              <div class="form-field-group">
+                <label class="field-label">State</label>
+                <div class="input-icon-wrapper">
+                  <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  <input type="text" name="state" class="input-styled" value="{{ garage_form.state.value|default:garage.state }}" placeholder="Kerala">
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- BOTTOM PANEL: GSTIN INFO + SAVE BUTTON -->
+          <div class="form-bottom-bar">
+            <div class="info-alert-panel">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <span>GSTIN details can be updated from your application settings if required.</span>
+            </div>
+
+            <button type="submit" class="btn-submit-red">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+              <span>Save Changes</span>
+            </button>
+          </div>
+
+        </form>
       </div>
+      {% endif %}
 
-      <p style="color:#64748b; font-size:0.9rem; margin-bottom:1.5rem;">
-        Edit your workshop name, location, address, contact details, and GSTIN number. These details will be updated across your application, invoices, and customer receipts.
-      </p>
-
-      <form method="post" action="{% url 'profile' %}" enctype="multipart/form-data">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="update_garage">
-
-        <div class="form-grid-2">
-          
-          <div class="form-group">
-            <label class="form-label">Garage / Workshop Name <span style="color:#ef4444;">*</span></label>
-            {{ garage_form.name }}
-            {% if garage_form.name.errors %}
-              <div class="form-error">{{ garage_form.name.errors.0 }}</div>
-            {% endif %}
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Tagline / Motto</label>
-            {{ garage_form.tagline }}
-            {% if garage_form.tagline.errors %}
-              <div class="form-error">{{ garage_form.tagline.errors.0 }}</div>
-            {% endif %}
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Contact Phone</label>
-            {{ garage_form.phone }}
-            {% if garage_form.phone.errors %}
-              <div class="form-error">{{ garage_form.phone.errors.0 }}</div>
-            {% endif %}
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Contact Email</label>
-            {{ garage_form.email }}
-            {% if garage_form.email.errors %}
-              <div class="form-error">{{ garage_form.email.errors.0 }}</div>
-            {% endif %}
-          </div>
-
-          <div class="form-group form-group-full">
-            <label class="form-label">Street Address / Location Details</label>
-            {{ garage_form.address }}
-            {% if garage_form.address.errors %}
-              <div class="form-error">{{ garage_form.address.errors.0 }}</div>
-            {% endif %}
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">City / Place</label>
-            {{ garage_form.city }}
-            {% if garage_form.city.errors %}
-              <div class="form-error">{{ garage_form.city.errors.0 }}</div>
-            {% endif %}
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">State</label>
-            {{ garage_form.state }}
-            {% if garage_form.state.errors %}
-              <div class="form-error">{{ garage_form.state.errors.0 }}</div>
-            {% endif %}
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Pincode / Zip Code</label>
-            {{ garage_form.pincode }}
-            {% if garage_form.pincode.errors %}
-              <div class="form-error">{{ garage_form.pincode.errors.0 }}</div>
-            {% endif %}
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">GST / Registration Number</label>
-            {{ garage_form.gst_number }}
-            {% if garage_form.gst_number.errors %}
-              <div class="form-error">{{ garage_form.gst_number.errors.0 }}</div>
-            {% endif %}
-          </div>
-
-        </div>
-
-        <div style="margin-top: 1.5rem; text-align: right;">
-          <button type="submit" class="btn-save-primary">Save Garage Settings</button>
-        </div>
-      </form>
     </div>
   </div>
-  {% endif %}
 
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
@@ -443,16 +621,11 @@ function switchTab(tabId, btn) {
   document.querySelectorAll('.tab-content').forEach(function(content) {
     content.style.display = 'none';
   });
-  document.querySelectorAll('.tab-btn').forEach(function(b) {
+  document.querySelectorAll('.tab-item-btn').forEach(function(b) {
     b.classList.remove('active');
   });
   document.getElementById(tabId).style.display = 'block';
   btn.classList.add('active');
 }
-
-// Add form-input class to all password form inputs dynamically
-document.querySelectorAll('#tab-security input').forEach(function(input) {
-  input.classList.add('form-input');
-});
 </script>
 {% endblock %}
