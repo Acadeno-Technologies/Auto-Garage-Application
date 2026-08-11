@@ -386,12 +386,22 @@ def vehicle_delete(request, pk):
 @login_required
 @role_required('owner', 'advisor')
 def job_list(request):
-    status = request.GET.get('status', '')
+    status = request.GET.get('status', '').strip()
+    q = request.GET.get('q', '').strip()
     jobs = JobCard.objects.select_related('vehicle__customer', 'mechanic', 'advisor').all()
     if status:
         jobs = jobs.filter(status=status)
+    if q:
+        jobs = jobs.filter(
+            Q(job_number__icontains=q) |
+            Q(vehicle__license_plate__icontains=q) |
+            Q(vehicle__make__icontains=q) |
+            Q(vehicle__model__icontains=q) |
+            Q(vehicle__customer__name__icontains=q) |
+            Q(vehicle__customer__phone__icontains=q)
+        )
     jobs = jobs.order_by('-created_at')
-    return render(request, 'core/job_list.html', {'jobs': jobs, 'status_filter': status})
+    return render(request, 'core/job_list.html', {'jobs': jobs, 'status_filter': status, 'q': q})
 
 
 @login_required
