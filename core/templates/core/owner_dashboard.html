@@ -8,42 +8,34 @@
 <!-- STAT CARDS -->
 <div class="stats-grid">
   <div class="stat-card accent">
-    <div class="stat-icon">📋</div>
     <div class="stat-value">{{ active_jobs }}</div>
     <div class="stat-label">Active Jobs</div>
   </div>
   <div class="stat-card green">
-    <div class="stat-icon">✅</div>
     <div class="stat-value">{{ completed_jobs }}</div>
     <div class="stat-label">Completed Jobs</div>
   </div>
   <div class="stat-card teal">
-    <div class="stat-icon">🙋</div>
     <div class="stat-value">{{ total_customers }}</div>
     <div class="stat-label">Customers</div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon">🚗</div>
     <div class="stat-value">{{ total_vehicles }}</div>
     <div class="stat-label">Vehicles</div>
   </div>
   <div class="stat-card {% if low_stock_parts > 0 %}red{% endif %}">
-    <div class="stat-icon">⚠️</div>
     <div class="stat-value">{{ low_stock_parts }}</div>
     <div class="stat-label">Low Stock Parts</div>
   </div>
   <div class="stat-card {% if pending_invoices > 0 %}yellow{% endif %}">
-    <div class="stat-icon">🧾</div>
     <div class="stat-value">{{ pending_invoices }}</div>
     <div class="stat-label">Unpaid Invoices</div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon">👥</div>
     <div class="stat-value">{{ staff_count }}</div>
     <div class="stat-label">Staff Members</div>
   </div>
   <div class="stat-card green">
-    <div class="stat-icon">💰</div>
     <div class="stat-value" style="font-size:1.4rem;">₹{{ monthly_revenue|floatformat:0 }}</div>
     <div class="stat-label">Monthly Revenue</div>
   </div>
@@ -55,7 +47,7 @@
   <!-- Recent Jobs -->
   <div class="card">
     <div class="card-header">
-      <span class="card-title">📋 Recent Job Cards</span>
+      <span class="card-title">Recent Job Cards</span>
       <a href="{% url 'job_list' %}" class="btn btn-secondary btn-sm">View All</a>
     </div>
     <div class="table-wrap">
@@ -83,7 +75,7 @@
   <!-- Low Stock -->
   <div class="card">
     <div class="card-header">
-      <span class="card-title">⚠️ Low Stock Alert</span>
+      <span class="card-title">Low Stock Alert</span>
       <a href="{% url 'parts_list' %}" class="btn btn-secondary btn-sm">All Parts</a>
     </div>
     <div class="table-wrap">
@@ -100,14 +92,14 @@
             <td class="text-muted">{{ part.minimum_stock }}</td>
           </tr>
           {% empty %}
-          <tr><td colspan="4" class="text-center text-muted">✅ All stock levels OK</td></tr>
+          <tr><td colspan="4" class="text-center text-muted">All stock levels OK</td></tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
     {% if low_stock_list %}
     <div class="card-body" style="padding-top:0.5rem;">
-      <a href="{% url 'stock_transaction' %}" class="btn btn-primary btn-sm">🔄 Record Stock In</a>
+      <a href="{% url 'stock_transaction' %}" class="btn btn-primary btn-sm">Record Stock In</a>
     </div>
     {% endif %}
   </div>
@@ -120,7 +112,7 @@
   <!-- Mechanic Performance -->
   <div class="card">
     <div class="card-header">
-      <span class="card-title">🔧 Mechanic Performance</span>
+      <span class="card-title">Mechanic Performance</span>
     </div>
     <div class="card-body">
       {% for stat in mechanic_stats %}
@@ -140,7 +132,7 @@
   <!-- Recent Invoices -->
   <div class="card">
     <div class="card-header">
-      <span class="card-title">🧾 Recent Invoices</span>
+      <span class="card-title">Recent Invoices</span>
       <a href="{% url 'invoice_list' %}" class="btn btn-secondary btn-sm">View All</a>
     </div>
     <div class="table-wrap">

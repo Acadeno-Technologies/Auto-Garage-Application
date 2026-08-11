@@ -4,12 +4,12 @@
 {% block breadcrumb %}{{ request.user.get_full_name|default:request.user.username }}{% endblock %}
 {% block content %}
 <div class="stats-grid">
-  <div class="stat-card accent"><div class="stat-icon">🔧</div><div class="stat-value">{{ active_jobs.count }}</div><div class="stat-label">Active Jobs</div></div>
-  <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-value">{{ total_completed }}</div><div class="stat-label">Completed</div></div>
+  <div class="stat-card accent"><div class="stat-value">{{ active_jobs.count }}</div><div class="stat-label">Active Jobs</div></div>
+  <div class="stat-card green"><div class="stat-value">{{ total_completed }}</div><div class="stat-label">Completed</div></div>
 </div>
 
 <div class="card mb-3">
-  <div class="card-header"><span class="card-title">🔧 Active Assignments</span></div>
+  <div class="card-header"><span class="card-title">Active Assignments</span></div>
   <div class="table-wrap"><table>
     <thead><tr><th>Job #</th><th>Vehicle</th><th>Customer</th><th>Problem</th><th>Status</th><th></th></tr></thead>
     <tbody>
@@ -32,7 +32,7 @@
 </div>
 
 <div class="card">
-  <div class="card-header"><span class="card-title">✅ Completed Jobs</span></div>
+  <div class="card-header"><span class="card-title">Completed Jobs</span></div>
   <div class="table-wrap"><table>
     <thead><tr><th>Job #</th><th>Vehicle</th><th>Completed</th></tr></thead>
     <tbody>

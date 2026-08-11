@@ -3,19 +3,19 @@
 {% block page_title %}Store Dashboard{% endblock %}
 {% block topbar_actions %}
 <a href="{% url 'part_create' %}" class="btn btn-secondary btn-sm">+ Part</a>
-<a href="{% url 'stock_transaction' %}" class="btn btn-primary btn-sm">🔄 Stock Transaction</a>
+<a href="{% url 'stock_transaction' %}" class="btn btn-primary btn-sm">Stock Transaction</a>
 {% endblock %}
 {% block content %}
 <div class="stats-grid">
-  <div class="stat-card"><div class="stat-icon">⚙️</div><div class="stat-value">{{ total_parts }}</div><div class="stat-label">Total Parts</div></div>
-  <div class="stat-card {% if low_stock_count > 0 %}red{% endif %}"><div class="stat-icon">⚠️</div><div class="stat-value">{{ low_stock_count }}</div><div class="stat-label">Low Stock</div></div>
-  <div class="stat-card"><div class="stat-icon">🏷️</div><div class="stat-value">{{ total_categories }}</div><div class="stat-label">Categories</div></div>
-  <div class="stat-card"><div class="stat-icon">🏭</div><div class="stat-value">{{ total_suppliers }}</div><div class="stat-label">Suppliers</div></div>
+  <div class="stat-card"><div class="stat-value">{{ total_parts }}</div><div class="stat-label">Total Parts</div></div>
+  <div class="stat-card {% if low_stock_count > 0 %}red{% endif %}"><div class="stat-value">{{ low_stock_count }}</div><div class="stat-label">Low Stock</div></div>
+  <div class="stat-card"><div class="stat-value">{{ total_categories }}</div><div class="stat-label">Categories</div></div>
+  <div class="stat-card"><div class="stat-value">{{ total_suppliers }}</div><div class="stat-label">Suppliers</div></div>
 </div>
 
 <div class="grid-2">
   <div class="card">
-    <div class="card-header"><span class="card-title">⚠️ Low Stock Parts</span><a href="{% url 'parts_list' %}" class="btn btn-secondary btn-sm">All Parts</a></div>
+    <div class="card-header"><span class="card-title">Low Stock Parts</span><a href="{% url 'parts_list' %}" class="btn btn-secondary btn-sm">All Parts</a></div>
     <div class="table-wrap"><table>
       <thead><tr><th>Part</th><th>Part #</th><th>Qty</th><th>Min</th><th></th></tr></thead>
       <tbody>
@@ -27,14 +27,14 @@
           <td class="text-muted">{{ p.minimum_stock }}</td>
           <td><a href="{% url 'part_edit' p.pk %}" class="btn btn-secondary btn-sm">Edit</a></td>
         </tr>
-        {% empty %}<tr><td colspan="5" class="text-center text-muted">✅ All stock levels OK</td></tr>
+        {% empty %}<tr><td colspan="5" class="text-center text-muted">All stock levels OK</td></tr>
         {% endfor %}
       </tbody>
     </table></div>
   </div>
 
   <div class="card">
-    <div class="card-header"><span class="card-title">🔄 Recent Transactions</span></div>
+    <div class="card-header"><span class="card-title">Recent Transactions</span></div>
     <div class="table-wrap"><table>
       <thead><tr><th>Part</th><th>Type</th><th>Qty</th><th>Date</th></tr></thead>
       <tbody>

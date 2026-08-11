@@ -1,14 +1,14 @@
 {% extends 'core/base.html' %}
 {% block title %}Incentives & Expenses (Admin Only){% endblock %}
-{% block page_title %}🎁 Incentives & Expenses{% endblock %}
+{% block page_title %}Incentives & Expenses{% endblock %}
 
 {% block topbar_actions %}
 <form method="get" id="topbar-period-form" style="display:inline-block; margin:0;">
   <input type="hidden" name="rate" value="{{ rate }}">
   <select name="period" class="form-input" style="width:auto; padding:0.4rem 0.85rem; font-size:0.85rem; font-weight:600; border-radius:8px; background:var(--bg-card); cursor:pointer;" onchange="this.form.submit()">
-    <option value="this_month" {% if period == 'this_month' %}selected{% endif %}>📅 This Month</option>
-    <option value="last_month" {% if period == 'last_month' %}selected{% endif %}>📅 Last Month</option>
-    <option value="all" {% if period == 'all' %}selected{% endif %}>📅 All Time</option>
+    <option value="this_month" {% if period == 'this_month' %}selected{% endif %}>This Month</option>
+    <option value="last_month" {% if period == 'last_month' %}selected{% endif %}>Last Month</option>
+    <option value="all" {% if period == 'all' %}selected{% endif %}>All Time</option>
   </select>
 </form>
 {% endblock %}
@@ -114,7 +114,7 @@
         </span>
       </div>
       <p class="text-muted" style="margin:0.35rem 0 0 0; font-size:0.83rem;">
-        🔒 Restricted Access: Only Garage Admins/Owners can calculate incentives and manage workshop expenses.
+        Restricted Access: Only Garage Admins/Owners can calculate incentives and manage workshop expenses.
       </p>
     </div>
   </div>
