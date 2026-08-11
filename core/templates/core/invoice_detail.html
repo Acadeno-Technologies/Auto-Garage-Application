@@ -4,6 +4,7 @@
 {% block page_title %}Invoice {{ invoice.invoice_number }}{% endblock %}
 {% block breadcrumb %}<a href="{% url 'invoice_list' %}" style="color:var(--text-3);">Invoices</a> / Detail{% endblock %}
 {% block topbar_actions %}
+<a href="{% url 'invoice_list' %}" class="btn btn-secondary btn-sm">← Back to Invoices</a>
 <a href="{% url 'invoice_edit' invoice.pk %}" class="btn btn-secondary btn-sm">✏️ Edit</a>
 <button onclick="window.print()" class="btn btn-primary btn-sm">🖨 Print</button>
 {% endblock %}

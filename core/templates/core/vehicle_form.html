@@ -1,6 +1,7 @@
 {% extends 'core/base.html' %}
 {% block title %}{{ title }}{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
+{% block topbar_actions %}<a href="{% url 'vehicle_list' %}" class="btn btn-secondary">← Back to Vehicles</a>{% endblock %}
 {% block content %}
 
 <style>

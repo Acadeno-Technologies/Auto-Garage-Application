@@ -4,6 +4,7 @@
 {% block breadcrumb %}<a href="{% url 'customer_list' %}" style="color:var(--text-3);">Customers</a> / Detail{% endblock %}
 {% block topbar_actions %}
 <div style="display:flex; gap:0.5rem; align-items:center;">
+  <a href="{% url 'customer_list' %}" class="btn btn-secondary btn-sm">← Back to Customers</a>
   <a href="{% url 'customer_edit' customer.pk %}" class="btn btn-secondary btn-sm">Edit</a>
   <form method="post" action="{% url 'customer_delete' customer.pk %}" onsubmit="return confirm('Are you sure you want to delete customer {{ customer.name }}?');" style="display:inline; margin:0;">
     {% csrf_token %}

@@ -1,6 +1,7 @@
 {% extends 'core/base.html' %}
 {% block title %}{{ title }}{% endblock %}
 {% block page_title %}{% endblock %}
+{% block topbar_actions %}<a href="{% url 'job_list' %}" class="btn btn-secondary">← Back to Job Cards</a>{% endblock %}
 {% block content %}
 
 <style>
