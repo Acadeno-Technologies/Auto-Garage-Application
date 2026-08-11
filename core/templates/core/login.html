@@ -40,12 +40,7 @@
       {% csrf_token %}
       <div class="form-group">
         <label for="id_role">Role</label>
-        <select name="role" id="id_role" class="form-input">
-          <option value="owner">Owner</option>
-          <option value="advisor">Service Advisor</option>
-          <option value="mechanic">Mechanic</option>
-          <option value="store_manager">Store Manager</option>
-        </select>
+        {{ form.role }}
       </div>
       <div class="form-group">
         <label for="id_username">Username</label>
