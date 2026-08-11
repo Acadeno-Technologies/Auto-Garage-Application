@@ -678,6 +678,8 @@ def job_update_status(request, pk):
         # Save customer and vehicle changes
         c_name = form.cleaned_data.get('customer_name', '').strip()
         c_phone = form.cleaned_data.get('customer_phone', '').strip()
+        c_email = form.cleaned_data.get('customer_email', '').strip()
+        c_address = form.cleaned_data.get('customer_address', '').strip()
         v_num = form.cleaned_data.get('vehicle_number', '').strip().upper()
         v_model_raw = form.cleaned_data.get('vehicle_model', '').strip()
         v_color = form.cleaned_data.get('vehicle_color', '').strip()
@@ -686,6 +688,8 @@ def job_update_status(request, pk):
             cust = updated_job.vehicle.customer
             cust.name = c_name
             cust.phone = c_phone
+            if c_email: cust.email = c_email
+            if c_address: cust.address = c_address
             cust.save()
 
             model_parts = v_model_raw.split()

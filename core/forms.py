@@ -288,6 +288,16 @@ class JobStatusForm(forms.ModelForm):
         label='Customer Phone Number',
         required=True
     )
+    customer_email = forms.EmailField(
+        widget=forms.EmailInput(attrs={'class': 'form-input', 'placeholder': 'customer@example.com'}),
+        label='Customer Email',
+        required=False
+    )
+    customer_address = forms.CharField(
+        widget=forms.Textarea(attrs={'class': 'form-input', 'rows': 2, 'placeholder': 'Customer Address'}),
+        label='Customer Address',
+        required=False
+    )
     vehicle_number = forms.CharField(
         max_length=20,
         widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. KA-01-AB-1234'}),
@@ -333,6 +343,8 @@ class JobStatusForm(forms.ModelForm):
             v = self.instance.vehicle
             self.initial['customer_name'] = v.customer.name
             self.initial['customer_phone'] = v.customer.phone
+            self.initial['customer_email'] = v.customer.email
+            self.initial['customer_address'] = v.customer.address
             self.initial['vehicle_number'] = v.license_plate
             self.initial['vehicle_model'] = f"{v.make} {v.model}".strip()
             self.initial['vehicle_color'] = v.color
