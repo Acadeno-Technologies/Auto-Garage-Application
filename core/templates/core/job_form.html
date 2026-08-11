@@ -30,13 +30,13 @@
   .header-icon-box {
     width: 48px;
     height: 48px;
-    background: #eef2ff;
+    background: #f1f5f9;
     border-radius: 12px;
-    color: #6366f1;
+    color: #475569;
     display: grid;
     place-items: center;
     flex-shrink: 0;
-    border: 1px solid #e0e7ff;
+    border: 1px solid #cbd5e1;
   }
 
   .header-title {
@@ -54,9 +54,9 @@
   }
 
   .required-badge {
-    background: #eff6ff;
-    border: 1px solid #dbeafe;
-    color: #2563eb;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #475569;
     font-size: 0.78rem;
     font-weight: 600;
     padding: 0.45rem 0.9rem;
@@ -86,7 +86,7 @@
   .quick-search-icon-box {
     width: 36px;
     height: 36px;
-    background: #3b82f6;
+    background: #475569;
     border-radius: 10px;
     color: white;
     display: grid;
@@ -128,8 +128,8 @@
 
   .search-input-field:focus {
     outline: none;
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    border-color: #64748b;
+    box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.15);
   }
 
   .search-results-dropdown {
@@ -140,7 +140,7 @@
     right: 0;
     z-index: 100;
     background: #ffffff;
-    border: 1px solid #6366f1;
+    border: 1px solid #64748b;
     border-radius: 10px;
     max-height: 250px;
     overflow-y: auto;
@@ -166,7 +166,7 @@
   }
 
   .section-accent-blue {
-    border-top: 3px solid #3b82f6;
+    border-top: 3px solid #64748b;
   }
 
   .section-header {
@@ -198,15 +198,15 @@
   }
 
   .number-badge-purple {
-    background: #6366f1;
+    background: #475569;
   }
 
   .number-badge-blue {
-    background: #3b82f6;
+    background: #475569;
   }
 
   .number-badge-green {
-    background: #10b981;
+    background: #475569;
   }
 
   .section-title {
@@ -415,8 +415,8 @@
   .upload-icon-circle {
     width: 46px;
     height: 46px;
-    background: #eff6ff;
-    color: #2563eb;
+    background: #f1f5f9;
+    color: #475569;
     border-radius: 50%;
     display: grid;
     place-items: center;
@@ -425,7 +425,7 @@
 
   .upload-text-bold {
     font-weight: 700;
-    color: #2563eb;
+    color: #475569;
     font-size: 0.92rem;
   }
 
@@ -522,7 +522,7 @@
       <div class="section-header">
         <div class="section-title-group">
           <div class="number-badge number-badge-purple">1</div>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
             <circle cx="12" cy="7" r="4"></circle>
@@ -657,7 +657,7 @@
       <div class="section-header">
         <div class="section-title-group">
           <div class="number-badge number-badge-blue">2</div>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <path
               d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2">
@@ -742,7 +742,7 @@
       <div class="section-header">
         <div class="section-title-group">
           <div class="number-badge number-badge-blue">3</div>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"></circle>
             <path
@@ -792,7 +792,7 @@
         <div class="custom-form-group">
           <label for="{{ form.labour_cost.id_for_label }}">Labour Cost (₹)</label>
           <div class="input-icon-wrapper">
-            <span class="input-icon" style="font-weight: 700; font-size: 0.95rem; color: #2563eb; left: 14px;">₹</span>
+            <span class="input-icon" style="font-weight: 700; font-size: 0.95rem; color: #475569; left: 14px;">₹</span>
             {{ form.labour_cost }}
           </div>
           {% if form.labour_cost.errors %}<span style="color:var(--red); font-size:0.78rem;">{{
