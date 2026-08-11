@@ -4,8 +4,9 @@
 {% block page_title %}AMC Contract: {{ amc.contract_number }}{% endblock %}
 
 {% block topbar_actions %}
+  <a href="{% url 'amc_list' %}" class="btn btn-secondary btn-sm" style="margin-right:0.5rem;">← Back to AMC Contracts</a>
   <a href="{% url 'send_whatsapp' %}?type=amc_renewal&amc_id={{ amc.id }}&phone={{ amc.vehicle.customer.phone }}&name={{ amc.vehicle.customer.name }}" target="_blank" class="btn btn-success" style="background:#25D366; color:white;">
-    📱 Send Renewal WhatsApp
+    Send Renewal WhatsApp
   </a>
 {% endblock %}
 
