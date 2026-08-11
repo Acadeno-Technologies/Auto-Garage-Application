@@ -1224,7 +1224,7 @@ def invoice_create(request, job_pk=None):
             return redirect('invoice_detail', pk=job.invoice.pk)
         
         parts_used = job.parts_used.select_related('part').all()
-        parts_total = sum(p.total_price() for p in parts_used)
+        parts_total = sum(p.total_price for p in parts_used)
 
         form = InvoiceForm(request.POST or None)
         if request.method == 'POST' and form.is_valid():
