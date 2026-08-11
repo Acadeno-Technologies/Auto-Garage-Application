@@ -1,6 +1,6 @@
 {% extends 'core/base.html' %}
 {% block title %}{{ title }}{% endblock %}
-{% block page_title %}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
 {% block topbar_actions %}<a href="{% url 'job_list' %}" class="btn btn-secondary">← Back to Job Cards</a>{% endblock %}
 {% block content %}
 
@@ -488,36 +488,6 @@
 </style>
 
 <div class="job-card-wrapper">
-
-  <!-- PAGE HEADER -->
-  <div class="page-header-card">
-    <div class="header-title-group">
-      <div class="header-icon-box">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-          <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-          <path d="M12 11h4"></path>
-          <path d="M12 16h4"></path>
-          <path d="M8 11h.01"></path>
-          <path d="M8 16h.01"></path>
-        </svg>
-      </div>
-      <div>
-        <h1 class="header-title">{{ title }}</h1>
-        <p class="header-subtitle">Step-by-step auto-fetching customer & vehicle records</p>
-      </div>
-    </div>
-    <div class="required-badge">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"></circle>
-        <line x1="12" y1="8" x2="12" y2="12"></line>
-        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-      </svg>
-      All fields marked with * are required
-    </div>
-  </div>
 
   <!-- QUICK SEARCH AREA -->
   <div class="quick-search-container">
