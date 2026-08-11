@@ -863,18 +863,30 @@
               <line x1="12" y1="3" x2="12" y2="15"></line>
             </svg>
           </div>
-          <div class="upload-text-bold">Choose Files <span style="color:#64748b; font-weight:normal;">or drag and
-              drop</span></div>
+          <div class="upload-text-bold">Choose Files <span style="color:#64748b; font-weight:normal;">or drag and drop</span></div>
           <div class="upload-text-muted">JPG, PNG files up to 5MB each. You can select multiple files.</div>
 
-          <!-- Native File Input Hidden inside -->
-          <div style="position:absolute; inset:0; opacity:0; cursor:pointer;">
-            {{ form.photos }}
+          <!-- Real Native Multiple File Input -->
+          <input type="file" name="photos" id="id_photos" multiple accept="image/*" style="position:absolute; inset:0; opacity:0; width:100%; height:100%; cursor:pointer;">
+        </div>
+
+        <!-- Preview for Newly Selected Files -->
+        <div id="photo-preview-container" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.75rem; margin-top: 0.85rem;"></div>
+
+        <!-- Existing Photos Gallery (When editing a job card) -->
+        {% if job and job.photos.all %}
+        <div style="margin-top: 1.25rem;">
+          <label style="font-size: 0.78rem; font-weight: 700; color: #475569; text-transform: uppercase;">Existing Job Photos ({{ job.photos.count }})</label>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.75rem; margin-top: 0.5rem;">
+            {% for photo in job.photos.all %}
+            <div style="position: relative; border-radius: 10px; overflow: hidden; border: 1px solid #cbd5e1; aspect-ratio: 1 / 1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+              <img src="{{ photo.image.url }}" style="width:100%; height:100%; object-fit:cover;" alt="Job Photo">
+              <a href="{% url 'job_delete_photo' job.pk photo.pk %}" onclick="return confirm('Delete this photo?');" style="position:absolute; top:4px; right:4px; background:rgba(220,38,38,0.9); color:#fff; width:24px; height:24px; border-radius:50%; display:grid; place-items:center; text-decoration:none; font-size:13px; font-weight:bold; box-shadow:0 1px 4px rgba(0,0,0,0.2);" title="Delete Photo">×</a>
+            </div>
+            {% endfor %}
           </div>
         </div>
-        <div id="photo-preview-container"
-          style="display:grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.75rem; margin-top: 0.85rem;">
-        </div>
+        {% endif %}
       </div>
     </div>
 
@@ -1189,13 +1201,15 @@
     }
 
     // Drag & Drop Photo Upload Preview logic
-    const photoInput = document.querySelector('input[type="file"][name="photos"]');
+    const photoInput = document.getElementById('id_photos') || document.querySelector('input[type="file"][name="photos"]');
     const previewContainer = document.getElementById('photo-preview-container');
+    const dragDropBox = document.getElementById('drag-drop-trigger');
+
     if (photoInput && previewContainer) {
       photoInput.addEventListener('change', function (e) {
         previewContainer.innerHTML = '';
         const files = Array.from(e.target.files);
-        files.forEach(file => {
+        files.forEach((file) => {
           if (file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = function (evt) {
@@ -1213,12 +1227,53 @@
               img.style.height = '100%';
               img.style.objectFit = 'cover';
 
+              const badge = document.createElement('span');
+              badge.textContent = file.name;
+              badge.style.position = 'absolute';
+              badge.style.bottom = '0';
+              badge.style.left = '0';
+              badge.style.right = '0';
+              badge.style.background = 'rgba(15, 23, 42, 0.75)';
+              badge.style.color = '#fff';
+              badge.style.fontSize = '0.68rem';
+              badge.style.padding = '3px 5px';
+              badge.style.textOverflow = 'ellipsis';
+              badge.style.whiteSpace = 'nowrap';
+              badge.style.overflow = 'hidden';
+
               div.appendChild(img);
+              div.appendChild(badge);
               previewContainer.appendChild(div);
             };
             reader.readAsDataURL(file);
           }
         });
+      });
+    }
+
+    if (dragDropBox && photoInput) {
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dragDropBox.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dragDropBox.style.borderColor = '#6366f1';
+          dragDropBox.style.background = '#eef2ff';
+        }, false);
+      });
+      ['dragleave', 'drop'].forEach(eventName => {
+        dragDropBox.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dragDropBox.style.borderColor = '#cbd5e1';
+          dragDropBox.style.background = '#f8fafc';
+        }, false);
+      });
+      dragDropBox.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        if (dt && dt.files && dt.files.length > 0) {
+          photoInput.files = dt.files;
+          photoInput.dispatchEvent(new Event('change'));
+        }
       });
     }
   });

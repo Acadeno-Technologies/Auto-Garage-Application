@@ -690,7 +690,7 @@ def job_update_status(request, pk):
             wa_redirect_url = reverse('send_whatsapp') + f"?type=job_status&job_id={job.pk}&phone={customer.phone}&name={customer.name}"
             return redirect(wa_redirect_url)
 
-    form = JobStatusForm(request.POST or None, instance=job)
+    form = JobStatusForm(request.POST or None, request.FILES or None, instance=job)
     if request.method == 'POST' and form.is_valid():
         updated_job = form.save(commit=False)
         
@@ -723,6 +723,11 @@ def job_update_status(request, pk):
             v.save()
 
         updated_job.save()
+
+        images = request.FILES.getlist('photos')
+        for img in images:
+            JobCardPhoto.objects.create(job_card=updated_job, image=img)
+
         customer = updated_job.vehicle.customer
         status_disp = updated_job.get_status_display()
         
