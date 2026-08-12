@@ -71,7 +71,6 @@ urlpatterns = [
     path('invoices/create/', views.invoice_create, name='invoice_create_select'),
     path('invoices/create/<int:job_pk>/', views.invoice_create, name='invoice_create'),
     path('invoices/<int:pk>/', views.invoice_detail, name='invoice_detail'),
-    path('invoices/<int:pk>/pdf/', views.invoice_pdf_view, name='invoice_pdf'),
     path('invoices/<int:pk>/edit/', views.invoice_edit, name='invoice_edit'),
 
     # Reports & Incentives (Admin Only)

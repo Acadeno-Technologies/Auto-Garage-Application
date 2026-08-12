@@ -5,7 +5,6 @@
 {% block breadcrumb %}<a href="{% url 'invoice_list' %}" style="color:var(--text-3);">Invoices</a> / Detail{% endblock %}
 {% block topbar_actions %}
 <a href="{% url 'invoice_list' %}" class="btn btn-secondary btn-sm">← Back to Invoices</a>
-<a href="{% url 'invoice_pdf' invoice.pk %}" target="_blank" class="btn btn-secondary btn-sm" style="font-weight:600;">📄 PDF View</a>
 <a href="{% url 'send_whatsapp' %}?type=invoice_share&invoice_id={{ invoice.id }}&phone={{ invoice.job_card.vehicle.customer.phone }}&name={{ invoice.job_card.vehicle.customer.name }}" target="_blank" class="btn btn-sm" style="background:#25D366; color:white; font-weight:600; border-radius:6px; box-shadow:0 2px 6px rgba(37,211,102,0.3); border:none; padding:0.4rem 0.9rem; text-decoration:none;">📱 Share WhatsApp</a>
 <a href="{% url 'invoice_edit' invoice.pk %}" class="btn btn-secondary btn-sm">Edit</a>
 <button onclick="window.print()" class="btn btn-primary btn-sm">Print</button>
