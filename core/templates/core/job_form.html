@@ -141,10 +141,31 @@
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
+    min-width: 90px;
   }
 
   .btn-select-customer:hover {
     background: #b91c1c;
+  }
+
+  .table-responsive tr.selectable-row {
+    cursor: pointer;
+  }
+
+  .table-responsive tr.selectable-row:hover {
+    background: #f8fafc;
+  }
+
+  @media (max-width: 640px) {
+    .btn-select-customer {
+      width: 100%;
+      padding: 0.75rem 0.85rem;
+      font-size: 0.9rem;
+    }
+
+    .table-responsive td {
+      min-width: 120px;
+    }
   }
 
   .input-auto-populated {
@@ -1183,7 +1204,7 @@
               }).replace(/"/g, '&quot;');
 
               html += `
-                <tr style="border-bottom:1px solid #f1f5f9; transition:background 0.15s ease;">
+                <tr class="selectable-row" style="border-bottom:1px solid #f1f5f9; transition:background 0.15s ease;" onclick="onSelectCustomerFromSearch(${customerJson})" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ') onSelectCustomerFromSearch(${customerJson});">
                   <td style="padding:0.75rem 1rem; font-weight:700; color:#0f172a;">👤 ${item.customer_name}</td>
                   <td style="padding:0.75rem 1rem; color:#334155; font-weight:600;">${item.customer_phone}</td>
                   <td style="padding:0.75rem 1rem; color:#475569;">${item.vehicle_number ? '🚘 ' + item.vehicle_number + (item.vehicle_model ? ' (' + item.vehicle_model + ')' : '') : '—'}</td>
