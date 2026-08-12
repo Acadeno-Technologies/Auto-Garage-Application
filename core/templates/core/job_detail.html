@@ -92,9 +92,50 @@
   margin-bottom: 1.5rem !important;
 }
 
+.photo-upload-grid {
+  display: grid;
+  grid-template-columns: 2fr 3fr auto;
+  gap: 1rem;
+  align-items: end;
+}
+
+.photo-upload-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.photo-upload-grid label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+}
+
+.photo-upload-grid button {
+  width: 100%;
+  min-width: 0;
+}
+
 @media (max-width: 900px) {
   .parts-layout-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .photo-upload-grid {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .photo-upload-grid button {
+    padding: 0.75rem 1rem;
+  }
+
+  .card-body {
+    padding: 1rem !important;
   }
 }
 </style>
@@ -287,14 +328,14 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
         Upload Additional Photo
       </h4>
-      <form method="post" action="{% url 'job_add_photo' job.pk %}" enctype="multipart/form-data" style="display:grid; grid-template-columns: 2fr 3fr auto; gap:1rem; align-items:end;">
+      <form method="post" action="{% url 'job_add_photo' job.pk %}" enctype="multipart/form-data" class="photo-upload-grid">
         {% csrf_token %}
         <div>
-          <label style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; margin-bottom:0.3rem; display:block;">SELECT PHOTO</label>
+          <label>SELECT PHOTO</label>
           {{ photo_form.image }}
         </div>
         <div>
-          <label style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; margin-bottom:0.3rem; display:block;">CAPTION / DESCRIPTION (OPTIONAL)</label>
+          <label>CAPTION / DESCRIPTION (OPTIONAL)</label>
           {{ photo_form.caption }}
         </div>
         <div>
