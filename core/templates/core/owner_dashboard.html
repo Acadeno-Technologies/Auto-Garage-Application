@@ -157,4 +157,23 @@
   </div>
 
 </div>
+
+<div class="mobile-bottom-nav">
+  <a href="{% url 'dashboard' %}" class="active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1v-9z"></path></svg>
+    Dashboard
+  </a>
+  <a href="{% url 'job_list' %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18"></path><path d="M6 10h.01"></path><path d="M10 10h.01"></path><path d="M14 10h.01"></path><path d="M18 10h.01"></path><path d="M5 14h14"></path><path d="M5 18h14"></path></svg>
+    Jobs
+  </a>
+  <a href="{% url 'invoice_list' %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"></path><path d="M8 4v16"></path><path d="M16 4v16"></path></svg>
+    Invoices
+  </a>
+  <a href="{% url 'parts_list' %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v4H4z"></path><path d="M4 10h16v4H4z"></path><path d="M4 16h16v4H4z"></path></svg>
+    Inventory
+  </a>
+</div>
 {% endblock %}
