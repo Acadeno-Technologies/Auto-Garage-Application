@@ -1,0 +1,335 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice {{ invoice.invoice_number }} — {{ garage_settings.name|default:"Krishna Auto Care" }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 1.2cm;
+    }
+    :root {
+      --invoice-bg: #ffffff;
+      --invoice-text: #1e293b;
+      --invoice-muted: #64748b;
+      --invoice-accent: #6a9a8a;
+      --invoice-border: #cbd5e1;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--invoice-text);
+      background: #f8fafc;
+      margin: 0;
+      padding: 0;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .no-print-bar {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 0.85rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+    .no-print-bar button {
+      background: #b81424;
+      color: #ffffff;
+      font-weight: 700;
+      border: none;
+      padding: 0.55rem 1.25rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .invoice-container {
+      background: var(--invoice-bg);
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+      border: 1px solid #e2e8f0;
+    }
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 2rem;
+    }
+    .company-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0 0 0.35rem 0;
+    }
+    .company-p {
+      margin: 0;
+      color: var(--invoice-muted);
+      font-size: 0.88rem;
+    }
+    .invoice-badge-title {
+      text-align: right;
+    }
+    .invoice-title {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: var(--invoice-accent);
+      margin: 0;
+      letter-spacing: 0.05em;
+    }
+    .bill-meta-grid {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .bill-to-label {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--invoice-accent);
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+    }
+    .customer-name {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 0.2rem;
+    }
+    .customer-sub {
+      color: var(--invoice-muted);
+      font-size: 0.88rem;
+    }
+    .meta-table {
+      font-size: 0.88rem;
+    }
+    .meta-table td {
+      padding: 0.2rem 0.5rem;
+    }
+    .meta-table td.label {
+      font-weight: 700;
+      color: var(--invoice-accent);
+      text-align: right;
+    }
+    .meta-table td.val {
+      font-family: 'Source Code Pro', monospace;
+      font-weight: 600;
+    }
+    table.items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 2rem;
+    }
+    table.items-table th {
+      background: var(--invoice-accent);
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 0.75rem 1rem;
+      text-align: left;
+    }
+    table.items-table td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 0.9rem;
+    }
+    table.items-table tr:last-child td {
+      border-bottom: 2px solid var(--invoice-accent);
+    }
+    .totals-area {
+      display: flex;
+      justify-content: flex-end;
+    }
+    .totals-box {
+      width: 320px;
+    }
+    .totals-box tr td {
+      padding: 0.4rem 0.5rem;
+      font-size: 0.9rem;
+    }
+    .totals-box tr td:last-child {
+      text-align: right;
+      font-weight: 600;
+      font-family: 'Source Code Pro', monospace;
+    }
+    .grand-total-row td {
+      border-top: 1.5px solid #cbd5e1;
+      border-bottom: 2.5px double var(--invoice-accent);
+      padding-top: 0.75rem !important;
+      color: var(--invoice-accent);
+      font-weight: 800 !important;
+      font-size: 1.1rem !important;
+    }
+    .amc-banner-pdf {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.88rem;
+    }
+
+    @media print {
+      body { background: #ffffff; }
+      .no-print-bar { display: none !important; }
+      .invoice-container { box-shadow: none; border: none; margin: 0; padding: 0; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="no-print-bar">
+  <div>
+    <strong>Tax Invoice {{ invoice.invoice_number }}</strong> — Krishna Auto Care
+  </div>
+  <div>
+    <button onclick="window.print()">🖨️ Print / Download PDF</button>
+  </div>
+</div>
+
+<div class="invoice-container">
+  {% if invoice.amc_discount > 0 or active_amc %}
+  <div class="amc-banner-pdf">
+    <div>
+      <strong>🛡️ AMC Policy Applied:</strong> {{ active_amc.plan.name|default:"Annual Maintenance Contract" }} {% if active_amc.contract_number %}({{ active_amc.contract_number }}){% endif %}
+    </div>
+    <div>
+      <strong>Discount: -₹{{ invoice.amc_discount|floatformat:2 }}</strong>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="header-row">
+    <div>
+      <h1 class="company-title">{{ garage_settings.name|default:"Krishna Auto Care" }}</h1>
+      <p class="company-p">{{ garage_settings.address|default:"Old Petrol Pump Road, Meppayur - Perambra Rd" }}</p>
+      <p class="company-p">{{ garage_settings.city|default:"Perambra" }}{% if garage_settings.state %}, {{ garage_settings.state }}{% endif %}{% if garage_settings.pincode %} - {{ garage_settings.pincode }}{% endif %}</p>
+      <p class="company-p">Phone: {{ garage_settings.phone|default:"+91 98765 43210" }}</p>
+      {% if garage_settings.gst_number %}<p class="company-p">GSTIN: {{ garage_settings.gst_number }}</p>{% endif %}
+    </div>
+    <div class="invoice-badge-title">
+      <h2 class="invoice-title">INVOICE</h2>
+    </div>
+  </div>
+
+  <div class="bill-meta-grid">
+    <div>
+      <div class="bill-to-label">Bill To</div>
+      <div class="customer-name">{{ invoice.job_card.vehicle.customer.name }}</div>
+      <div class="customer-sub">{{ invoice.job_card.vehicle.customer.phone }}</div>
+      <div class="customer-sub">{{ invoice.job_card.vehicle.customer.address|default:"" }}</div>
+      <div class="customer-sub" style="margin-top:0.4rem; font-weight:700; color:#0f172a;">
+        🚘 Vehicle: {{ invoice.job_card.vehicle.make }} {{ invoice.job_card.vehicle.model }} ({{ invoice.job_card.vehicle.license_plate }})
+      </div>
+    </div>
+    <div>
+      <table class="meta-table">
+        <tr><td class="label">Invoice #</td><td class="val">{{ invoice.invoice_number }}</td></tr>
+        <tr><td class="label">Job #</td><td class="val">{{ invoice.job_card.job_number }}</td></tr>
+        <tr><td class="label">Date</td><td class="val">{{ invoice.issue_date|date:"d-m-Y" }}</td></tr>
+        <tr><td class="label">Due Date</td><td class="val">{{ invoice.due_date|date:"d-m-Y"|default:"Immediate" }}</td></tr>
+        <tr><td class="label">Status</td><td class="val" style="color:#b81424; text-transform:uppercase;">{{ invoice.get_status_display }}</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <table class="items-table">
+    <thead>
+      <tr>
+        <th style="width:70px;">QTY</th>
+        <th>Description</th>
+        <th style="width:120px; text-align:right;">Unit Price</th>
+        <th style="width:120px; text-align:right;">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1.00</td>
+        <td>Labour Charges — Job {{ invoice.job_card.job_number }}</td>
+        <td style="text-align:right;" class="text-mono">₹{{ invoice.job_card.labour_cost|floatformat:2 }}</td>
+        <td style="text-align:right;" class="text-mono">₹{{ invoice.job_card.labour_cost|floatformat:2 }}</td>
+      </tr>
+      {% for usage in invoice.job_card.parts_used.all %}
+      <tr>
+        <td>{{ usage.quantity }}.00</td>
+        <td>{{ usage.part.name }} ({{ usage.part.part_number }})</td>
+        <td style="text-align:right;" class="text-mono">₹{{ usage.unit_price|floatformat:2 }}</td>
+        <td style="text-align:right;" class="text-mono">₹{{ usage.total_price|floatformat:2 }}</td>
+      </tr>
+      {% endfor %}
+      {% if invoice.is_pickup_service and invoice.pickup_charge > 0 %}
+      <tr>
+        <td>1.00</td>
+        <td>Vehicle Pickup & Drop Charge</td>
+        <td style="text-align:right;" class="text-mono">₹{{ invoice.pickup_charge|floatformat:2 }}</td>
+        <td style="text-align:right;" class="text-mono">₹{{ invoice.pickup_charge|floatformat:2 }}</td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  <div class="totals-area">
+    <table class="totals-box">
+      <tr>
+        <td>Subtotal (Labour & Parts)</td>
+        <td>₹{{ invoice.subtotal|floatformat:2 }}</td>
+      </tr>
+      {% if invoice.amc_discount > 0 %}
+      <tr style="color:#059669; font-weight:700;">
+        <td>🛡️ AMC Policy Discount</td>
+        <td>-₹{{ invoice.amc_discount|floatformat:2 }}</td>
+      </tr>
+      {% endif %}
+      {% if invoice.is_pickup_service and invoice.pickup_charge > 0 %}
+      <tr>
+        <td>Pickup & Drop Charge</td>
+        <td>₹{{ invoice.pickup_charge|floatformat:2 }}</td>
+      </tr>
+      {% endif %}
+      <tr>
+        <td>Sales Tax (GST 5%)</td>
+        <td>₹{{ invoice.tax_amount|floatformat:2 }}</td>
+      </tr>
+      <tr class="grand-total-row">
+        <td>Grand Total (INR)</td>
+        <td>₹{{ invoice.grand_total|floatformat:2 }}</td>
+      </tr>
+      <tr>
+        <td>Amount Paid</td>
+        <td style="color:#16a34a; font-weight:700;">₹{{ invoice.amount_paid|floatformat:2 }}</td>
+      </tr>
+      <tr>
+        <td>Balance Due</td>
+        <td style="color:#b81424; font-weight:700;">₹{{ invoice.balance_due|floatformat:2 }}</td>
+      </tr>
+    </table>
+  </div>
+
+  <div style="margin-top:4rem; border-top:1px solid #e2e8f0; padding-top:1rem; font-size:0.82rem; color:var(--invoice-muted);">
+    <strong>Terms & Conditions:</strong><br>
+    Thank you for choosing {{ garage_settings.name|default:"Krishna Auto Care" }}. All work performed carries workshop service warranty.
+  </div>
+</div>
+
+<script>
+  if (window.location.search.indexOf('print=1') !== -1) {
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => window.print(), 500);
+    });
+  }
+</script>
+</body>
+</html>

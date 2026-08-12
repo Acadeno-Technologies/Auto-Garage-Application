@@ -1303,6 +1303,23 @@ def invoice_detail(request, pk):
 
 
 @login_required
+def invoice_pdf_view(request, pk):
+    invoice = get_object_or_404(Invoice.objects.select_related('job_card__vehicle__customer', 'amc_policy__plan'), pk=pk)
+    active_amc = invoice.amc_policy or CustomerAMC.objects.filter(
+        vehicle=invoice.job_card.vehicle,
+        status='active',
+        start_date__lte=timezone.now().date(),
+        end_date__gte=timezone.now().date()
+    ).select_related('plan').first()
+    garage_settings = GarageSettings.get_settings()
+    return render(request, 'core/invoice_pdf.html', {
+        'invoice': invoice,
+        'active_amc': active_amc,
+        'garage_settings': garage_settings
+    })
+
+
+@login_required
 @role_required('owner', 'advisor')
 def invoice_edit(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
@@ -1654,12 +1671,16 @@ def send_whatsapp_view(request):
         if invoice.is_pickup_service and invoice.pickup_charge:
             lines.append(f"🚚 *Pickup & Drop Charge:* ₹{invoice.pickup_charge:.2f}")
         
+        pdf_url = request.build_absolute_uri(reverse('invoice_pdf', args=[invoice.pk]))
         lines.extend([
             f"📊 *Tax (GST 5%):* ₹{invoice.tax_amount:.2f}",
             f"💰 *Grand Total:* ₹{invoice.grand_total:.2f}",
             f"💳 *Status:* *{invoice.get_status_display().upper()}*",
             f"💵 *Amount Paid:* ₹{invoice.amount_paid:.2f}",
             f"🚨 *Balance Due:* ₹{invoice.balance_due:.2f}",
+            f"",
+            f"📄 *Download / View Invoice PDF:*",
+            f"{pdf_url}",
             f"",
             f"Thank you for choosing Krishna Auto Care! 🚘✨"
         ])
