@@ -92,6 +92,100 @@
   margin-bottom: 1.5rem !important;
 }
 
+.parts-layout-grid .table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.parts-layout-grid table {
+  width: 100%;
+  min-width: 100%;
+  border-collapse: collapse;
+}
+
+.parts-layout-grid th,
+.parts-layout-grid td {
+  white-space: normal;
+  word-break: break-word;
+  padding: 0.75rem 0.85rem;
+}
+
+.parts-layout-grid thead th {
+  font-size: 0.75rem;
+}
+
+.parts-layout-grid td.text-right {
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .parts-layout-grid .table-wrap {
+    overflow-x: hidden;
+  }
+
+  .parts-layout-grid .table-wrap table,
+  .parts-layout-grid .table-wrap thead,
+  .parts-layout-grid .table-wrap tbody,
+  .parts-layout-grid .table-wrap tr,
+  .parts-layout-grid .table-wrap th,
+  .parts-layout-grid .table-wrap td {
+    display: block;
+    width: 100%;
+  }
+
+  .parts-layout-grid .table-wrap thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  .parts-layout-grid .table-wrap tr {
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    margin-bottom: 0.85rem;
+    padding: 0.75rem 0;
+    background: #ffffff;
+  }
+
+  .parts-layout-grid .table-wrap td {
+    border: none;
+    border-bottom: 1px solid #f1f5f9;
+    position: relative;
+    padding: 0.75rem 1rem 0.75rem 40%;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .parts-layout-grid .table-wrap td:last-child {
+    border-bottom: none;
+    padding-bottom: 0.75rem;
+  }
+
+  .parts-layout-grid .table-wrap td:before {
+    position: absolute;
+    top: 0.75rem;
+    left: 1rem;
+    width: calc(40% - 1rem);
+    padding-right: 0.75rem;
+    white-space: normal;
+    font-weight: 700;
+    font-size: 0.78rem;
+    color: #475569;
+  }
+
+  .parts-layout-grid .table-wrap td[data-label="Part"]:before { content: "Part"; }
+  .parts-layout-grid .table-wrap td[data-label="Part #"]:before { content: "Part #"; }
+  .parts-layout-grid .table-wrap td[data-label="Qty"]:before { content: "Qty"; }
+  .parts-layout-grid .table-wrap td[data-label="Unit Price"]:before { content: "Unit Price"; }
+  .parts-layout-grid .table-wrap td[data-label="Total"]:before { content: "Total"; }
+  .parts-layout-grid .table-wrap td[data-label="Actions"]:before { content: "Actions"; }
+
+  .parts-layout-grid .table-wrap td.text-right {
+    text-align: left;
+    padding-left: 40%;
+  }
+}
+
 .photo-upload-grid {
   display: grid;
   grid-template-columns: 2fr 3fr auto;
@@ -136,6 +230,15 @@
 
   .card-body {
     padding: 1rem !important;
+  }
+
+  .parts-layout-grid th,
+  .parts-layout-grid td {
+    padding: 0.65rem 0.6rem;
+  }
+
+  .parts-layout-grid td.text-right {
+    text-align: left;
   }
 }
 </style>
@@ -378,18 +481,18 @@
         <tbody>
           {% for usage in parts_used %}
           <tr>
-            <td><strong>{{ usage.part.name }}</strong></td>
-            <td class="text-mono" style="font-size:0.78rem;">{{ usage.part.part_number }}</td>
-            <td>
+            <td data-label="Part"><strong>{{ usage.part.name }}</strong></td>
+            <td data-label="Part #" class="text-mono" style="font-size:0.78rem;">{{ usage.part.part_number }}</td>
+            <td data-label="Qty">
               <div style="display:inline-flex; align-items:center; gap:0.4rem; background:#f8fafc; padding:0.2rem 0.5rem; border-radius:6px; border:1px solid #e1e5eb;">
                 <a href="{% url 'job_update_part_qty' job.pk usage.pk 'decrease' %}" class="btn btn-secondary btn-sm" style="padding:0.1rem 0.45rem; font-size:0.78rem; font-weight:700; line-height:1;" title="Decrease Quantity">-</a>
                 <span class="text-mono" style="font-weight:700; min-width:18px; text-align:center;">{{ usage.quantity }}</span>
                 <a href="{% url 'job_update_part_qty' job.pk usage.pk 'increase' %}" class="btn btn-secondary btn-sm" style="padding:0.1rem 0.45rem; font-size:0.78rem; font-weight:700; line-height:1;" title="Increase Quantity">+</a>
               </div>
             </td>
-            <td class="text-mono">₹{{ usage.unit_price }}</td>
-            <td class="text-mono" style="color:#16a34a; font-weight:700;">₹{{ usage.total_price }}</td>
-            <td class="text-right">
+            <td data-label="Unit Price" class="text-mono">₹{{ usage.unit_price }}</td>
+            <td data-label="Total" class="text-mono" style="color:#16a34a; font-weight:700;">₹{{ usage.total_price }}</td>
+            <td data-label="Actions" class="text-right">
               <form method="post" action="{% url 'job_update_part_qty' job.pk usage.pk 'delete' %}" onsubmit="return confirm('Remove {{ usage.part.name }} from this job?');" style="display:inline; margin:0;">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-outline-danger btn-sm" style="border:1px solid #fca5a5; color:#ef4444; background:transparent; padding:0.25rem 0.5rem; font-size:0.78rem; border-radius:6px; font-weight:600; cursor:pointer;" title="Delete Part">
