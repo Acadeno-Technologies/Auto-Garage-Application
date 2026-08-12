@@ -156,33 +156,21 @@
 }
 </style>
 
-<!-- APP HEADER (MOCKUP STYLED) -->
-<div class="app-brand-header mobile-only">
-  <div class="brand-left-group">
-    <button id="mobile-menu-toggle" class="hamburger-btn" aria-label="Toggle Navigation Menu">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-    </button>
-    <a href="{% url 'dashboard' %}" class="brand-logo-title-group">
-      <div class="brand-circle-logo">
-        {% if garage_settings and garage_settings.logo %}
-          <img src="{{ garage_settings.logo.url }}" alt="Logo" style="width:100%;height:100%;object-fit:cover;">
-        {% else %}
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b81424" stroke-width="2.2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
-        {% endif %}
-      </div>
-      <div class="brand-title-box">
-        <span class="brand-main-title">{{ garage_settings.name|default:"Krishna Auto" }}</span>
-        <span class="brand-sub-title">{{ garage_settings.tagline|default:"PRECISION WORKSHOP" }}</span>
-      </div>
-    </a>
+<div class="owner-dashboard-topbar mobile-only">
+  <div class="owner-dashboard-brand">
+    <div class="owner-dashboard-logo">K</div>
+    <div class="owner-dashboard-brand-text">
+      <span class="owner-dashboard-brand-title">Krishna Auto</span>
+      <span class="owner-dashboard-brand-subtitle">Precision Workshop</span>
+    </div>
   </div>
-  <a href="{% url 'profile' %}" class="brand-profile-icon" title="My Profile">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+  <a href="{% url 'profile' %}" class="owner-dashboard-profile" aria-label="Profile">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c2.3 0 4-1.7 4-4s-1.7-4-4-4-4 1.7-4 4 1.7 4 4 4z"></path><path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path></svg>
   </a>
 </div>
 
-<!-- STATS OVERVIEW CARDS -->
-<div class="stats-grid mb-3">
+<!-- STAT CARDS -->
+<div class="stats-grid">
   <div class="stat-card accent">
     <div class="stat-value">{{ active_jobs }}</div>
     <div class="stat-label">Active Jobs</div>
@@ -217,113 +205,139 @@
   </div>
 </div>
 
-<!-- DASHBOARD SECTIONS (MOCKUP MATCHED CARDS) -->
-<div style="max-width: 900px; margin: 0 auto;">
+<!-- MAIN CONTENT GRID -->
+<div class="grid-2 mb-3">
 
-  <!-- CARD 1: LOW STOCK ALERT -->
-  <div class="dash-card">
-    <div class="dash-card-header">
-      <span class="dash-card-title">Low Stock Alert</span>
-      <a href="{% url 'parts_list' %}" class="dash-btn-outline">ALL PARTS</a>
+  <!-- Recent Jobs -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Recent Job Cards</span>
+      <a href="{% url 'job_list' %}" class="btn btn-secondary btn-sm">View All</a>
     </div>
-    <div class="dash-card-body">
-      {% for part in low_stock_list %}
-      <div class="dash-item-row">
-        <div>
-          <div class="dash-item-title">{{ part.name }}</div>
-          <div class="dash-item-sub">Part #{{ part.part_number }}</div>
-        </div>
-        <div class="dash-qty-col">
-          <div class="dash-qty-labels"><span>QTY</span><span>MIN</span></div>
-          <div class="dash-qty-values"><span class="val-red">{{ part.stock_quantity }}</span><span class="val-muted">{{ part.minimum_stock }}</span></div>
-        </div>
-      </div>
-      {% empty %}
-      <div class="dash-item-row">
-        <div>
-          <div class="dash-item-title">All Spare Parts OK</div>
-          <div class="dash-item-sub">No parts are currently below minimum stock threshold</div>
-        </div>
-      </div>
-      {% endfor %}
-      
-      <a href="{% url 'stock_transaction' %}" class="dash-btn-crimson">RECORD STOCK IN</a>
+    <div class="table-wrap owner-dashboard-table-stack">
+      <table>
+        <thead>
+          <tr><th>Job #</th><th>Vehicle</th><th>Mechanic</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {% for job in recent_jobs %}
+          <tr>
+            <td data-label="Job #"><a href="{% url 'job_detail' job.pk %}" class="text-accent text-mono">{{ job.job_number }}</a></td>
+            <td data-label="Vehicle">{{ job.vehicle.make }} {{ job.vehicle.model }}<br>
+                <span class="text-muted">{{ job.vehicle.customer.name }}</span></td>
+            <td data-label="Mechanic">{% if job.mechanic %}{{ job.mechanic.get_full_name|default:job.mechanic.username }}{% else %}Unassigned{% endif %}</td>
+            <td data-label="Status"><span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="text-center text-muted">No jobs yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
 
-  <!-- CARD 2: MECHANIC PERFORMANCE -->
-  <div class="dash-card">
-    <div class="dash-card-header">
-      <span class="dash-card-title">Mechanic Performance</span>
+  <!-- Low Stock -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Low Stock Alert</span>
+      <a href="{% url 'parts_list' %}" class="btn btn-secondary btn-sm">All Parts</a>
     </div>
-    <div class="dash-card-body">
+    <div class="table-wrap owner-dashboard-table-stack">
+      <table>
+        <thead>
+          <tr><th>Part</th><th>Part #</th><th>Qty</th><th>Min</th></tr>
+        </thead>
+        <tbody>
+          {% for part in low_stock_list %}
+          <tr class="low-stock">
+            <td data-label="Part">{{ part.name }}</td>
+            <td data-label="Part #" class="text-mono" style="font-size:0.78rem;">{{ part.part_number }}</td>
+            <td data-label="Qty" class="text-red font-bold">{{ part.stock_quantity }}</td>
+            <td data-label="Min" class="text-muted">{{ part.minimum_stock }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="text-center text-muted">All stock levels OK</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if low_stock_list %}
+    <div class="card-body" style="padding-top:0.5rem;">
+      <a href="{% url 'stock_transaction' %}" class="btn btn-primary btn-sm">Record Stock In</a>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- BOTTOM ROW -->
+<div class="grid-2">
+
+  <!-- Mechanic Performance -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Mechanic Performance</span>
+    </div>
+    <div class="card-body">
       {% for stat in mechanic_stats %}
-      <div class="dash-item-row">
+      <div class="flex-between mb-2">
         <div>
-          <div class="dash-item-title">{% if stat.mechanic %}{{ stat.mechanic.get_full_name|default:stat.mechanic.username }}{% else %}Unassigned{% endif %}</div>
-          <div class="dash-item-sub">{{ stat.completed }} jobs completed</div>
+          <div style="font-weight:500;font-size:0.9rem;">{% if stat.mechanic %}{{ stat.mechanic.get_full_name|default:stat.mechanic.username }}{% else %}Unassigned{% endif %}</div>
+          <div class="text-muted">{{ stat.completed }} jobs completed</div>
         </div>
-        <div class="dash-stat-num">{{ stat.completed }}</div>
+        <div class="text-accent font-bold text-mono">{{ stat.completed }}</div>
       </div>
       {% empty %}
-      <div class="dash-item-row">
-        <div>
-          <div class="dash-item-title">No Mechanics Assigned</div>
-          <div class="dash-item-sub">Assign mechanics to job cards to track completed jobs</div>
-        </div>
-      </div>
+      <p class="text-muted">No mechanics registered yet.</p>
       {% endfor %}
     </div>
   </div>
 
-  <!-- CARD 3: RECENT INVOICES -->
-  <div class="dash-card">
-    <div class="dash-card-header">
-      <span class="dash-card-title">Recent Invoices</span>
-      <a href="{% url 'invoice_list' %}" class="dash-btn-outline">VIEW ALL</a>
+  <!-- Recent Invoices -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Recent Invoices</span>
+      <a href="{% url 'invoice_list' %}" class="btn btn-secondary btn-sm">View All</a>
     </div>
-    <div class="dash-card-body">
-      {% for inv in recent_invoices %}
-      <div class="dash-item-row">
-        <div>
-          <a href="{% url 'invoice_detail' inv.pk %}" class="dash-inv-link">{{ inv.invoice_number }}</a>
-          <div class="dash-cust-name">{{ inv.job_card.vehicle.customer.name }}</div>
-        </div>
-        <div style="text-align:right;">
-          <span class="dash-status-pill">{{ inv.get_status_display|upper }}</span>
-          <div class="dash-amount">₹{{ inv.total_amount|floatformat:2 }}</div>
-        </div>
-      </div>
-      {% empty %}
-      <div class="dash-item-row">
-        <div>
-          <div class="dash-item-title">No Invoices Yet</div>
-          <div class="dash-item-sub">Create your first invoice from a completed job card</div>
-        </div>
-      </div>
-      {% endfor %}
+    <div class="table-wrap owner-dashboard-table-stack">
+      <table>
+        <thead>
+          <tr><th>Invoice</th><th>Customer</th><th>Amount</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {% for inv in recent_invoices %}
+          <tr>
+            <td data-label="Invoice"><a href="{% url 'invoice_detail' inv.pk %}" class="text-accent text-mono">{{ inv.invoice_number }}</a></td>
+            <td data-label="Customer">{{ inv.job_card.vehicle.customer.name }}</td>
+            <td data-label="Amount" class="text-mono">₹{{ inv.total_amount|floatformat:2 }}</td>
+            <td data-label="Status"><span class="badge badge-{{ inv.status }}">{{ inv.get_status_display }}</span></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="text-center text-muted">No invoices yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
 
 </div>
 
-<!-- BOTTOM APP NAVBAR (MOCKUP MATCHED) -->
-<div class="bottom-app-navbar mobile-only">
-  <a href="{% url 'dashboard' %}" class="bottom-nav-tab {% if request.resolver_match.url_name == 'owner_dashboard' or request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-    <span>DASHBOARD</span>
+<div class="mobile-bottom-nav">
+  <a href="{% url 'dashboard' %}" class="active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1v-9z"></path></svg>
+    Dashboard
   </a>
-  <a href="{% url 'job_list' %}" class="bottom-nav-tab {% if 'job' in request.resolver_match.url_name %}active{% endif %}">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><path d="M9 17h6"></path><circle cx="17" cy="17" r="2"></circle></svg>
-    <span>JOBS</span>
+  <a href="{% url 'job_list' %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18"></path><path d="M6 10h.01"></path><path d="M10 10h.01"></path><path d="M14 10h.01"></path><path d="M18 10h.01"></path><path d="M5 14h14"></path><path d="M5 18h14"></path></svg>
+    Jobs
   </a>
-  <a href="{% url 'invoice_list' %}" class="bottom-nav-tab {% if 'invoice' in request.resolver_match.url_name %}active{% endif %}">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><line x1="6" y1="8" x2="6" y2="8.01"></line><line x1="10" y1="8" x2="18" y2="8"></line><line x1="6" y1="12" x2="6" y2="12.01"></line><line x1="10" y1="12" x2="18" y2="12"></line><line x1="6" y1="16" x2="6" y2="16.01"></line><line x1="10" y1="16" x2="14" y2="16"></line></svg>
-    <span>INVOICES</span>
+  <a href="{% url 'invoice_list' %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"></path><path d="M8 4v16"></path><path d="M16 4v16"></path></svg>
+    Invoices
   </a>
-  <a href="{% url 'parts_list' %}" class="bottom-nav-tab {% if 'part' in request.resolver_match.url_name or 'category' in request.resolver_match.url_name %}active{% endif %}">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-    <span>INVENTORY</span>
+  <a href="{% url 'parts_list' %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v4H4z"></path><path d="M4 10h16v4H4z"></path><path d="M4 16h16v4H4z"></path></svg>
+    Inventory
   </a>
 </div>
 {% endblock %}
