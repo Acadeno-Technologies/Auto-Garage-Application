@@ -940,7 +940,12 @@
 
       <!-- PHOTO UPLOAD DRAG & DROP BOX -->
       <div class="custom-form-group">
-        <label>Photos</label>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+          <label style="margin:0;">Vehicle Photos</label>
+          <button type="button" onclick="openCameraModal('id_photos')" class="btn btn-sm" style="background:#0284c7; color:#fff; font-weight:700; border:none; padding:0.35rem 0.85rem; border-radius:8px; display:inline-flex; align-items:center; gap:0.4rem; cursor:pointer; font-size:0.8rem; box-shadow:0 2px 6px rgba(2,132,199,0.3);">
+            📷 Live Camera Snap
+          </button>
+        </div>
         <div class="drag-drop-box" id="drag-drop-trigger">
           <div class="upload-icon-circle">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -951,10 +956,10 @@
             </svg>
           </div>
           <div class="upload-text-bold">Choose Files <span style="color:#64748b; font-weight:normal;">or drag and drop</span></div>
-          <div class="upload-text-muted">JPG, PNG files up to 5MB each. You can select multiple files.</div>
+          <div class="upload-text-muted">JPG, PNG files up to 5MB each. You can select multiple files or snap live photos.</div>
 
-          <!-- Real Native Multiple File Input -->
-          <input type="file" name="photos" id="id_photos" multiple accept="image/*" style="position:absolute; inset:0; opacity:0; width:100%; height:100%; cursor:pointer;">
+          <!-- Real Native Multiple File Input with Camera Capture fallback -->
+          <input type="file" name="photos" id="id_photos" multiple accept="image/*" capture="environment" style="position:absolute; inset:0; opacity:0; width:100%; height:100%; cursor:pointer;">
         </div>
 
         <!-- Preview for Newly Selected Files -->
@@ -1117,6 +1122,8 @@
         if (phoneInput) { phoneInput.value = ''; phoneInput.classList.remove('input-auto-populated'); phoneInput.focus(); }
         if (emailInput) { emailInput.value = ''; emailInput.classList.remove('input-auto-populated'); }
         if (addressInput) { addressInput.value = ''; addressInput.classList.remove('input-auto-populated'); }
+        if (modelInput) { modelInput.value = ''; modelInput.classList.remove('input-auto-populated'); }
+        if (colorInput) { colorInput.value = ''; colorInput.classList.remove('input-auto-populated'); }
 
         if (customerBadge) customerBadge.style.display = 'none';
         if (pillsSection) pillsSection.style.display = 'none';
@@ -1248,8 +1255,6 @@
         numInput.value = customerData.vehicle_number;
         triggerVehicleSearch(customerData.vehicle_number);
       }
-      if (modelInput && customerData.vehicle_model) modelInput.value = customerData.vehicle_model;
-      if (colorInput && customerData.vehicle_color) colorInput.value = customerData.vehicle_color;
     };
 
     if (inCardSearchInput) {
@@ -1303,8 +1308,8 @@
         .then(data => {
           if (data.vehicle_found && data.vehicle) {
             const v = data.vehicle;
-            if (!modelInput.value) modelInput.value = v.vehicle_model;
-            if (!colorInput.value && v.vehicle_color) colorInput.value = v.vehicle_color;
+            if (modelInput) modelInput.value = v.vehicle_model || '';
+            if (colorInput) colorInput.value = v.vehicle_color || '';
 
             // Check relationship with current phone
             const currentPhone = phoneInput ? phoneInput.value.trim() : '';
@@ -1315,7 +1320,7 @@
             } else {
               vehicleBadge.className = 'badge-status-pill badge-success-green';
               vehicleBadge.style.display = 'inline-flex';
-              vehicleBadge.innerHTML = `✓ Vehicle Found: <strong>${v.vehicle_model.toUpperCase()}</strong>`;
+              vehicleBadge.innerHTML = `✓ Existing Vehicle Found: <strong>${(v.vehicle_model || '').toUpperCase()}</strong>`;
 
               // Auto fill customer details if empty
               if (phoneInput && !phoneInput.value && v.customer_phone) {
@@ -1331,7 +1336,7 @@
           } else {
             vehicleBadge.className = 'badge-status-pill badge-info-blue';
             vehicleBadge.style.display = 'inline-flex';
-            vehicleBadge.innerHTML = `ℹ️ Vehicle not found (New Vehicle)`;
+            vehicleBadge.innerHTML = `ℹ️ New Vehicle (Enter vehicle details manually)`;
           }
         })
         .catch(() => { });

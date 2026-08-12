@@ -145,10 +145,18 @@
           <span>Stock Tx</span>
         </a>
       </div>
+      <div class="nav-section">
+        <div class="nav-section-label">ASSESSMENT</div>
+        <a href="{% url 'python_assessment' %}" class="nav-link {% if request.resolver_match.url_name == 'python_assessment' %}active{% endif %}" style="color:#38bdf8;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+          <span>Python Assessment</span>
+        </a>
+      </div>
       {% endif %}
 
       {% endwith %}
     </nav>
+
 
     <div class="sidebar-footer">
       <a href="{% url 'profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
@@ -218,6 +226,90 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+</script>
+
+<!-- Global Live Camera Capture Modal -->
+<div id="cameraModal" style="display:none; position:fixed; z-index:99999; inset:0; background:rgba(15,23,42,0.85); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;">
+  <div style="background:#ffffff; border-radius:16px; max-width:550px; width:100%; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); border:1px solid #cbd5e1;">
+    <div style="background:#0f172a; color:#ffffff; padding:1rem 1.25rem; display:flex; align-items:center; justify-content:space-between;">
+      <h3 style="margin:0; font-size:1.05rem; font-weight:700; display:flex; align-items:center; gap:0.5rem; color:#fff;">📷 Live Camera Capture</h3>
+      <button type="button" onclick="closeCameraModal()" style="background:none; border:none; color:#94a3b8; font-size:1.6rem; cursor:pointer; line-height:1;">&times;</button>
+    </div>
+    <div style="position:relative; background:#000000; display:flex; justify-content:center; align-items:center; min-height:320px;">
+      <video id="cameraVideoFeed" autoplay playsinline style="width:100%; max-height:400px; object-fit:contain;"></video>
+      <canvas id="cameraCanvas" style="display:none;"></canvas>
+    </div>
+    <div style="padding:1.25rem; background:#f8fafc; display:flex; justify-content:space-between; align-items:center; border-top:1px solid #e2e8f0;">
+      <button type="button" onclick="closeCameraModal()" class="btn btn-secondary" style="font-weight:600; padding:0.5rem 1rem;">Cancel</button>
+      <button type="button" onclick="captureCameraPhoto()" class="btn btn-primary" style="background:#2563eb; color:#fff; font-weight:700; padding:0.6rem 1.3rem; border-radius:8px; display:inline-flex; align-items:center; gap:0.5rem; border:none; box-shadow:0 4px 12px rgba(37,99,235,0.3); cursor:pointer;">
+        📸 Snap & Use Photo
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+let mediaStream = null;
+let currentPhotoTargetInputId = null;
+
+window.openCameraModal = function(targetInputId) {
+  currentPhotoTargetInputId = targetInputId || 'id_photos';
+  const modal = document.getElementById('cameraModal');
+  const video = document.getElementById('cameraVideoFeed');
+  if (!modal || !video) return;
+
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } })
+      .then(stream => {
+        mediaStream = stream;
+        video.srcObject = stream;
+        modal.style.display = 'flex';
+      })
+      .catch(err => {
+        alert('Unable to access camera: ' + err.message + '\n\nPlease check browser permissions or select a file directly.');
+      });
+  } else {
+    alert('Camera capture is not supported by your current browser.');
+  }
+};
+
+window.closeCameraModal = function() {
+  const modal = document.getElementById('cameraModal');
+  if (modal) modal.style.display = 'none';
+  if (mediaStream) {
+    mediaStream.getTracks().forEach(track => track.stop());
+    mediaStream = null;
+  }
+};
+
+window.captureCameraPhoto = function() {
+  const video = document.getElementById('cameraVideoFeed');
+  const canvas = document.getElementById('cameraCanvas');
+  const inputEl = document.getElementById(currentPhotoTargetInputId) || document.querySelector(`input[name="${currentPhotoTargetInputId}"]`) || document.querySelector('input[type="file"]');
+  if (!video || !canvas || !inputEl) return;
+
+  canvas.width = video.videoWidth || 640;
+  canvas.height = video.videoHeight || 480;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  canvas.toBlob(blob => {
+    if (!blob) return;
+    const file = new File([blob], `camera_photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
+    const dt = new DataTransfer();
+    
+    if (inputEl.multiple && inputEl.files) {
+      for (let f of inputEl.files) {
+        dt.items.add(f);
+      }
+    }
+    dt.items.add(file);
+    inputEl.files = dt.files;
+    inputEl.dispatchEvent(new Event('change'));
+
+    closeCameraModal();
+  }, 'image/jpeg', 0.92);
+};
 </script>
 {% block extra_js %}{% endblock %}
 </body>

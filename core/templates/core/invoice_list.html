@@ -41,6 +41,7 @@
         <td class="text-mono {% if inv.balance_due > 0 %}text-red{% else %}text-green{% endif %}" style="font-weight:700;">₹{{ inv.balance_due|floatformat:2 }}</td>
         <td><span class="badge badge-{{ inv.status }}">{{ inv.get_status_display }}</span></td>
         <td style="white-space:nowrap; text-align:right;">
+          <a href="{% url 'send_whatsapp' %}?type=invoice_share&invoice_id={{ inv.id }}&phone={{ inv.job_card.vehicle.customer.phone }}&name={{ inv.job_card.vehicle.customer.name }}" target="_blank" class="btn btn-sm" style="background:#25D366; color:white; font-weight:600; padding:0.35rem 0.65rem; border-radius:6px; text-decoration:none; margin-right:4px;" title="Share Invoice via WhatsApp">📱 Share</a>
           <a href="{% url 'invoice_detail' inv.pk %}" class="btn btn-secondary btn-sm">View</a>
           <a href="{% url 'invoice_edit' inv.pk %}" class="btn btn-secondary btn-sm">Edit</a>
         </td>

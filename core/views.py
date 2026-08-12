@@ -1230,10 +1230,31 @@ def invoice_create(request, job_pk=None):
         parts_used = job.parts_used.select_related('part').all()
         parts_total = sum(p.total_price for p in parts_used)
 
-        form = InvoiceForm(request.POST or None)
+        active_amc = CustomerAMC.objects.filter(
+            vehicle=job.vehicle,
+            status='active',
+            start_date__lte=timezone.now().date(),
+            end_date__gte=timezone.now().date()
+        ).select_related('plan').first()
+
+        calculated_amc_discount = Decimal('0.00')
+        if active_amc:
+            discount_pct = getattr(active_amc.plan, 'discount_percentage', Decimal('100.00')) or Decimal('100.00')
+            calculated_amc_discount = (job.labour_cost * discount_pct / Decimal('100.00')).quantize(Decimal('0.01'))
+
+        if request.method != 'POST':
+            initial_data = {}
+            if active_amc:
+                initial_data['amc_discount'] = calculated_amc_discount
+            form = InvoiceForm(initial=initial_data)
+        else:
+            form = InvoiceForm(request.POST)
+
         if request.method == 'POST' and form.is_valid():
             inv = form.save(commit=False)
             inv.job_card = job
+            if active_amc and not inv.amc_policy:
+                inv.amc_policy = active_amc
             inv.save()
             messages.success(request, f"Invoice {inv.invoice_number} created successfully for Job Card {job.job_number}.")
             return redirect('invoice_detail', pk=inv.pk)
@@ -1243,6 +1264,8 @@ def invoice_create(request, job_pk=None):
             'job': job,
             'parts_used': parts_used,
             'parts_total': parts_total,
+            'active_amc': active_amc,
+            'calculated_amc_discount': calculated_amc_discount,
             'title': f'Create Invoice for {job.job_number}'
         })
 
@@ -1268,21 +1291,37 @@ def invoice_create(request, job_pk=None):
 
 @login_required
 def invoice_detail(request, pk):
-    invoice = get_object_or_404(Invoice, pk=pk)
-    return render(request, 'core/invoice_detail.html', {'invoice': invoice})
+    invoice = get_object_or_404(Invoice.objects.select_related('job_card__vehicle__customer', 'amc_policy__plan'), pk=pk)
+    active_amc = invoice.amc_policy or CustomerAMC.objects.filter(
+        vehicle=invoice.job_card.vehicle,
+        status='active',
+        start_date__lte=timezone.now().date(),
+        end_date__gte=timezone.now().date()
+    ).select_related('plan').first()
+    return render(request, 'core/invoice_detail.html', {'invoice': invoice, 'active_amc': active_amc})
 
 
 @login_required
 @role_required('owner', 'advisor')
 def invoice_edit(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
+    active_amc = invoice.amc_policy or CustomerAMC.objects.filter(
+        vehicle=invoice.job_card.vehicle,
+        status='active',
+        start_date__lte=timezone.now().date(),
+        end_date__gte=timezone.now().date()
+    ).select_related('plan').first()
+
     form = InvoiceForm(request.POST or None, instance=invoice)
     if request.method == 'POST' and form.is_valid():
-        form.save()
+        inv = form.save(commit=False)
+        if active_amc and not inv.amc_policy:
+            inv.amc_policy = active_amc
+        inv.save()
         messages.success(request, "Invoice updated.")
         return redirect('invoice_detail', pk=pk)
     return render(request, 'core/invoice_form.html', {
-        'form': form, 'job': invoice.job_card, 'invoice': invoice, 'title': 'Edit Invoice'
+        'form': form, 'job': invoice.job_card, 'invoice': invoice, 'active_amc': active_amc, 'title': 'Edit Invoice'
     })
 
 
@@ -1592,6 +1631,38 @@ def send_whatsapp_view(request):
                 f"📌 *Status:* *{status_disp.upper()}*\n\n"
                 f"We will notify you as soon as the status changes. Thank you for your patience! 🚘"
             )
+    elif msg_type in ['invoice_share', 'invoice']:
+        invoice_id = request.GET.get('invoice_id')
+        invoice = get_object_or_404(Invoice, pk=invoice_id)
+        job = invoice.job_card
+        customer = job.vehicle.customer
+        
+        lines = [
+            f"🧾 *Krishna Auto Care - Tax Invoice #{invoice.invoice_number}*",
+            f"",
+            f"Dear *{customer.name}*,",
+            f"Here is the invoice summary for your vehicle *{job.vehicle.make} {job.vehicle.model}* ({job.vehicle.license_plate}):",
+            f"",
+            f"📋 *Job Card:* {job.job_number}",
+            f"📅 *Invoice Date:* {invoice.issue_date.strftime('%d %b %Y')}",
+            f"🔧 *Labour Charges:* ₹{job.labour_cost:.2f}",
+            f"⚙️ *Parts Charges:* ₹{job.total_parts_cost():.2f}"
+        ]
+        if invoice.amc_discount > 0:
+            lines.append(f"🛡️ *AMC Policy Discount:* -₹{invoice.amc_discount:.2f}")
+        if invoice.is_pickup_service and invoice.pickup_charge:
+            lines.append(f"🚚 *Pickup & Drop Charge:* ₹{invoice.pickup_charge:.2f}")
+        
+        lines.extend([
+            f"📊 *Tax (GST 5%):* ₹{invoice.tax_amount:.2f}",
+            f"💰 *Grand Total:* ₹{invoice.grand_total:.2f}",
+            f"💳 *Status:* *{invoice.get_status_display().upper()}*",
+            f"💵 *Amount Paid:* ₹{invoice.amount_paid:.2f}",
+            f"🚨 *Balance Due:* ₹{invoice.balance_due:.2f}",
+            f"",
+            f"Thank you for choosing Krishna Auto Care! 🚘✨"
+        ])
+        message_text = "\n".join(lines)
     elif msg_type == 'amc_reminder':
         schedule_id = request.GET.get('schedule_id')
         schedule = get_object_or_404(AMCServiceSchedule, pk=schedule_id)

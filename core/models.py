@@ -214,6 +214,8 @@ class Invoice(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='unpaid')
     is_pickup_service = models.BooleanField(default=False, verbose_name="Vehicle Pickup & Drop Service")
     pickup_charge = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), verbose_name="Pickup & Drop Charge")
+    amc_discount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), verbose_name="AMC Discount Amount")
+    amc_policy = models.ForeignKey('CustomerAMC', null=True, blank=True, on_delete=models.SET_NULL, related_name='invoices')
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     payment_method = models.CharField(max_length=50, blank=True)
     notes = models.TextField(blank=True)
@@ -230,10 +232,14 @@ class Invoice(models.Model):
         return self.job_card.total_cost()
 
     @property
+    def subtotal_after_discount(self):
+        return max(Decimal('0.00'), self.subtotal - self.amc_discount)
+
+    @property
     def total_amount(self):
         if self.is_pickup_service and self.pickup_charge:
-            return self.subtotal + self.pickup_charge
-        return self.subtotal
+            return self.subtotal_after_discount + self.pickup_charge
+        return self.subtotal_after_discount
 
     @property
     def balance_due(self):
@@ -257,6 +263,7 @@ class AMCPlan(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     duration_months = models.PositiveIntegerField(default=12)
     services_included = models.PositiveIntegerField(default=4)
+    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('100.00'), verbose_name="Labour/Service Discount %")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

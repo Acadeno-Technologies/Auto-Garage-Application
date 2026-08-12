@@ -430,9 +430,10 @@ class JobPartUsageForm(forms.ModelForm):
 class InvoiceForm(forms.ModelForm):
     class Meta:
         model = Invoice
-        fields = ['status', 'is_pickup_service', 'pickup_charge', 'amount_paid', 'payment_method', 'due_date', 'notes']
+        fields = ['status', 'amc_discount', 'is_pickup_service', 'pickup_charge', 'amount_paid', 'payment_method', 'due_date', 'notes']
         widgets = {
             'status': forms.Select(attrs={'class': 'form-input'}),
+            'amc_discount': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01', 'id': 'id_amc_discount', 'placeholder': 'Auto-calculated AMC discount'}),
             'is_pickup_service': forms.CheckboxInput(attrs={'class': 'form-checkbox', 'id': 'id_is_pickup_service', 'style': 'width:18px; height:18px; accent-color:var(--primary); cursor:pointer;'}),
             'pickup_charge': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01', 'id': 'id_pickup_charge', 'placeholder': 'e.g. 250.00'}),
             'amount_paid': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01'}),
@@ -445,13 +446,14 @@ class InvoiceForm(forms.ModelForm):
 class AMCPlanForm(forms.ModelForm):
     class Meta:
         model = AMCPlan
-        fields = ['name', 'description', 'price', 'duration_months', 'services_included']
+        fields = ['name', 'description', 'price', 'duration_months', 'services_included', 'discount_percentage']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-input'}),
             'description': forms.Textarea(attrs={'class': 'form-input', 'rows': 3}),
             'price': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01'}),
             'duration_months': forms.NumberInput(attrs={'class': 'form-input'}),
             'services_included': forms.NumberInput(attrs={'class': 'form-input'}),
+            'discount_percentage': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01', 'placeholder': 'Discount % on service/labour (default 100)'}),
         }
 
 
