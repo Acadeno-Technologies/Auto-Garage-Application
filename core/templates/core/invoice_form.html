@@ -672,11 +672,34 @@ textarea.input-style-saas {
       <form method="post" id="invoice-edit-form">
         {% csrf_token %}
 
-        <!-- STATUS -->
-        <div class="custom-form-group">
-          <label class="custom-form-label" for="{{ form.status.id_for_label }}">STATUS</label>
-          {{ form.status }}
-          {% if form.status.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ form.status.errors.0 }}</span>{% endif %}
+        {% if active_amc %}
+        <div style="background:#ecfdf5; border:1px solid #a7f3d0; border-radius:12px; padding:1rem 1.25rem; margin-bottom:1.25rem; color:#065f46; font-size:0.88rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+            <div><strong>🛡️ Active AMC Policy Detected:</strong> {{ active_amc.plan.name }} ({{ active_amc.contract_number }})</div>
+            <span class="badge" style="background:#059669; color:#fff; font-weight:700;">Active Policy</span>
+          </div>
+          <div style="margin-top:0.4rem; color:#047857; font-size:0.82rem;">
+            Labour Discount ({{ active_amc.plan.discount_percentage|floatformat:0 }}%): <strong>₹{{ calculated_amc_discount|floatformat:2 }}</strong> auto-applied below.
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- STATUS & AMC DISCOUNT (2 Columns) -->
+        <div class="form-row-2col">
+          <div class="custom-form-group">
+            <label class="custom-form-label" for="{{ form.status.id_for_label }}">STATUS</label>
+            {{ form.status }}
+            {% if form.status.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ form.status.errors.0 }}</span>{% endif %}
+          </div>
+
+          <div class="custom-form-group">
+            <label class="custom-form-label" for="{{ form.amc_discount.id_for_label }}">AMC POLICY DISCOUNT</label>
+            <div class="input-icon-wrapper">
+              <span class="input-prefix-icon">₹</span>
+              {{ form.amc_discount }}
+            </div>
+            {% if form.amc_discount.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ form.amc_discount.errors.0 }}</span>{% endif %}
+          </div>
         </div>
 
         <!-- VEHICLE PICKUP SERVICE & CHARGE (2 Columns) -->
