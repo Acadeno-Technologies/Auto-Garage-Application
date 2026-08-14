@@ -508,9 +508,10 @@ def job_search_records(request):
     # 2. Vehicle search by vehicle number / license plate
     if vehicle_number:
         v_clean = vehicle_number.replace(" ", "").upper()
+        # Require exact match (or full plate matching) to prevent partial populating
         vehicle = Vehicle.objects.filter(license_plate__iexact=v_clean).select_related('customer').first()
-        if not vehicle:
-            vehicle = Vehicle.objects.filter(license_plate__icontains=vehicle_number).select_related('customer').first()
+        if not vehicle and len(v_clean) >= 6:
+            vehicle = Vehicle.objects.filter(license_plate__iexact=vehicle_number).select_related('customer').first()
 
         if vehicle:
             response_data['vehicle_found'] = True

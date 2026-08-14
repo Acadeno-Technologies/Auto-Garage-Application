@@ -1289,7 +1289,7 @@
 
     // Helper function for Vehicle search
     function triggerVehicleSearch(vehicleNum) {
-      if (!vehicleNum || vehicleNum.length < 2) {
+      if (!vehicleNum || vehicleNum.trim().length < 5) {
         vehicleBadge.style.display = 'none';
         return;
       }
@@ -1332,17 +1332,24 @@
         .catch(() => { });
     }
 
-    // Debounced search logic for Vehicle Number
+    // Search vehicle logic when user finishes typing / blurs input
     if (numInput) {
       let vehicleTimer = null;
+      numInput.addEventListener('blur', function () {
+        const val = this.value.trim();
+        if (val.length >= 5) {
+          triggerVehicleSearch(val);
+        }
+      });
+
       numInput.addEventListener('input', function () {
         clearTimeout(vehicleTimer);
         const val = this.value.trim();
-        if (val.length < 2) {
+        if (val.length < 5) {
           vehicleBadge.style.display = 'none';
           return;
         }
-        vehicleTimer = setTimeout(() => triggerVehicleSearch(val), 300);
+        vehicleTimer = setTimeout(() => triggerVehicleSearch(val), 500);
       });
     }
 
