@@ -574,13 +574,17 @@ def job_create(request):
     if request.method == 'POST':
         if form.is_valid():
             job = form.save(commit=False)
-            c_name = form.cleaned_data['customer_name'].strip()
+            c_name = form.cleaned_data['customer_name'].strip().title()
             c_phone = form.cleaned_data['customer_phone'].strip()
             c_email = form.cleaned_data.get('customer_email', '').strip()
-            c_address = form.cleaned_data.get('customer_address', '').strip()
+            c_address = form.cleaned_data.get('customer_address', '').strip().title()
             v_num = form.cleaned_data['vehicle_number'].strip().upper()
-            v_model_raw = form.cleaned_data['vehicle_model'].strip()
-            v_color = form.cleaned_data.get('vehicle_color', '').strip()
+            v_model_raw = form.cleaned_data['vehicle_model'].strip().title()
+            v_color = form.cleaned_data.get('vehicle_color', '').strip().title()
+
+            job.problem_description = job.problem_description.title() if job.problem_description else ""
+            job.repair_instructions = job.repair_instructions.title() if job.repair_instructions else ""
+            job.notes = job.notes.title() if job.notes else ""
 
             # Find or create customer by phone number (prevent duplicates)
             customer = Customer.objects.filter(phone__iexact=c_phone).first()
@@ -760,13 +764,17 @@ def job_update_status(request, pk):
         updated_job = form.save(commit=False)
         
         # Save customer and vehicle changes
-        c_name = form.cleaned_data.get('customer_name', '').strip()
+        c_name = form.cleaned_data.get('customer_name', '').strip().title()
         c_phone = form.cleaned_data.get('customer_phone', '').strip()
         c_email = form.cleaned_data.get('customer_email', '').strip()
-        c_address = form.cleaned_data.get('customer_address', '').strip()
+        c_address = form.cleaned_data.get('customer_address', '').strip().title()
         v_num = form.cleaned_data.get('vehicle_number', '').strip().upper()
-        v_model_raw = form.cleaned_data.get('vehicle_model', '').strip()
-        v_color = form.cleaned_data.get('vehicle_color', '').strip()
+        v_model_raw = form.cleaned_data.get('vehicle_model', '').strip().title()
+        v_color = form.cleaned_data.get('vehicle_color', '').strip().title()
+
+        updated_job.problem_description = updated_job.problem_description.title() if updated_job.problem_description else ""
+        updated_job.repair_instructions = updated_job.repair_instructions.title() if updated_job.repair_instructions else ""
+        updated_job.notes = updated_job.notes.title() if updated_job.notes else ""
 
         if c_name and c_phone and updated_job.vehicle:
             cust = updated_job.vehicle.customer

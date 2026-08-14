@@ -869,7 +869,7 @@
         </div>
       </div>
 
-      <!-- ROW 1: MECHANIC & ESTIMATED TIME -->
+      <!-- ROW 1: MECHANIC ONLY -->
       <div class="field-grid-2">
         <div class="custom-form-group">
           <label for="{{ form.mechanic.id_for_label }}">Mechanic</label>
@@ -884,35 +884,6 @@
           </div>
           {% if form.mechanic.errors %}<span style="color:var(--red); font-size:0.78rem;">{{ form.mechanic.errors.0
             }}</span>{% endif %}
-        </div>
-
-        <div class="custom-form-group">
-          <label for="{{ form.estimated_completion_time.id_for_label }}">Estimated Completion Time</label>
-          <div class="input-icon-wrapper">
-            <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="16" y1="2" x2="16" y2="6"></line>
-              <line x1="8" y1="2" x2="8" y2="6"></line>
-              <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
-            {{ form.estimated_completion_time }}
-          </div>
-          {% if form.estimated_completion_time.errors %}<span style="color:var(--red); font-size:0.78rem;">{{
-            form.estimated_completion_time.errors.0 }}</span>{% endif %}
-        </div>
-      </div>
-
-      <!-- ROW 2: LABOUR COST -->
-      <div class="field-grid-2">
-        <div class="custom-form-group">
-          <label for="{{ form.labour_cost.id_for_label }}">Labour Cost (₹)</label>
-          <div class="input-icon-wrapper">
-            <span class="input-icon" style="font-weight: 700; font-size: 0.95rem; color: #475569; left: 14px;">₹</span>
-            {{ form.labour_cost }}
-          </div>
-          {% if form.labour_cost.errors %}<span style="color:var(--red); font-size:0.78rem;">{{
-            form.labour_cost.errors.0 }}</span>{% endif %}
         </div>
       </div>
 
@@ -936,6 +907,39 @@
         <label for="{{ form.notes.id_for_label }}">Notes</label>
         {{ form.notes }}
         {% if form.notes.errors %}<span style="color:var(--red); font-size:0.78rem;">{{ form.notes.errors.0 }}</span>{% endif %}
+      </div>
+
+      <!-- LABOUR COST AND ESTIMATED TIME AT THE END -->
+      <div style="border-top: 1px dashed #e2e8f0; margin-top: 1.25rem; padding-top: 1.25rem;">
+        <div class="field-grid-2">
+          <!-- LABOUR COST -->
+          <div class="custom-form-group">
+            <label for="{{ form.labour_cost.id_for_label }}">Labour Cost (₹)</label>
+            <div class="input-icon-wrapper">
+              <span class="input-icon" style="font-weight: 700; font-size: 0.95rem; color: #475569; left: 14px;">₹</span>
+              {{ form.labour_cost }}
+            </div>
+            {% if form.labour_cost.errors %}<span style="color:var(--red); font-size:0.78rem;">{{
+              form.labour_cost.errors.0 }}</span>{% endif %}
+          </div>
+
+          <!-- ESTIMATED COMPLETION TIME -->
+          <div class="custom-form-group">
+            <label for="{{ form.estimated_completion_time.id_for_label }}">Estimated Completion Time</label>
+            <div class="input-icon-wrapper">
+              <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              {{ form.estimated_completion_time }}
+            </div>
+            {% if form.estimated_completion_time.errors %}<span style="color:var(--red); font-size:0.78rem;">{{
+              form.estimated_completion_time.errors.0 }}</span>{% endif %}
+          </div>
+        </div>
       </div>
 
       <!-- PHOTO UPLOAD DRAG & DROP BOX -->
@@ -1272,27 +1276,13 @@
     }
 
     // Debounced search logic for Customer Phone input in form view
+    // NOTE: Changed to show search results without auto-switching state
     if (phoneInput) {
       let phoneTimer = null;
       phoneInput.addEventListener('input', function () {
         if (customerState === 'new' && this.value.trim().length >= 3) {
-          clearTimeout(phoneTimer);
-          const val = this.value.trim();
-          phoneTimer = setTimeout(() => {
-            fetch(`{% url 'job_search_records' %}?phone=${encodeURIComponent(val)}`)
-              .then(res => res.json())
-              .then(data => {
-                if (data.customer_found && data.customer) {
-                  switchCustomerState('selected', {
-                    name: data.customer.name,
-                    phone: data.customer.phone || val,
-                    email: data.customer.email || '',
-                    address: data.customer.address || ''
-                  });
-                }
-              })
-              .catch(() => {});
-          }, 300);
+          // Removed auto-fetch and state switching
+          // User must explicitly click "Search Existing Customer" tab to search
         }
       });
     }

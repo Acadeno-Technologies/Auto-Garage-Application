@@ -4,6 +4,15 @@ from django.utils import timezone
 from decimal import Decimal
 
 
+def to_camel_case(text):
+    """Convert text to Camel Case (Title Case).
+    Example: 'hello world' -> 'Hello World'
+    """
+    if not text:
+        return text
+    return ' '.join(word.capitalize() for word in text.split())
+
+
 class RoleCustomization(models.Model):
     role_key = models.CharField(max_length=50, unique=True)
     display_name = models.CharField(max_length=100)
@@ -105,6 +114,15 @@ class JobCard(models.Model):
             self.job_number = f"JC-{num:05d}"
         if self.status == 'completed' and not self.completed_at:
             self.completed_at = timezone.now()
+        
+        # Apply Camel Case formatting to text fields
+        if self.problem_description:
+            self.problem_description = to_camel_case(self.problem_description)
+        if self.repair_instructions:
+            self.repair_instructions = to_camel_case(self.repair_instructions)
+        if self.notes:
+            self.notes = to_camel_case(self.notes)
+        
         super().save(*args, **kwargs)
 
     def total_parts_cost(self):
