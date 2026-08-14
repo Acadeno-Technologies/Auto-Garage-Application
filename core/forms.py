@@ -123,11 +123,18 @@ class CustomerForm(forms.ModelForm):
         model = Customer
         fields = ['name', 'email', 'phone', 'address']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-input'}),
-            'email': forms.EmailInput(attrs={'class': 'form-input'}),
-            'phone': forms.TextInput(attrs={'class': 'form-input'}),
-            'address': forms.Textarea(attrs={'class': 'form-input', 'rows': 3}),
+            'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Customer Name'}),
+            'email': forms.EmailInput(attrs={'class': 'form-input', 'placeholder': 'customer@example.com'}),
+            'phone': forms.TextInput(attrs={'class': 'form-input', 'maxlength': '10', 'placeholder': '10-digit Phone Number'}),
+            'address': forms.Textarea(attrs={'class': 'form-input', 'rows': 3, 'placeholder': 'Customer Address'}),
         }
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone', '').strip()
+        cleaned_digits = ''.join(c for c in phone if c.isdigit())
+        if len(cleaned_digits) != 10:
+            raise forms.ValidationError("Please enter a valid 10-digit phone number.")
+        return cleaned_digits
 
 
 class VehicleForm(forms.ModelForm):
@@ -181,7 +188,7 @@ class JobCardForm(forms.ModelForm):
     )
     customer_phone = forms.CharField(
         max_length=20,
-        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Customer Phone Number (e.g. 9876543210)'}),
+        widget=forms.TextInput(attrs={'class': 'form-input', 'maxlength': '10', 'placeholder': '10-digit Phone Number (e.g. 9876543210)'}),
         label='Customer Phone Number',
         required=True
     )
@@ -253,10 +260,10 @@ class JobCardForm(forms.ModelForm):
 
     def clean_customer_phone(self):
         phone = self.cleaned_data.get('customer_phone', '').strip()
-        cleaned_phone = ''.join(c for c in phone if c.isdigit() or c == '+')
-        if not phone or len(cleaned_phone) < 7:
-            raise forms.ValidationError("Please enter a valid phone number (at least 7 digits).")
-        return phone
+        cleaned_phone = ''.join(c for c in phone if c.isdigit())
+        if len(cleaned_phone) != 10:
+            raise forms.ValidationError("Please enter a valid 10-digit phone number.")
+        return cleaned_phone
 
     def clean_vehicle_number(self):
         vehicle_num = self.cleaned_data.get('vehicle_number', '').strip().upper()
@@ -284,10 +291,17 @@ class JobStatusForm(forms.ModelForm):
     )
     customer_phone = forms.CharField(
         max_length=20,
-        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Customer Phone Number'}),
+        widget=forms.TextInput(attrs={'class': 'form-input', 'maxlength': '10', 'placeholder': '10-digit Phone Number'}),
         label='Customer Phone Number',
         required=True
     )
+
+    def clean_customer_phone(self):
+        phone = self.cleaned_data.get('customer_phone', '').strip()
+        cleaned_phone = ''.join(c for c in phone if c.isdigit())
+        if len(cleaned_phone) != 10:
+            raise forms.ValidationError("Please enter a valid 10-digit phone number.")
+        return cleaned_phone
     customer_email = forms.EmailField(
         widget=forms.EmailInput(attrs={'class': 'form-input', 'placeholder': 'customer@example.com'}),
         label='Customer Email',
