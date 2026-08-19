@@ -59,6 +59,7 @@ def login_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
 
+    garage = GarageSettings.get_settings()
     form = LoginForm(request, data=request.POST or None)
 
     if request.method == 'POST':
@@ -70,14 +71,14 @@ def login_view(request):
                 user_role = user.profile.role
                 if user_role != role_selected and user_role != 'custom' and role_selected != 'custom' and not (user_role == 'mechanic' and role_selected == 'custom'):
                     messages.error(request, "Incorrect role selected for this account.")
-                    return render(request, 'core/login.html', {'form': form})
+                    return render(request, 'core/login.html', {'form': form, 'garage': garage})
 
             login(request, user)
             return redirect('dashboard')
         else:
             messages.error(request, "Invalid username, password, or login credentials. Please try again.")
 
-    return render(request, 'core/login.html', {'form': form})
+    return render(request, 'core/login.html', {'form': form, 'garage': garage})
 
 
 @login_required
