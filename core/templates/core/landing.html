@@ -69,11 +69,52 @@
     .brand-logo {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.7rem;
       font-weight: 900;
-      font-size: 1.35rem;
-      letter-spacing: -0.5px;
+      font-size: 1.05rem;
+      letter-spacing: 0;
       color: var(--dark-navy);
+      min-width: 220px;
+    }
+
+    .brand-logo-mark {
+      width: 52px;
+      height: 52px;
+      flex: 0 0 52px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background: #0f172a;
+      border: 2px solid #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
+    }
+
+    .brand-logo-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .brand-logo-copy {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+
+    .brand-logo-name {
+      font-size: 1.05rem;
+      font-weight: 900;
+    }
+
+    .brand-logo-tagline {
+      margin-top: 0.3rem;
+      color: var(--slate-muted);
+      font-size: 0.58rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
     }
 
     .brand-logo span {
@@ -802,6 +843,8 @@
       .statement-grid, .about-grid, .booking-grid, .faq-grid, .footer-grid { grid-template-columns: 1fr; }
       .services-grid, .location-grid { grid-template-columns: 1fr; }
       .nav-links { display: none; }
+      .brand-logo { min-width: 0; }
+      .brand-logo-copy { display: none; }
     }
   </style>
 </head>
@@ -812,18 +855,23 @@
     <div class="container">
       <div class="nav-wrapper">
         <a href="{% url 'landing' %}" class="brand-logo">
-          {% if garage and garage.logo %}
-            <img src="{{ garage.logo.url }}" alt="Logo" style="height: 36px; max-width: 100px; object-fit: contain;">
-          {% else %}
-            ⚙️ {{ garage.name|default:"Krishna Auto Care"|upper }}
-          {% endif %}
+          <span class="brand-logo-mark">
+            {% if garage and garage.logo %}
+              <img src="{{ garage.logo.url }}" alt="{{ garage.name|default:'Garage' }} logo">
+            {% else %}
+              <img src="{% static 'core/images/logo.png' %}" alt="{{ garage.name|default:'Garage' }} logo">
+            {% endif %}
+          </span>
+          <span class="brand-logo-copy">
+            <span class="brand-logo-name">{{ garage.name|default:"Krishna Auto Care" }}</span>
+            <span class="brand-logo-tagline">{{ garage.tagline|default:"Precision Workshop" }}</span>
+          </span>
         </a>
 
         <ul class="nav-links">
           <li><a href="#hero">Home</a></li>
           <li><a href="#about">About Us</a></li>
           <li><a href="#services">Services</a></li>
-          <li><a href="#appointment">Book Appointment</a></li>
           <li><a href="#location">Workshop</a></li>
           <li><a href="#faqs">FAQs</a></li>
         </ul>
@@ -845,15 +893,13 @@
     <div class="container">
       <h1 class="hero-heading">
         CAR REPAIR <span class="red-accent">& SERVICING</span>
-        <span class="rating-badge">⚙️ ⭐⭐⭐⭐⭐ <span style="font-size: 0.9rem; color: #64748b; font-weight: 600;">4.9/5 Rating</span></span>
       </h1>
       <p class="hero-subtext">
         Certified multi-brand car inspection, repair, and precision maintenance services. Experience ultimate vehicle performance, transparency, and roadside confidence.
       </p>
 
       <div class="hero-banner-box">
-        <img src="https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=1400&q=80" alt="Car Repair Banner" class="hero-banner-img">
-        <div class="hero-accent-badge">⚙️</div>
+        <img src="{% static 'core/images/banner.jpg' %}" alt="Car Repair Banner" class="hero-banner-img">
       </div>
     </div>
   </section>
@@ -974,70 +1020,6 @@
     </div>
   </section>
 
-  <!-- APPOINTMENT BOOKING SECTION -->
-  <section class="booking-section container" id="appointment">
-    <div class="booking-grid">
-      <div class="booking-card">
-        <span class="section-badge">QUICK APPOINTMENT</span>
-        <h2 style="font-size: 2rem; font-weight: 800; color: var(--dark-navy); margin-bottom: 0.5rem;">
-          Your satisfaction is our top priority!
-        </h2>
-        <p style="font-size: 0.95rem; color: var(--slate-muted);">Fill out the form below to reserve a service slot. Our workshop advisor will confirm shortly.</p>
-
-        <div id="bookingToast" class="success-toast" style="margin-top: 1rem;">
-          ✅ Appointment Request Submitted! We will call you back shortly.
-        </div>
-
-        <form id="appointmentForm" class="booking-form" onsubmit="handleAppointmentSubmit(event)">
-          <input type="text" name="name" class="booking-input" placeholder="Your Name *" required>
-          <input type="tel" name="phone" class="booking-input" placeholder="10-digit Phone Number *" required maxlength="10">
-          <select name="service" class="booking-input" required style="grid-column: span 2;">
-            <option value="">Select Service Needed *</option>
-            <option value="Periodic Maintenance">Periodic Maintenance & Oil Service</option>
-            <option value="Brake Repair">Brake Inspection & Pads</option>
-            <option value="Engine Diagnostic">Computer Engine Diagnostic</option>
-            <option value="AC Repair">Car AC & Electrical Repair</option>
-            <option value="Full Inspection">Pre-Purchase / Full Inspection</option>
-          </select>
-          <input type="date" name="preferred_date" class="booking-input form-field-full" required>
-          <textarea name="notes" class="booking-input form-field-full" rows="3" placeholder="Additional Notes / Vehicle Model (Optional)"></textarea>
-          
-          <button type="submit" class="btn-submit-booking">📅 Book Appointment Now</button>
-        </form>
-      </div>
-
-      <div class="booking-right-box">
-        <div class="banner-dark-card">
-          <div>
-            <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 0.25rem;">Looking for classic car repair service?</h3>
-            <p style="font-size: 0.85rem; color: #94a3b8;">Talk directly with our senior master mechanic.</p>
-          </div>
-          <a href="tel:{{ garage.phone|default:'+919876543210' }}" class="btn-red-pill" style="white-space: nowrap;">Call Now</a>
-        </div>
-
-        <div class="booking-right-img">
-          <img src="https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?auto=format&fit=crop&w=800&q=80" alt="Workshop Service">
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- VIDEO SHOWCASE SECTION -->
-  <section class="video-showcase-section container">
-    <div class="features-top-bar">
-      <span>01. PRECISION REPAIR</span>
-      <span>02. GENUINE SPARE PARTS</span>
-      <span>03. FAST TURNAROUND</span>
-    </div>
-
-    <div class="video-banner-box">
-      <img src="https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1400&q=80" alt="Workshop Video" class="video-banner-img">
-      <div class="play-btn-circle" onclick="alert('Certified Car Care: Quality Service, Guaranteed Performance.')">▶</div>
-    </div>
-    <p style="margin-top: 1rem; font-weight: 700; color: var(--slate-muted); font-size: 0.95rem;">
-      Certified Car Care: Quality Service, Guaranteed Performance.
-    </p>
-  </section>
 
   <!-- LOCATION & CONTACT SECTION -->
   <section class="location-section container" id="location">
@@ -1088,10 +1070,6 @@
               We stand behind every repair with our workshop warranty, transparent job card digital updates, and OEM parts.
             </p>
           </div>
-
-          <a href="tel:{{ garage.phone|default:'+919876543210' }}" class="btn-red-pill" style="align-self: flex-start;">
-            Talk to Advisor
-          </a>
         </div>
 
         <div>
@@ -1171,7 +1149,6 @@
             <li><a href="#hero">Home</a></li>
             <li><a href="#about">About Us</a></li>
             <li><a href="#services">Services</a></li>
-            <li><a href="#appointment">Book Appointment</a></li>
           </ul>
         </div>
 
