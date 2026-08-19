@@ -114,6 +114,7 @@ use_local_db = os.environ.get('USE_LOCAL_DB', 'False' if IS_VERCEL else 'True').
 db_from_env = dj_database_url.config(
     conn_max_age=600,
     conn_health_checks=True,
+    ssl_require=not use_local_db
 )
 if db_from_env and not use_local_db:
     DATABASES = {

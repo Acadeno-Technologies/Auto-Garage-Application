@@ -882,8 +882,7 @@
             </svg>
             {{ form.mechanic }}
           </div>
-          {% if form.mechanic.errors %}<span style="color:var(--red); font-size:0.78rem;">{{ form.mechanic.errors.0
-            }}</span>{% endif %}
+          {% if form.mechanic.errors %}<span style="color:var(--red); font-size:0.78rem;">{{ form.mechanic.errors.0 }}</span>{% endif %}
         </div>
       </div>
 
@@ -891,8 +890,7 @@
       <div class="custom-form-group">
         <label for="{{ form.problem_description.id_for_label }}">Problem Description *</label>
         {{ form.problem_description }}
-        {% if form.problem_description.errors %}<span style="color:var(--red); font-size:0.78rem;">{{
-          form.problem_description.errors.0 }}</span>{% endif %}
+        {% if form.problem_description.errors %}<span style="color:var(--red); font-size:0.78rem;">{{ form.problem_description.errors.0 }}</span>{% endif %}
       </div>
 
       <!-- REPAIR INSTRUCTIONS -->
@@ -1110,6 +1108,26 @@
       }
     }
 
+    function clearVehicleSection() {
+      if (numInput) { numInput.value = ''; numInput.classList.remove('input-auto-populated'); }
+      if (modelInput) { modelInput.value = ''; modelInput.classList.remove('input-auto-populated'); }
+      if (colorInput) { colorInput.value = ''; colorInput.classList.remove('input-auto-populated'); }
+
+      const makeInput = document.querySelector('[name="vehicle_make"]');
+      if (makeInput) { makeInput.value = ''; makeInput.classList.remove('input-auto-populated'); }
+      const yearInput = document.querySelector('[name="vehicle_year"]');
+      if (yearInput) { yearInput.value = ''; yearInput.classList.remove('input-auto-populated'); }
+      const vinInput = document.querySelector('[name="vehicle_vin"]');
+      if (vinInput) { vinInput.value = ''; vinInput.classList.remove('input-auto-populated'); }
+      const mileageInput = document.querySelector('[name="vehicle_mileage"]');
+      if (mileageInput) { mileageInput.value = ''; mileageInput.classList.remove('input-auto-populated'); }
+
+      if (vehicleBadge) {
+        vehicleBadge.style.display = 'none';
+        vehicleBadge.innerHTML = '';
+      }
+    }
+
     window.switchCustomerState = function(state, customerData = null) {
       customerState = state;
       renderCustomerHeaderActions();
@@ -1126,8 +1144,9 @@
         if (phoneInput) { phoneInput.value = ''; phoneInput.classList.remove('input-auto-populated'); phoneInput.focus(); }
         if (emailInput) { emailInput.value = ''; emailInput.classList.remove('input-auto-populated'); }
         if (addressInput) { addressInput.value = ''; addressInput.classList.remove('input-auto-populated'); }
-        if (modelInput) { modelInput.value = ''; modelInput.classList.remove('input-auto-populated'); }
-        if (colorInput) { colorInput.value = ''; colorInput.classList.remove('input-auto-populated'); }
+        
+        // Clear/Refresh Vehicle fields when switching to New Customer
+        clearVehicleSection();
 
         if (customerBadge) customerBadge.style.display = 'none';
         if (pillsSection) pillsSection.style.display = 'none';
@@ -1136,6 +1155,10 @@
         selectedCustomerData = null;
         if (formBody) formBody.style.display = 'none';
         if (searchBody) searchBody.style.display = 'block';
+        
+        // Clear/Refresh Vehicle fields when entering Customer Search
+        clearVehicleSection();
+
         if (inCardSearchInput) {
           inCardSearchInput.focus();
         }
@@ -1280,9 +1303,46 @@
     if (phoneInput) {
       let phoneTimer = null;
       phoneInput.addEventListener('input', function () {
-        if (customerState === 'new' && this.value.trim().length >= 3) {
-          // Removed auto-fetch and state switching
-          // User must explicitly click "Search Existing Customer" tab to search
+        const val = this.value.trim();
+        const hintSpan = document.getElementById('phone-hint');
+        if (customerState === 'new' && val.length >= 7) {
+          clearTimeout(phoneTimer);
+          phoneTimer = setTimeout(() => {
+            fetch(`{% url 'job_search_records' %}?phone=${encodeURIComponent(val)}`)
+              .then(res => res.json())
+              .then(data => {
+                if (data.customer_found && data.customer && customerState === 'new') {
+                  const c = data.customer;
+                  if (hintSpan) {
+                    hintSpan.style.color = '#d97706';
+                    hintSpan.style.fontWeight = '700';
+                    hintSpan.innerHTML = `⚠️ Phone ${c.phone} is already registered to <strong>${c.name}</strong>. <a href="javascript:void(0)" id="btn-select-found-cust" style="color:#2563eb; text-decoration:underline; margin-left:0.3rem;">Click here to load ${c.name}'s profile</a>`;
+
+                    const btnSelect = document.getElementById('btn-select-found-cust');
+                    if (btnSelect) {
+                      btnSelect.onclick = function(e) {
+                        e.preventDefault();
+                        onSelectCustomerFromSearch({
+                          name: c.name,
+                          phone: c.phone,
+                          email: c.email || '',
+                          address: c.address || '',
+                          vehicle_number: c.vehicles && c.vehicles.length ? c.vehicles[0].vehicle_number : ''
+                        });
+                      };
+                    }
+                  }
+                } else if (hintSpan) {
+                  hintSpan.style.color = '#64748b';
+                  hintSpan.style.fontWeight = 'normal';
+                  hintSpan.textContent = 'Enter phone number for customer registration';
+                }
+              });
+          }, 300);
+        } else if (hintSpan) {
+          hintSpan.style.color = '#64748b';
+          hintSpan.style.fontWeight = 'normal';
+          hintSpan.textContent = 'Enter phone number for customer registration';
         }
       });
     }
