@@ -51,7 +51,8 @@ def role_required(*roles):
 def landing_page(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
-    return render(request, 'core/landing.html')
+    garage = GarageSettings.get_settings()
+    return render(request, 'core/landing.html', {'garage': garage})
 
 
 def login_view(request):
