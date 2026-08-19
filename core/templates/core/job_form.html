@@ -961,7 +961,10 @@
       <!-- PHOTO UPLOAD DRAG & DROP BOX -->
       <div class="custom-form-group">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
-          <label style="margin:0;">Vehicle Photos</label>
+          <label style="margin:0; display:flex; align-items:center;">
+            Vehicle Photos
+            <span id="photo-count-badge" class="badge-status-pill badge-info-blue" style="font-size:0.75rem; padding:0.15rem 0.55rem; margin-left:0.4rem; display:inline-flex; align-items:center; gap:0.25rem;">📸 (0 selected)</span>
+          </label>
           <button type="button" onclick="openCameraModal('id_photos')" class="btn btn-sm" style="background:#0284c7; color:#fff; font-weight:700; border:none; padding:0.35rem 0.85rem; border-radius:8px; display:inline-flex; align-items:center; gap:0.4rem; cursor:pointer; font-size:0.8rem; box-shadow:0 2px 6px rgba(2,132,199,0.3);">
             📷 Live Camera Snap
           </button>
@@ -1506,54 +1509,100 @@
       switchCustomerState('new');
     }
 
-    // Drag & Drop Photo Upload Preview logic
+    // Drag & Drop Photo Upload Accumulation & Preview logic
     const photoInput = document.getElementById('id_photos') || document.querySelector('input[type="file"][name="photos"]');
     const previewContainer = document.getElementById('photo-preview-container');
     const dragDropBox = document.getElementById('drag-drop-trigger');
 
+    let accumulatedFiles = [];
+
+    function updatePhotoPreviewsAndInput() {
+      if (!photoInput || !previewContainer) return;
+
+      // Update DataTransfer on native input element so all accumulated files are submitted
+      const dt = new DataTransfer();
+      accumulatedFiles.forEach(f => dt.items.add(f));
+      photoInput.files = dt.files;
+
+      // Update Count Badge
+      const countBadge = document.getElementById('photo-count-badge');
+      if (countBadge) {
+        if (accumulatedFiles.length > 0) {
+          countBadge.className = 'badge-status-pill badge-success-green';
+          countBadge.innerHTML = `📸 (${accumulatedFiles.length} photo${accumulatedFiles.length > 1 ? 's' : ''} selected)`;
+        } else {
+          countBadge.className = 'badge-status-pill badge-info-blue';
+          countBadge.innerHTML = `📸 (0 selected)`;
+        }
+      }
+
+      // Render Thumbnails
+      previewContainer.innerHTML = '';
+      accumulatedFiles.forEach((file, index) => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = function (evt) {
+            const div = document.createElement('div');
+            div.style.position = 'relative';
+            div.style.borderRadius = '10px';
+            div.style.overflow = 'hidden';
+            div.style.border = '1px solid #cbd5e1';
+            div.style.aspectRatio = '1 / 1';
+            div.style.boxShadow = '0 2px 6px rgba(0,0,0,0.05)';
+
+            const img = document.createElement('img');
+            img.src = evt.target.result;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.innerHTML = '&times;';
+            removeBtn.title = 'Remove photo';
+            removeBtn.style.cssText = 'position:absolute; top:4px; right:4px; background:rgba(220,38,38,0.9); color:#fff; width:22px; height:22px; border-radius:50%; border:none; display:grid; place-items:center; cursor:pointer; font-size:14px; font-weight:bold; z-index:10; box-shadow:0 1px 4px rgba(0,0,0,0.3);';
+            removeBtn.onclick = function(event) {
+              event.preventDefault();
+              event.stopPropagation();
+              accumulatedFiles.splice(index, 1);
+              updatePhotoPreviewsAndInput();
+            };
+
+            const badge = document.createElement('span');
+            badge.textContent = file.name;
+            badge.style.position = 'absolute';
+            badge.style.bottom = '0';
+            badge.style.left = '0';
+            badge.style.right = '0';
+            badge.style.background = 'rgba(15, 23, 42, 0.75)';
+            badge.style.color = '#fff';
+            badge.style.fontSize = '0.68rem';
+            badge.style.padding = '3px 5px';
+            badge.style.textOverflow = 'ellipsis';
+            badge.style.whiteSpace = 'nowrap';
+            badge.style.overflow = 'hidden';
+
+            div.appendChild(img);
+            div.appendChild(removeBtn);
+            div.appendChild(badge);
+            previewContainer.appendChild(div);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
     if (photoInput && previewContainer) {
       photoInput.addEventListener('change', function (e) {
-        previewContainer.innerHTML = '';
-        const files = Array.from(e.target.files);
-        files.forEach((file) => {
-          if (file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = function (evt) {
-              const div = document.createElement('div');
-              div.style.position = 'relative';
-              div.style.borderRadius = '10px';
-              div.style.overflow = 'hidden';
-              div.style.border = '1px solid #cbd5e1';
-              div.style.aspectRatio = '1 / 1';
-              div.style.boxShadow = '0 2px 6px rgba(0,0,0,0.05)';
-
-              const img = document.createElement('img');
-              img.src = evt.target.result;
-              img.style.width = '100%';
-              img.style.height = '100%';
-              img.style.objectFit = 'cover';
-
-              const badge = document.createElement('span');
-              badge.textContent = file.name;
-              badge.style.position = 'absolute';
-              badge.style.bottom = '0';
-              badge.style.left = '0';
-              badge.style.right = '0';
-              badge.style.background = 'rgba(15, 23, 42, 0.75)';
-              badge.style.color = '#fff';
-              badge.style.fontSize = '0.68rem';
-              badge.style.padding = '3px 5px';
-              badge.style.textOverflow = 'ellipsis';
-              badge.style.whiteSpace = 'nowrap';
-              badge.style.overflow = 'hidden';
-
-              div.appendChild(img);
-              div.appendChild(badge);
-              previewContainer.appendChild(div);
-            };
-            reader.readAsDataURL(file);
+        const newlySelected = Array.from(e.target.files);
+        newlySelected.forEach(newFile => {
+          // Prevent duplicates by checking name and size
+          const exists = accumulatedFiles.some(f => f.name === newFile.name && f.size === newFile.size);
+          if (!exists) {
+            accumulatedFiles.push(newFile);
           }
         });
+        updatePhotoPreviewsAndInput();
       });
     }
 
@@ -1577,8 +1626,12 @@
       dragDropBox.addEventListener('drop', (e) => {
         const dt = e.dataTransfer;
         if (dt && dt.files && dt.files.length > 0) {
-          photoInput.files = dt.files;
-          photoInput.dispatchEvent(new Event('change'));
+          const droppedFiles = Array.from(dt.files);
+          droppedFiles.forEach(f => {
+            const exists = accumulatedFiles.some(af => af.name === f.name && af.size === f.size);
+            if (!exists) accumulatedFiles.push(f);
+          });
+          updatePhotoPreviewsAndInput();
         }
       });
     }
