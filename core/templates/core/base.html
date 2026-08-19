@@ -239,14 +239,23 @@ document.addEventListener('DOMContentLoaded', function() {
       <h3 style="margin:0; font-size:1.05rem; font-weight:700; display:flex; align-items:center; gap:0.5rem; color:#fff;">📷 Live Camera Capture</h3>
       <button type="button" onclick="closeCameraModal()" style="background:none; border:none; color:#94a3b8; font-size:1.6rem; cursor:pointer; line-height:1;">&times;</button>
     </div>
-    <div style="position:relative; background:#000000; display:flex; justify-content:center; align-items:center; min-height:320px;">
-      <video id="cameraVideoFeed" autoplay playsinline style="width:100%; max-height:400px; object-fit:contain;"></video>
+    <div style="position:relative; background:#000000; display:flex; justify-content:center; align-items:center; min-height:300px;">
+      <video id="cameraVideoFeed" autoplay playsinline style="width:100%; max-height:360px; object-fit:contain;"></video>
       <canvas id="cameraCanvas" style="display:none;"></canvas>
     </div>
-    <div style="padding:1.25rem; background:#f8fafc; display:flex; justify-content:space-between; align-items:center; border-top:1px solid #e2e8f0;">
+    
+    <!-- OPTIONAL PHOTO CAPTION FIELD -->
+    <div style="padding:0.85rem 1.25rem 0.25rem 1.25rem; background:#f8fafc; border-top:1px solid #e2e8f0;">
+      <label for="cameraPhotoCaptionInput" style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:0.35rem; text-transform:uppercase; letter-spacing:0.03em;">
+        📝 Photo Caption / Description (Optional)
+      </label>
+      <input type="text" id="cameraPhotoCaptionInput" placeholder="e.g. Front Bumper Scratch, Engine Oil Leak..." style="width:100%; padding:0.55rem 0.75rem; border:1px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none; background:#ffffff; box-sizing:border-box;">
+    </div>
+
+    <div style="padding:1rem 1.25rem; background:#f8fafc; display:flex; justify-content:space-between; align-items:center; border-top:1px solid #e2e8f0;">
       <button type="button" onclick="closeCameraModal()" class="btn btn-secondary" style="font-weight:600; padding:0.5rem 1rem;">Cancel</button>
       <button type="button" onclick="captureCameraPhoto()" class="btn btn-primary" style="background:#2563eb; color:#fff; font-weight:700; padding:0.6rem 1.3rem; border-radius:8px; display:inline-flex; align-items:center; gap:0.5rem; border:none; box-shadow:0 4px 12px rgba(37,99,235,0.3); cursor:pointer;">
-        📸 Snap & Use Photo
+        📸 Snap & Upload Photo
       </button>
     </div>
   </div>
@@ -260,7 +269,10 @@ window.openCameraModal = function(targetInputId) {
   currentPhotoTargetInputId = targetInputId || 'id_photos';
   const modal = document.getElementById('cameraModal');
   const video = document.getElementById('cameraVideoFeed');
+  const captionInput = document.getElementById('cameraPhotoCaptionInput');
   if (!modal || !video) return;
+
+  if (captionInput) captionInput.value = '';
 
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } })
@@ -297,6 +309,9 @@ window.captureCameraPhoto = function() {
   const ctx = canvas.getContext('2d');
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+  const captionInput = document.getElementById('cameraPhotoCaptionInput');
+  const captionVal = captionInput ? captionInput.value.trim() : '';
+
   canvas.toBlob(blob => {
     if (!blob) return;
     const file = new File([blob], `camera_photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
@@ -311,7 +326,26 @@ window.captureCameraPhoto = function() {
     inputEl.files = dt.files;
     inputEl.dispatchEvent(new Event('change'));
 
+    // Attach caption to target form caption field if exists
+    const parentForm = inputEl.closest('form');
+    if (parentForm) {
+      const formCaptionField = parentForm.querySelector('[name="caption"]') || parentForm.querySelector('#id_caption');
+      if (formCaptionField && captionVal) {
+        formCaptionField.value = captionVal;
+      }
+    }
+
     closeCameraModal();
+
+    // Auto-submit single photo upload form if on job detail page
+    if (parentForm && (parentForm.action.includes('add_photo') || inputEl.id === 'id_image')) {
+      const submitBtn = parentForm.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '⏳ Uploading...';
+      }
+      parentForm.submit();
+    }
   }, 'image/jpeg', 0.92);
 };
 
@@ -571,8 +605,8 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Universal Password Show/Hide Eye Toggle (Applies to ALL password fields in project)
-  const EYE_OPEN_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
-  const EYE_OFF_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+  const EYE_OPEN_ICON = '👁️';
+  const EYE_OFF_ICON = '🙈';
 
   document.querySelectorAll('input[type="password"], input[name*="password"], input[id*="password"]').forEach(function(input) {
     const scope = input.closest('.form-group, .form-field-group, .input-icon-wrapper, .password-eye-wrapper') || input.parentNode;
@@ -598,22 +632,22 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleBtn.className = 'btn-toggle-eye-pwd';
     toggleBtn.setAttribute('aria-label', 'Toggle password visibility');
     toggleBtn.setAttribute('title', 'Show/Hide Password');
-    toggleBtn.innerHTML = EYE_OPEN_SVG;
-    toggleBtn.style.cssText = 'position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 1.1rem; cursor: pointer; opacity: 0.75; transition: opacity 0.2s ease; z-index: 10; padding: 0.2rem; user-select: none; color: inherit; display: flex; align-items: center; justify-content: center;';
+    toggleBtn.innerHTML = EYE_OPEN_ICON;
+    toggleBtn.style.cssText = 'position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 1.15rem; cursor: pointer; opacity: 0.85; transition: opacity 0.2s ease; z-index: 10; padding: 0.2rem; user-select: none; color: inherit; display: flex; align-items: center; justify-content: center;';
 
     toggleBtn.addEventListener('mouseenter', function() { toggleBtn.style.opacity = '1'; });
-    toggleBtn.addEventListener('mouseleave', function() { toggleBtn.style.opacity = '0.75'; });
+    toggleBtn.addEventListener('mouseleave', function() { toggleBtn.style.opacity = '0.85'; });
 
     toggleBtn.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
       if (input.type === 'password') {
         input.type = 'text';
-        toggleBtn.innerHTML = EYE_OFF_SVG;
+        toggleBtn.innerHTML = EYE_OFF_ICON;
         toggleBtn.setAttribute('aria-label', 'Hide password');
       } else {
         input.type = 'password';
-        toggleBtn.innerHTML = EYE_OPEN_SVG;
+        toggleBtn.innerHTML = EYE_OPEN_ICON;
         toggleBtn.setAttribute('aria-label', 'Show password');
       }
     });

@@ -560,17 +560,35 @@ def job_search_records(request):
             Q(make__icontains=search_query) |
             Q(customer__name__icontains=search_query) |
             Q(customer__phone__icontains=search_query)
-        ).select_related('customer')[:10]
+        ).select_related('customer')[:15]
         
         for v in vehicles:
+            active_jc = JobCard.objects.filter(vehicle=v).exclude(status__in=['completed', 'delivered', 'cancelled']).order_by('-created_at').first()
+            active_jc_data = None
+            if active_jc:
+                active_jc_data = {
+                    'id': active_jc.id,
+                    'job_number': active_jc.job_number,
+                    'status': active_jc.status,
+                    'status_display': active_jc.get_status_display(),
+                    'url': reverse('job_detail', args=[active_jc.id])
+                }
+
             response_data['results'].append({
                 'customer_name': v.customer.name,
                 'customer_phone': v.customer.phone,
                 'customer_email': v.customer.email,
                 'customer_address': v.customer.address,
+                'vehicle_id': v.id,
                 'vehicle_number': v.license_plate,
                 'vehicle_model': f"{v.make} {v.model}".strip(),
-                'vehicle_color': v.color
+                'vehicle_make': v.make,
+                'vehicle_color': v.color,
+                'vehicle_year': v.year,
+                'vehicle_vin': v.vin or '',
+                'vehicle_mileage': v.mileage or 0,
+                'has_active_job': bool(active_jc_data),
+                'active_job': active_jc_data
             })
             
         if len(response_data['results']) < 5:
@@ -584,9 +602,15 @@ def job_search_records(request):
                     'customer_phone': c.phone,
                     'customer_email': c.email,
                     'customer_address': c.address,
+                    'vehicle_id': None,
                     'vehicle_number': '',
                     'vehicle_model': '',
-                    'vehicle_color': ''
+                    'vehicle_color': '',
+                    'vehicle_year': '',
+                    'vehicle_vin': '',
+                    'vehicle_mileage': 0,
+                    'has_active_job': False,
+                    'active_job': None
                 })
 
     return JsonResponse(response_data)
@@ -643,6 +667,20 @@ def job_create(request):
             # Find or create Vehicle by license plate (prevent duplicates)
             vehicle = Vehicle.objects.filter(license_plate__iexact=v_num).first()
             if vehicle:
+                # Prevent duplicate active job cards for the same vehicle
+                active_jc = JobCard.objects.filter(vehicle=vehicle).exclude(status__in=['completed', 'delivered', 'cancelled']).order_by('-created_at').first()
+                if active_jc:
+                    messages.error(request, f"Cannot create new job card: Vehicle '{vehicle.license_plate}' already has an active Job Card ({active_jc.job_number} - {active_jc.get_status_display()}). Please complete or cancel the existing job card first.")
+                    return render(request, 'core/job_form.html', {'form': form, 'title': 'Create Job Card'})
+
+                # Prevent double submit duplicate job creation within 30s
+                recent_cutoff = timezone.now() - timedelta(seconds=30)
+                existing_duplicate = JobCard.objects.filter(
+                    vehicle=vehicle,
+                    problem_description=job.problem_description,
+                    created_at__gte=recent_cutoff
+                ).first()
+
                 # Update customer relationship and vehicle info
                 if vehicle.customer != customer:
                     messages.info(request, f"Vehicle '{v_num}' was previously registered under customer '{vehicle.customer.name}'. Re-associated to '{customer.name}'.")
