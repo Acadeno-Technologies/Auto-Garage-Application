@@ -46,6 +46,15 @@ document.addEventListener('DOMContentLoaded', function() {
     roleSelect.addEventListener('change', toggleCustomRole);
     toggleCustomRole();
   }
+
+  const phoneInput = document.querySelector('input[name="phone"]');
+  if (phoneInput) {
+    phoneInput.setAttribute('maxlength', '10');
+    phoneInput.setAttribute('inputmode', 'numeric');
+    phoneInput.addEventListener('input', function() {
+      this.value = this.value.replace(/\D/g, '').slice(0, 10);
+    });
+  }
 });
 </script>
 {% endblock %}

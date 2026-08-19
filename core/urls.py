@@ -86,5 +86,8 @@ urlpatterns = [
 
     # WhatsApp Notifications
     path('send-whatsapp/', views.send_whatsapp_view, name='send_whatsapp'),
+
+    # Garage Settings & Branding
+    path('settings/', views.garage_settings_view, name='garage_settings'),
 ]
 

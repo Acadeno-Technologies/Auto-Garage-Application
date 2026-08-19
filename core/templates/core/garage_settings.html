@@ -1,0 +1,107 @@
+{% extends 'core/base.html' %}
+
+{% block page_title %}Garage Settings & Branding{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px; margin: 0 auto;">
+
+  <form method="POST" enctype="multipart/form-data" class="card" style="background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+    {% csrf_token %}
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1.5rem;">
+
+      <!-- Workshop Identity -->
+      <div style="background: #f8fafc; padding: 1.25rem; border-radius: 12px; border: 1px solid #e2e8f0;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 1rem; border-bottom: 2px solid #cbd5e1; padding-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+          🏬 Workshop Identity
+        </h3>
+        
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" style="font-weight: 600; color: #334155;">Garage / Business Name *</label>
+          {{ form.name }}
+          {% if form.name.errors %}<div class="form-error" style="color: #ef4444; font-size: 0.85rem;">{{ form.name.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" style="font-weight: 600; color: #334155;">Tagline / Subtitle</label>
+          {{ form.tagline }}
+          {% if form.tagline.errors %}<div class="form-error" style="color: #ef4444; font-size: 0.85rem;">{{ form.tagline.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" style="font-weight: 600; color: #334155;">GSTIN / Tax ID Number</label>
+          {{ form.gst_number }}
+          {% if form.gst_number.errors %}<div class="form-error" style="color: #ef4444; font-size: 0.85rem;">{{ form.gst_number.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="font-weight: 600; color: #334155;">Workshop Logo</label>
+          {% if settings_obj.logo or form.instance.logo %}
+          <div style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 1rem; background: #ffffff; padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1;">
+            <img src="{% if settings_obj.logo %}{{ settings_obj.logo.url }}{% else %}{{ form.instance.logo.url }}{% endif %}" alt="Current Logo" style="height: 50px; max-width: 120px; object-fit: contain; border-radius: 4px;">
+            <div>
+              <span style="font-size: 0.85rem; color: #334155; font-weight: 600; display: block;">Current Logo Loaded</span>
+              <span style="font-size: 0.75rem; color: #64748b;">Select a new file below to replace it.</span>
+            </div>
+          </div>
+          {% endif %}
+          {{ form.logo }}
+          <span style="font-size: 0.8rem; color: #64748b; display: block; margin-top: 0.25rem;">Supported formats: PNG, JPG, JPEG, WEBP. Appears on bills & job cards.</span>
+          {% if form.logo.errors %}<div class="form-error" style="color: #ef4444; font-size: 0.85rem;">{{ form.logo.errors }}</div>{% endif %}
+        </div>
+      </div>
+
+      <!-- Contact & Address -->
+      <div style="background: #f8fafc; padding: 1.25rem; border-radius: 12px; border: 1px solid #e2e8f0;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 1rem; border-bottom: 2px solid #cbd5e1; padding-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+          📍 Address & Contact Info
+        </h3>
+
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" style="font-weight: 600; color: #334155;">Contact Phone Number *</label>
+          {{ form.phone }}
+          {% if form.phone.errors %}<div class="form-error" style="color: #ef4444; font-size: 0.85rem;">{{ form.phone.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" style="font-weight: 600; color: #334155;">Contact Email</label>
+          {{ form.email }}
+          {% if form.email.errors %}<div class="form-error" style="color: #ef4444; font-size: 0.85rem;">{{ form.email.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" style="font-weight: 600; color: #334155;">Street Address</label>
+          {{ form.address }}
+          {% if form.address.errors %}<div class="form-error" style="color: #ef4444; font-size: 0.85rem;">{{ form.address.errors }}</div>{% endif %}
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 600; color: #334155;">City</label>
+            {{ form.city }}
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 600; color: #334155;">State</label>
+            {{ form.state }}
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 600; color: #334155;">Pincode</label>
+            {{ form.pincode }}
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">
+      <a href="{% url 'owner_dashboard' %}" class="btn btn-secondary" style="padding: 0.65rem 1.5rem; font-weight: 600; text-decoration: none;">Cancel</a>
+      <button type="submit" class="btn btn-primary" style="padding: 0.65rem 2rem; font-weight: 700; background: #2563eb; color: #fff; border: none; border-radius: 8px; box-shadow: 0 4px 12px rgba(37,99,235,0.25); cursor: pointer;">
+        💾 Save Garage Settings
+      </button>
+    </div>
+
+  </form>
+
+</div>
+{% endblock %}

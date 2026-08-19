@@ -82,7 +82,7 @@ class StaffCreationForm(forms.ModelForm):
         label="Custom Role Title (Specify if 'Custom Role' is selected)",
         widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Senior Electrician, Front Desk, Accountant', 'id': 'id_custom_role_input'})
     )
-    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={'class': 'form-input'}))
+    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={'class': 'form-input', 'maxlength': '10', 'placeholder': '10-digit Phone Number'}))
 
     class Meta:
         model = User
@@ -91,6 +91,23 @@ class StaffCreationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['role'].choices = get_customized_role_choices(include_owner=False)
+
+    def clean_first_name(self):
+        val = self.cleaned_data.get('first_name', '').strip()
+        return val.upper() if val else val
+
+    def clean_last_name(self):
+        val = self.cleaned_data.get('last_name', '').strip()
+        return val.upper() if val else val
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone', '').strip()
+        if phone:
+            cleaned_digits = ''.join(c for c in phone if c.isdigit())
+            if len(cleaned_digits) != 10:
+                raise forms.ValidationError("Please enter a valid 10-digit phone number.")
+            return cleaned_digits
+        return phone
 
 
 class StaffEditForm(forms.ModelForm):
@@ -107,7 +124,7 @@ class StaffEditForm(forms.ModelForm):
         label="Custom Role Title (Specify if 'Custom Role' is selected)",
         widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Senior Electrician, Front Desk, Accountant', 'id': 'id_custom_role_input'})
     )
-    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={'class': 'form-input'}))
+    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={'class': 'form-input', 'maxlength': '10', 'placeholder': '10-digit Phone Number'}))
 
     class Meta:
         model = User
@@ -116,6 +133,23 @@ class StaffEditForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['role'].choices = get_customized_role_choices(include_owner=False)
+
+    def clean_first_name(self):
+        val = self.cleaned_data.get('first_name', '').strip()
+        return val.upper() if val else val
+
+    def clean_last_name(self):
+        val = self.cleaned_data.get('last_name', '').strip()
+        return val.upper() if val else val
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone', '').strip()
+        if phone:
+            cleaned_digits = ''.join(c for c in phone if c.isdigit())
+            if len(cleaned_digits) != 10:
+                raise forms.ValidationError("Please enter a valid 10-digit phone number.")
+            return cleaned_digits
+        return phone
 
 
 class CustomerForm(forms.ModelForm):
@@ -128,6 +162,10 @@ class CustomerForm(forms.ModelForm):
             'phone': forms.TextInput(attrs={'class': 'form-input', 'maxlength': '10', 'placeholder': '10-digit Phone Number'}),
             'address': forms.Textarea(attrs={'class': 'form-input', 'rows': 3, 'placeholder': 'Customer Address'}),
         }
+
+    def clean_name(self):
+        val = self.cleaned_data.get('name', '').strip()
+        return val.upper() if val else val
 
     def clean_phone(self):
         phone = self.cleaned_data.get('phone', '').strip()
@@ -400,10 +438,19 @@ class SupplierForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-input'}),
             'contact_person': forms.TextInput(attrs={'class': 'form-input'}),
-            'phone': forms.TextInput(attrs={'class': 'form-input'}),
+            'phone': forms.TextInput(attrs={'class': 'form-input', 'maxlength': '10', 'placeholder': '10-digit Phone Number'}),
             'email': forms.EmailInput(attrs={'class': 'form-input'}),
             'address': forms.Textarea(attrs={'class': 'form-input', 'rows': 2}),
         }
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone', '').strip()
+        if phone:
+            cleaned_digits = ''.join(c for c in phone if c.isdigit())
+            if len(cleaned_digits) != 10:
+                raise forms.ValidationError("Please enter a valid 10-digit phone number.")
+            return cleaned_digits
+        return phone
 
 
 class StockTransactionForm(forms.ModelForm):
@@ -501,7 +548,7 @@ class UserProfileUpdateForm(forms.ModelForm):
     first_name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-input'}))
     last_name = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-input'}))
     email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-input'}))
-    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={'class': 'form-input'}))
+    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={'class': 'form-input', 'maxlength': '10', 'placeholder': '10-digit Phone Number'}))
 
     class Meta:
         model = User
@@ -513,6 +560,15 @@ class UserProfileUpdateForm(forms.ModelForm):
         if user_profile:
             self.fields['phone'].initial = user_profile.phone
 
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone', '').strip()
+        if phone:
+            cleaned_digits = ''.join(c for c in phone if c.isdigit())
+            if len(cleaned_digits) != 10:
+                raise forms.ValidationError("Please enter a valid 10-digit phone number.")
+            return cleaned_digits
+        return phone
+
 
 class GarageSettingsForm(forms.ModelForm):
     class Meta:
@@ -521,7 +577,7 @@ class GarageSettingsForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Krishna Auto Care'}),
             'tagline': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Multi-Brand Precision Car Clinic'}),
-            'phone': forms.TextInput(attrs={'class': 'form-input', 'placeholder': '+91 98765 43210'}),
+            'phone': forms.TextInput(attrs={'class': 'form-input', 'maxlength': '10', 'placeholder': '10-digit Phone Number'}),
             'email': forms.EmailInput(attrs={'class': 'form-input', 'placeholder': 'info@krishnaautocare.com'}),
             'address': forms.Textarea(attrs={'class': 'form-input', 'rows': 2, 'placeholder': 'Street Address / Landmark'}),
             'city': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'City / Location'}),
@@ -530,5 +586,14 @@ class GarageSettingsForm(forms.ModelForm):
             'gst_number': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'GSTIN / Registration Number'}),
             'logo': forms.FileInput(attrs={'class': 'form-input', 'accept': 'image/*'}),
         }
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone', '').strip()
+        if phone:
+            cleaned_digits = ''.join(c for c in phone if c.isdigit())
+            if len(cleaned_digits) != 10:
+                raise forms.ValidationError("Please enter a valid 10-digit phone number.")
+            return cleaned_digits
+        return phone
 
 

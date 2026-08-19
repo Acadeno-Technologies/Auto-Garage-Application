@@ -1709,3 +1709,24 @@ def send_whatsapp_view(request):
 
     return redirect(wa_url)
 
+
+@login_required
+@role_required('owner')
+def garage_settings_view(request):
+    settings_obj = GarageSettings.get_settings()
+    if request.method == 'POST':
+        form = GarageSettingsForm(request.POST, request.FILES, instance=settings_obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Garage settings and workshop branding updated successfully.")
+            return redirect('garage_settings')
+        else:
+            messages.error(request, "Please correct the errors in the form below.")
+    else:
+        form = GarageSettingsForm(instance=settings_obj)
+
+    return render(request, 'core/garage_settings.html', {
+        'form': form,
+        'settings_obj': settings_obj,
+    })
+
