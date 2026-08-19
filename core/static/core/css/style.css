@@ -192,6 +192,7 @@ img, video, iframe, embed {
   font-size: 0.9rem;
   font-weight: 600;
   border-radius: 8px;
+  margin-bottom: 0.4rem;
   transition: var(--transition);
   position: relative;
 }
@@ -206,12 +207,7 @@ img, video, iframe, embed {
 }
 
 .nav-link:hover {
-  background: #f1f5f9;
-  color: #0f172a;
-}
-
-.nav-link:hover svg {
-  stroke: #0f172a;
+  background: transparent;
 }
 
 .nav-link.active {
