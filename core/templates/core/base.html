@@ -325,20 +325,31 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Convert text input (names, vehicle numbers, addresses, titles, etc.) to UPPERCASE automatically as typed
+  // Convert text inputs to Title Case (e.g. "Priya P") or UPPERCASE (for vehicle/GST codes) as typed
   const excludedNames = ['email', 'username', 'password', 'csrfmiddlewaretoken'];
+  const uppercaseFields = ['vehicle', 'plate', 'license', 'vin', 'gst', 'part_number', 'registration', 'code'];
+
   document.querySelectorAll('input[type="text"], input:not([type])').forEach(function(input) {
     const fieldName = (input.name || input.id || '').toLowerCase();
-    if (!excludedNames.some(ex => fieldName.includes(ex))) {
-      input.addEventListener('input', function() {
-        const start = this.selectionStart;
-        const end = this.selectionEnd;
+    if (excludedNames.some(ex => fieldName.includes(ex))) return;
+
+    input.addEventListener('input', function() {
+      const start = this.selectionStart;
+      const end = this.selectionEnd;
+
+      if (uppercaseFields.some(uf => fieldName.includes(uf))) {
         this.value = this.value.toUpperCase();
-        if (start !== null && end !== null) {
-          this.setSelectionRange(start, end);
-        }
-      });
-    }
+      } else {
+        // Title Case: Capitalize first letter of each word (e.g. Priya P)
+        this.value = this.value.replace(/\b[a-z]/g, function(char) {
+          return char.toUpperCase();
+        });
+      }
+
+      if (start !== null && end !== null) {
+        this.setSelectionRange(start, end);
+      }
+    });
   });
 });
 </script>

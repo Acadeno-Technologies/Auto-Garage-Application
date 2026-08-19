@@ -94,11 +94,11 @@ class StaffCreationForm(forms.ModelForm):
 
     def clean_first_name(self):
         val = self.cleaned_data.get('first_name', '').strip()
-        return val.upper() if val else val
+        return val.title() if val else val
 
     def clean_last_name(self):
         val = self.cleaned_data.get('last_name', '').strip()
-        return val.upper() if val else val
+        return val.title() if val else val
 
     def clean_phone(self):
         phone = self.cleaned_data.get('phone', '').strip()
@@ -136,11 +136,11 @@ class StaffEditForm(forms.ModelForm):
 
     def clean_first_name(self):
         val = self.cleaned_data.get('first_name', '').strip()
-        return val.upper() if val else val
+        return val.title() if val else val
 
     def clean_last_name(self):
         val = self.cleaned_data.get('last_name', '').strip()
-        return val.upper() if val else val
+        return val.title() if val else val
 
     def clean_phone(self):
         phone = self.cleaned_data.get('phone', '').strip()
@@ -165,7 +165,7 @@ class CustomerForm(forms.ModelForm):
 
     def clean_name(self):
         val = self.cleaned_data.get('name', '').strip()
-        return val.upper() if val else val
+        return val.title() if val else val
 
     def clean_phone(self):
         phone = self.cleaned_data.get('phone', '').strip()
