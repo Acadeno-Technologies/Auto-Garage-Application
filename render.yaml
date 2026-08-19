@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: autogarage
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn autogarage.wsgi:application"

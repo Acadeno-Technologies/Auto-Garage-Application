@@ -787,6 +787,24 @@
         <span id="vehicle-status-badge" class="badge-status-pill badge-info-blue" style="display:none;"></span>
       </div>
 
+      <!-- SELECTED VEHICLE SUMMARY CARD -->
+      <div id="selected-vehicle-banner" style="display:none; background:#f0f9ff; border:1px solid #bae6fd; border-radius:14px; padding:1.1rem 1.3rem; margin-bottom:1.25rem; box-shadow:0 2px 8px rgba(3,105,161,0.06);">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;">
+          <h4 style="font-size:1.05rem; font-weight:800; color:#0369a1; margin:0; display:flex; align-items:center; gap:0.45rem;">
+            <span>🚘</span> <span id="sel-v-title">Vehicle Model</span>
+          </h4>
+          <span class="badge-status-pill badge-info-blue" style="background:#e0f2fe; color:#0369a1; border-color:#7dd3fc;">✓ Selected Vehicle Information</span>
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:0.65rem; font-size:0.86rem; color:#334155;">
+          <div><strong>Vehicle No:</strong> <span id="sel-v-no" style="font-family:monospace; font-weight:700; color:#0f172a; background:#ffffff; border:1px solid #cbd5e1; padding:0.15rem 0.45rem; border-radius:6px;">—</span></div>
+          <div><strong>VIN:</strong> <span id="sel-v-vin" style="font-weight:600; color:#0f172a;">—</span></div>
+          <div><strong>Model:</strong> <span id="sel-v-model" style="font-weight:600; color:#0f172a;">—</span></div>
+          <div><strong>Color:</strong> <span id="sel-v-color" style="font-weight:600; color:#0f172a;">—</span></div>
+          <div><strong>Current Mileage:</strong> <span id="sel-v-mileage" style="font-weight:600; color:#0f172a;">—</span></div>
+          <div><strong>Customer Name:</strong> <span id="sel-v-customer" style="font-weight:700; color:#0369a1;">—</span></div>
+        </div>
+      </div>
+
       <div class="field-grid-3">
         <!-- VEHICLE NUMBER -->
         <div class="custom-form-group">
@@ -1126,6 +1144,9 @@
         vehicleBadge.style.display = 'none';
         vehicleBadge.innerHTML = '';
       }
+
+      const selVCard = document.getElementById('selected-vehicle-banner');
+      if (selVCard) selVCard.style.display = 'none';
     }
 
     window.switchCustomerState = function(state, customerData = null) {
@@ -1216,9 +1237,10 @@
                 <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
                   <thead>
                     <tr style="background:#f1f5f9; border-bottom:1px solid #cbd5e1; text-align:left; color:#475569; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;">
-                      <th style="padding:0.75rem 1rem;">Customer</th>
+                      <th style="padding:0.75rem 1rem;">Customer Name</th>
                       <th style="padding:0.75rem 1rem;">Phone</th>
                       <th style="padding:0.75rem 1rem;">Vehicle No.</th>
+                      <th style="padding:0.75rem 1rem;">Model</th>
                       <th style="padding:0.75rem 1rem;">Email</th>
                       <th style="padding:0.75rem 1rem; text-align:right;">Action</th>
                     </tr>
@@ -1232,21 +1254,42 @@
                 phone: item.customer_phone,
                 email: item.customer_email || '',
                 address: item.customer_address || '',
+                vehicle_id: item.vehicle_id || null,
                 vehicle_number: item.vehicle_number || '',
                 vehicle_model: item.vehicle_model || '',
-                vehicle_color: item.vehicle_color || ''
+                vehicle_make: item.vehicle_make || '',
+                vehicle_color: item.vehicle_color || '',
+                vehicle_year: item.vehicle_year || '',
+                vehicle_vin: item.vehicle_vin || '',
+                vehicle_mileage: item.vehicle_mileage || ''
               }).replace(/"/g, '&quot;');
 
+              let actionCellHtml = '';
+              if (item.has_active_job && item.active_job) {
+                actionCellHtml = `
+                  <a href="${item.active_job.url}" target="_blank" onclick="event.stopPropagation();" style="background:#fffbeb; color:#b45309; border:1px solid #fde68a; font-weight:700; padding:0.45rem 0.85rem; border-radius:8px; font-size:0.78rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.35rem; box-shadow:0 1px 3px rgba(180,83,9,0.1);" title="Active Job Card exists for this vehicle">
+                    <span>👁️</span> View Active Job Card <span style="background:#fef3c7; padding:0.15rem 0.45rem; border-radius:6px; font-size:0.72rem; border:1px solid #fcd34d; margin-left:0.25rem;">(${item.active_job.job_number} · ${item.active_job.status_display})</span>
+                  </a>
+                `;
+              } else {
+                actionCellHtml = `
+                  <button type="button" class="btn-select-customer" onclick="onSelectCustomerFromSearch(${customerJson})">
+                    Select
+                  </button>
+                `;
+              }
+
+              const rowClick = item.has_active_job ? '' : `onclick="onSelectCustomerFromSearch(${customerJson})"`;
+
               html += `
-                <tr class="selectable-row" style="border-bottom:1px solid #f1f5f9; transition:background 0.15s ease;" onclick="onSelectCustomerFromSearch(${customerJson})" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ') onSelectCustomerFromSearch(${customerJson});">
+                <tr class="${item.has_active_job ? '' : 'selectable-row'}" style="border-bottom:1px solid #f1f5f9; transition:background 0.15s ease; ${item.has_active_job ? 'background:#fffdf5;' : ''}" ${rowClick}>
                   <td style="padding:0.75rem 1rem; font-weight:700; color:#0f172a;">👤 ${item.customer_name}</td>
                   <td style="padding:0.75rem 1rem; color:#334155; font-weight:600;">${item.customer_phone}</td>
-                  <td style="padding:0.75rem 1rem; color:#475569;">${item.vehicle_number ? '🚘 ' + item.vehicle_number + (item.vehicle_model ? ' (' + item.vehicle_model + ')' : '') : '—'}</td>
+                  <td style="padding:0.75rem 1rem;">${item.vehicle_number ? '<span style="font-family:monospace; font-weight:700; background:#f8fafc; border:1px solid #cbd5e1; padding:0.2rem 0.5rem; border-radius:6px; color:#0f172a;">🚘 ' + item.vehicle_number + '</span>' : '—'}</td>
+                  <td style="padding:0.75rem 1rem; color:#334155; font-weight:600;">${item.vehicle_model || '—'}</td>
                   <td style="padding:0.75rem 1rem; color:#64748b;">${item.customer_email || '—'}</td>
                   <td style="padding:0.75rem 1rem; text-align:right;">
-                    <button type="button" class="btn-select-customer" onclick="onSelectCustomerFromSearch(${customerJson})">
-                      Select
-                    </button>
+                    ${actionCellHtml}
                   </td>
                 </tr>
               `;
@@ -1280,6 +1323,39 @@
 
       if (numInput && customerData.vehicle_number) {
         numInput.value = customerData.vehicle_number;
+        numInput.classList.add('input-auto-populated');
+      }
+      if (modelInput && customerData.vehicle_model) {
+        modelInput.value = customerData.vehicle_model;
+        modelInput.classList.add('input-auto-populated');
+      }
+      if (colorInput && customerData.vehicle_color) {
+        colorInput.value = customerData.vehicle_color;
+        colorInput.classList.add('input-auto-populated');
+      }
+
+      // Populate Selected Vehicle Card
+      const selVCard = document.getElementById('selected-vehicle-banner');
+      const selVTitle = document.getElementById('sel-v-title');
+      const selVNo = document.getElementById('sel-v-no');
+      const selVVin = document.getElementById('sel-v-vin');
+      const selVModel = document.getElementById('sel-v-model');
+      const selVColor = document.getElementById('sel-v-color');
+      const selVMileage = document.getElementById('sel-v-mileage');
+      const selVCustomer = document.getElementById('sel-v-customer');
+
+      if (selVCard && customerData.vehicle_number) {
+        if (selVTitle) selVTitle.textContent = customerData.vehicle_model || customerData.vehicle_number;
+        if (selVNo) selVNo.textContent = customerData.vehicle_number;
+        if (selVVin) selVVin.textContent = customerData.vehicle_vin || '—';
+        if (selVModel) selVModel.textContent = customerData.vehicle_model || '—';
+        if (selVColor) selVColor.textContent = customerData.vehicle_color || '—';
+        if (selVMileage) selVMileage.textContent = customerData.vehicle_mileage ? `${customerData.vehicle_mileage} km` : '—';
+        if (selVCustomer) selVCustomer.textContent = customerData.name || '—';
+        selVCard.style.display = 'block';
+      }
+
+      if (customerData.vehicle_number) {
         triggerVehicleSearch(customerData.vehicle_number);
       }
     };
