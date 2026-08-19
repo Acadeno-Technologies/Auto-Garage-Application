@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const phoneInput = document.querySelector('input[name="phone"]');
   if (phoneInput) {
-    phoneInput.setAttribute('maxlength', '10');
+    phoneInput.setAttribute('maxlength', '20');
     phoneInput.setAttribute('inputmode', 'numeric');
     phoneInput.addEventListener('input', function() {
       this.value = this.value.replace(/\D/g, '').slice(0, 10);

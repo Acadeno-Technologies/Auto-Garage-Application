@@ -317,12 +317,308 @@ window.captureCameraPhoto = function() {
 
 // Global Phone Input Validation (10 Digits) & Auto-Uppercase for Names/Text
 document.addEventListener('DOMContentLoaded', function() {
+  const allCountries = [
+    { code: 'IM', flag: '🇮🇲', en: 'Isle of Man', native: '', dial: '+44' },
+    { code: 'KE', flag: '🇰🇪', en: 'Kenya', native: '', dial: '+254' },
+    { code: 'KI', flag: '🇰🇮', en: 'Kiribati', native: '', dial: '+686' },
+    { code: 'XK', flag: '🇽🇰', en: 'Kosovo', native: 'Kosovë', dial: '+383' },
+    { code: 'KW', flag: '🇰🇼', en: 'Kuwait', native: 'الكويت', dial: '+965' },
+    { code: 'KG', flag: '🇰🇬', en: 'Kyrgyzstan', native: 'Кыргызстан', dial: '+996' },
+    { code: 'IN', flag: '🇮🇳', en: 'India', native: 'भारत', dial: '+91' },
+    { code: 'SG', flag: '🇸🇬', en: 'Singapore', native: '', dial: '+65' },
+    { code: 'AE', flag: '🇦🇪', en: 'United Arab Emirates', native: 'الإمارات', dial: '+971' },
+    { code: 'GB', flag: '🇬🇧', en: 'United Kingdom', native: '', dial: '+44' },
+    { code: 'US', flag: '🇺🇸', en: 'United States', native: '', dial: '+1' },
+    { code: 'AU', flag: '🇦🇺', en: 'Australia', native: '', dial: '+61' },
+    { code: 'CA', flag: '🇨🇦', en: 'Canada', native: '', dial: '+1' },
+    { code: 'QA', flag: '🇶🇦', en: 'Qatar', native: 'قطر', dial: '+974' },
+    { code: 'SA', flag: '🇸🇦', en: 'Saudi Arabia', native: 'السعودية', dial: '+966' },
+    { code: 'OM', flag: '🇴🇲', en: 'Oman', native: 'عُمان', dial: '+968' },
+    { code: 'BH', flag: '🇧🇭', en: 'Bahrain', native: 'البحرين', dial: '+973' },
+    { code: 'MY', flag: '🇲🇾', en: 'Malaysia', native: '', dial: '+60' },
+    { code: 'DE', flag: '🇩🇪', en: 'Germany', native: 'Deutschland', dial: '+49' },
+    { code: 'FR', flag: '🇫🇷', en: 'France', native: '', dial: '+33' },
+    { code: 'JP', flag: '🇯🇵', en: 'Japan', native: '日本', dial: '+81' }
+  ];
+
   document.querySelectorAll('input[name*="phone"], input[id*="phone"], input[type="tel"]').forEach(function(input) {
-    input.setAttribute('maxlength', '10');
+    input.setAttribute('maxlength', '20');
     input.setAttribute('inputmode', 'numeric');
-    input.addEventListener('input', function() {
-      this.value = this.value.replace(/\D/g, '').slice(0, 10);
+    input.setAttribute('placeholder', '10-digit Phone Number');
+    input.setAttribute('autocomplete', 'off');
+
+    if (!input.closest('.phone-input-group')) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'phone-input-group';
+
+      // 1. Top Searchable Country Button & Popup
+      const pickerWrapper = document.createElement('div');
+      pickerWrapper.className = 'country-picker-wrapper';
+
+      let activeCountry = allCountries[0]; // Default: Isle of Man / India
+      const savedCountryCode = window.localStorage.getItem('garage-country');
+      if (savedCountryCode) {
+        const found = allCountries.find(c => c.code === savedCountryCode);
+        if (found) activeCountry = found;
+      }
+
+      const pickerBtn = document.createElement('button');
+      pickerBtn.type = 'button';
+      pickerBtn.className = 'country-picker-btn';
+      pickerBtn.innerHTML = `<span class="picker-btn-label"><img class="country-flag" src="https://flagcdn.com/24x18/${activeCountry.code.toLowerCase()}.png" alt=""> ${activeCountry.en}</span> <span style="font-size:0.75rem; color:#0f172a;">▼</span>`;
+
+      const dropdownPopup = document.createElement('div');
+      dropdownPopup.className = 'country-dropdown-popup';
+
+      const searchWrapper = document.createElement('div');
+      searchWrapper.className = 'country-search-wrapper';
+      searchWrapper.innerHTML = `<input type="text" class="country-search-input" placeholder="Search country...">`;
+
+      const listScroll = document.createElement('ul');
+      listScroll.className = 'country-list-scroll';
+
+      function renderCountryList(filterText = '') {
+        const query = filterText.toLowerCase().trim();
+        const filtered = allCountries.filter(c => 
+          c.en.toLowerCase().includes(query) || 
+          c.native.toLowerCase().includes(query) || 
+          c.dial.includes(query)
+        );
+
+        listScroll.innerHTML = filtered.map(c => `
+          <li class="country-item" data-code="${c.code}" data-dial="${c.dial}" data-flag="${c.flag}" data-name="${c.en}">
+            <div class="country-item-left">
+              <img class="country-flag" src="https://flagcdn.com/24x18/${c.code.toLowerCase()}.png" alt="">
+              <div class="country-names">
+                <span class="country-name-en">${c.en}</span>
+                ${c.native ? `<span class="country-name-native">${c.native}</span>` : ''}
+              </div>
+            </div>
+            <span class="country-dial-code">${c.dial}</span>
+          </li>
+        `).join('');
+      }
+
+      renderCountryList();
+
+      dropdownPopup.appendChild(searchWrapper);
+      dropdownPopup.appendChild(listScroll);
+      pickerWrapper.appendChild(pickerBtn);
+      pickerWrapper.appendChild(dropdownPopup);
+
+      // Interaction Events
+      pickerBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        document.querySelectorAll('.country-dropdown-popup').forEach(p => {
+          if (p !== dropdownPopup) p.classList.remove('show');
+        });
+        dropdownPopup.classList.toggle('show');
+        if (dropdownPopup.classList.contains('show')) {
+          const searchInput = searchWrapper.querySelector('.country-search-input');
+          searchInput.value = '';
+          renderCountryList();
+          setTimeout(() => searchInput.focus(), 50);
+        }
+      });
+
+      const searchInput = searchWrapper.querySelector('.country-search-input');
+      searchInput.addEventListener('input', function(e) {
+        renderCountryList(e.target.value);
+      });
+
+      listScroll.addEventListener('click', function(e) {
+        const item = e.target.closest('.country-item');
+        if (!item) return;
+
+        const code = item.dataset.code;
+        const dial = item.dataset.dial;
+        const flag = item.dataset.flag;
+        const name = item.dataset.name;
+
+        pickerBtn.innerHTML = `<span class="picker-btn-label"><img class="country-flag" src="https://flagcdn.com/24x18/${code.toLowerCase()}.png" alt=""> ${name}</span> <span style="font-size:0.75rem; color:#0f172a;">▼</span>`;
+        normalizePhoneValue.call(input);
+        dropdownPopup.classList.remove('show');
+
+        window.localStorage.setItem('garage-country', code);
+        window.localStorage.setItem('garage-country-code', dial);
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!pickerWrapper.contains(e.target)) {
+          dropdownPopup.classList.remove('show');
+        }
+      });
+
+      input.parentNode.insertBefore(wrapper, input);
+      wrapper.appendChild(pickerWrapper);
+      input.classList.add('phone-input-number');
+      wrapper.appendChild(input);
+    }
+
+    function normalizePhoneValue() {
+      let digits = this.value.replace(/\D/g, '');
+      if (digits.length > 10 && digits.startsWith('0091')) digits = digits.slice(4);
+      if (digits.length > 10 && digits.startsWith('91')) digits = digits.slice(2);
+      this.value = digits.slice(0, 10);
+    }
+    input.addEventListener('input', normalizePhoneValue);
+    input.addEventListener('change', normalizePhoneValue);
+    input.addEventListener('blur', normalizePhoneValue);
+    normalizePhoneValue.call(input);
+  });
+
+  document.querySelectorAll('input[type="email"], input[name*="email"], input[id*="email"]').forEach(function(input) {
+    input.setAttribute('inputmode', 'email');
+    input.setAttribute('autocomplete', 'email');
+
+    const form = input.closest('form');
+
+    const commonTypos = {
+      'gmai.com': 'gmail.com',
+      'gamil.com': 'gmail.com',
+      'gmial.com': 'gmail.com',
+      'gmaill.com': 'gmail.com',
+      'gmal.com': 'gmail.com',
+      'yaho.com': 'yahoo.com',
+      'yahooo.com': 'yahoo.com',
+      'hotmai.com': 'hotmail.com',
+      'outloo.com': 'outlook.com',
+      'outlok.com': 'outlook.com',
+      'iclou.com': 'icloud.com'
+    };
+
+    const fakeDomains = ['hh.com', 'aa.com', 'bb.com', 'cc.com', 'dd.com', 'ee.com', 'ff.com', 'gg.com', 'ii.com', 'jj.com', 'kk.com', 'll.com', 'mm.com', 'nn.com', 'oo.com', 'pp.com', 'qq.com', 'rr.com', 'ss.com', 'tt.com', 'uu.com', 'vv.com', 'ww.com', 'xx.com', 'yy.com', 'zz.com', '11.com', 'test.com', 'example.com', 'asdf.com', 'qwerty.com', 'abc.com', 'xyz.com', 'fake.com', 'temp.com', 'dummy.com', '123.com', 'mailinator.com'];
+
+    let errorSpan = input.parentNode.querySelector('.inline-email-error');
+    if (!errorSpan) {
+      errorSpan = document.createElement('div');
+      errorSpan.className = 'inline-email-error';
+      errorSpan.style.cssText = 'color: #dc2626; font-size: 0.83rem; font-weight: 600; margin-top: 0.35rem; display: none; align-items: center; gap: 0.3rem;';
+      input.parentNode.appendChild(errorSpan);
+    }
+
+    function showInlineError(msg) {
+      if (msg) {
+        errorSpan.innerHTML = `⚠️ ${msg}`;
+        errorSpan.style.display = 'flex';
+        input.style.borderColor = '#dc2626';
+      } else {
+        errorSpan.style.display = 'none';
+        errorSpan.innerHTML = '';
+        input.style.borderColor = '';
+      }
+    }
+
+    function validateEmail(forceShowError = false) {
+      const value = input.value.trim().toLowerCase();
+      let msg = '';
+
+      if (value) {
+        const validFormat = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
+        if (!validFormat) {
+          msg = 'Please enter a valid email address (e.g. name@gmail.com).';
+        } else {
+          const domain = value.split('@')[1];
+          if (domain && commonTypos[domain]) {
+            const suggestion = commonTypos[domain];
+            msg = `Invalid email domain '@${domain}'. Did you mean '@${suggestion}'?`;
+          } else if (domain) {
+            const domainName = domain.split('.')[0];
+            if (fakeDomains.includes(domain) || (domainName.length <= 2 && new Set(domainName).size === 1)) {
+              msg = `'${value}' is not a valid email address. Please enter a real email address (e.g. name@gmail.com).`;
+            }
+          }
+        }
+      }
+
+      input.setCustomValidity(msg);
+
+      const wasSubmitted = form && (form.dataset.submitted === 'true' || form.classList.contains('was-validated'));
+      if (wasSubmitted || forceShowError) {
+        showInlineError(msg);
+      } else if (!msg) {
+        showInlineError('');
+      }
+    }
+
+    if (form) {
+      form.setAttribute('novalidate', 'novalidate');
+      form.addEventListener('submit', function(e) {
+        form.dataset.submitted = 'true';
+        validateEmail(true);
+        if (input.validationMessage) {
+          e.preventDefault();
+        }
+      });
+    }
+
+    input.addEventListener('invalid', function(e) {
+      e.preventDefault();
+      if (form) form.dataset.submitted = 'true';
+      validateEmail(true);
     });
+
+    input.addEventListener('input', function() {
+      validateEmail(false);
+    });
+
+    input.addEventListener('blur', function() {
+      const wasSubmitted = form && form.dataset.submitted === 'true';
+      if (wasSubmitted) {
+        validateEmail(true);
+      }
+    });
+  });
+
+  // Universal Password Show/Hide Eye Toggle (Applies to ALL password fields in project)
+  const EYE_OPEN_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+  const EYE_OFF_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+
+  document.querySelectorAll('input[type="password"], input[name*="password"], input[id*="password"]').forEach(function(input) {
+    const scope = input.closest('.form-group, .form-field-group, .input-icon-wrapper, .password-eye-wrapper') || input.parentNode;
+    if (input.dataset.eyeToggleAdded || scope.querySelector('.btn-toggle-eye-pwd, #togglePasswordBtn, .input-icon-right')) return;
+    input.dataset.eyeToggleAdded = 'true';
+
+    let parent = input.parentNode;
+    if (!parent.classList.contains('input-icon-wrapper') && !parent.classList.contains('password-eye-wrapper')) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'password-eye-wrapper';
+      wrapper.style.cssText = 'position: relative; width: 100%; display: flex; align-items: center;';
+      parent.insertBefore(wrapper, input);
+      wrapper.appendChild(input);
+      parent = wrapper;
+    } else {
+      parent.style.position = 'relative';
+    }
+
+    input.style.paddingRight = '2.75rem';
+
+    const toggleBtn = document.createElement('button');
+    toggleBtn.type = 'button';
+    toggleBtn.className = 'btn-toggle-eye-pwd';
+    toggleBtn.setAttribute('aria-label', 'Toggle password visibility');
+    toggleBtn.setAttribute('title', 'Show/Hide Password');
+    toggleBtn.innerHTML = EYE_OPEN_SVG;
+    toggleBtn.style.cssText = 'position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 1.1rem; cursor: pointer; opacity: 0.75; transition: opacity 0.2s ease; z-index: 10; padding: 0.2rem; user-select: none; color: inherit; display: flex; align-items: center; justify-content: center;';
+
+    toggleBtn.addEventListener('mouseenter', function() { toggleBtn.style.opacity = '1'; });
+    toggleBtn.addEventListener('mouseleave', function() { toggleBtn.style.opacity = '0.75'; });
+
+    toggleBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (input.type === 'password') {
+        input.type = 'text';
+        toggleBtn.innerHTML = EYE_OFF_SVG;
+        toggleBtn.setAttribute('aria-label', 'Hide password');
+      } else {
+        input.type = 'password';
+        toggleBtn.innerHTML = EYE_OPEN_SVG;
+        toggleBtn.setAttribute('aria-label', 'Show password');
+      }
+    });
+
+    parent.appendChild(toggleBtn);
   });
 
   // Convert text inputs to Title Case (e.g. "Priya P") or UPPERCASE (for vehicle/GST codes) as typed

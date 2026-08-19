@@ -1258,6 +1258,109 @@
         });
       });
 
+      const commonTypos = {
+        'gmai.com': 'gmail.com',
+        'gamil.com': 'gmail.com',
+        'gmial.com': 'gmail.com',
+        'gmaill.com': 'gmail.com',
+        'gmal.com': 'gmail.com',
+        'yaho.com': 'yahoo.com',
+        'yahooo.com': 'yahoo.com',
+        'hotmai.com': 'hotmail.com',
+        'outloo.com': 'outlook.com',
+        'outlok.com': 'outlook.com',
+        'iclou.com': 'icloud.com'
+      };
+
+      const fakeDomains = ['hh.com', 'aa.com', 'bb.com', 'cc.com', 'dd.com', 'ee.com', 'ff.com', 'gg.com', 'ii.com', 'jj.com', 'kk.com', 'll.com', 'mm.com', 'nn.com', 'oo.com', 'pp.com', 'qq.com', 'rr.com', 'ss.com', 'tt.com', 'uu.com', 'vv.com', 'ww.com', 'xx.com', 'yy.com', 'zz.com', '11.com', 'test.com', 'example.com', 'asdf.com', 'qwerty.com', 'abc.com', 'xyz.com', 'fake.com', 'temp.com', 'dummy.com', '123.com', 'mailinator.com'];
+
+      document.querySelectorAll('input[type="email"], input[name*="email"], input[id*="email"]').forEach(function(input) {
+        input.setAttribute('inputmode', 'email');
+        input.setAttribute('autocomplete', 'email');
+
+        const form = input.closest('form');
+
+        let errorSpan = input.parentNode.querySelector('.inline-email-error');
+        if (!errorSpan) {
+          errorSpan = document.createElement('div');
+          errorSpan.className = 'inline-email-error';
+          errorSpan.style.cssText = 'color: #dc2626; font-size: 0.83rem; font-weight: 600; margin-top: 0.35rem; display: none; align-items: center; gap: 0.3rem;';
+          input.parentNode.appendChild(errorSpan);
+        }
+
+        function showInlineError(msg) {
+          if (msg) {
+            errorSpan.innerHTML = `⚠️ ${msg}`;
+            errorSpan.style.display = 'flex';
+            input.style.borderColor = '#dc2626';
+          } else {
+            errorSpan.style.display = 'none';
+            errorSpan.innerHTML = '';
+            input.style.borderColor = '';
+          }
+        }
+
+        function validateEmail(forceShowError = false) {
+          const value = input.value.trim().toLowerCase();
+          let msg = '';
+
+          if (value) {
+            const validFormat = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
+            if (!validFormat) {
+              msg = 'Please enter a valid email address (e.g. name@gmail.com).';
+            } else {
+              const domain = value.split('@')[1];
+              if (domain && commonTypos[domain]) {
+                const suggestion = commonTypos[domain];
+                msg = `Invalid email domain '@${domain}'. Did you mean '@${suggestion}'?`;
+              } else if (domain) {
+                const domainName = domain.split('.')[0];
+                if (fakeDomains.includes(domain) || (domainName.length <= 2 && new Set(domainName).size === 1)) {
+                  msg = `'${value}' is not a valid email address. Please enter a real email address (e.g. name@gmail.com).`;
+                }
+              }
+            }
+          }
+
+          input.setCustomValidity(msg);
+
+          const wasSubmitted = form && (form.dataset.submitted === 'true' || form.classList.contains('was-validated'));
+          if (wasSubmitted || forceShowError) {
+            showInlineError(msg);
+          } else if (!msg) {
+            showInlineError('');
+          }
+        }
+
+        if (form) {
+          form.setAttribute('novalidate', 'novalidate');
+          form.addEventListener('submit', function(e) {
+            form.dataset.submitted = 'true';
+            validateEmail(true);
+            if (input.validationMessage) {
+              e.preventDefault();
+            }
+          });
+        }
+
+        input.addEventListener('invalid', function(e) {
+          e.preventDefault();
+          if (form) form.dataset.submitted = 'true';
+          validateEmail(true);
+        });
+
+        input.addEventListener('input', function() {
+          validateEmail(false);
+        });
+
+        input.addEventListener('blur', function() {
+          const wasSubmitted = form && form.dataset.submitted === 'true';
+          if (wasSubmitted) {
+            validateEmail(true);
+          }
+        });
+      });
+
       const excludedNames = ['email', 'username', 'password', 'csrfmiddlewaretoken'];
       const uppercaseFields = ['vehicle', 'plate', 'license', 'vin', 'gst', 'part_number', 'registration', 'code'];
 

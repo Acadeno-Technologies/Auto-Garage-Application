@@ -276,12 +276,28 @@ select.input-style-custom {
         <!-- LEFT SIDE: FORM FIELDS -->
         <div class="form-left-col">
           
-          <!-- CUSTOMER (Full Width) -->
-          <div class="form-field-group">
-            <label class="form-label-custom" for="{{ form.customer.id_for_label }}">
+          <!-- CUSTOMER (Single Interactive Search Field - No Separate Dropdown Below) -->
+          <div class="form-field-group" style="position:relative;">
+            <label class="form-label-custom" for="customerSearchInput">
               CUSTOMER <span class="req-star">*</span>
             </label>
-            {{ form.customer }}
+
+            <!-- Single Search Input Box -->
+            <div style="position:relative;">
+              <span style="position:absolute; left:0.85rem; top:50%; transform:translateY(-50%); color:#64748b; font-size:0.9rem; pointer-events:none;">🔍</span>
+              <input type="text" id="customerSearchInput" class="input-style-custom" style="padding-left:2.4rem; height:48px; font-size:0.92rem; border-color:#cbd5e1;" placeholder="Type customer name or phone number to select..." autocomplete="off">
+              <input type="hidden" name="customer" id="selectedCustomerId" value="{% if form.customer.value %}{{ form.customer.value }}{% endif %}" required>
+            </div>
+
+            <!-- Floating Search Results Dropdown -->
+            <div id="customerSearchResults" style="position:absolute; left:0; right:0; top:100%; background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.12); max-height:220px; overflow-y:auto; z-index:1000; display:none; margin-top:4px;">
+            </div>
+
+            <!-- Hidden fallback select for Django form validation -->
+            <div style="display:none;">
+              {{ form.customer }}
+            </div>
+
             {% if form.customer.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ form.customer.errors.0 }}</span>{% endif %}
           </div>
 
@@ -427,6 +443,91 @@ document.addEventListener('DOMContentLoaded', function() {
   inputs.forEach(input => {
     input.classList.add('input-style-custom');
   });
+
+  // Single Customer Interactive Search Component
+  const customerSelect = document.querySelector('select[name="customer"]');
+  const searchInput = document.getElementById('customerSearchInput');
+  const hiddenIdInput = document.getElementById('selectedCustomerId');
+  const resultsBox = document.getElementById('customerSearchResults');
+
+  if (customerSelect && searchInput) {
+    // Extract options from underlying select
+    const customerOptions = Array.from(customerSelect.options)
+      .filter(opt => opt.value)
+      .map(opt => ({
+        id: opt.value,
+        text: opt.text,
+        selected: opt.selected
+      }));
+
+    // Pre-populate if customer is already selected
+    const initialSelected = customerOptions.find(opt => opt.selected || opt.id === hiddenIdInput.value);
+    if (initialSelected) {
+      searchInput.value = initialSelected.text;
+      hiddenIdInput.value = initialSelected.id;
+      customerSelect.value = initialSelected.id;
+    }
+
+    function renderSearchResults(query = '') {
+      resultsBox.innerHTML = '';
+      const filtered = customerOptions.filter(opt =>
+        opt.text.toLowerCase().includes(query.toLowerCase().trim())
+      );
+
+      if (filtered.length === 0) {
+        resultsBox.innerHTML = '<div style="padding:0.75rem 1rem; color:#94a3b8; font-size:0.85rem;">❌ No matching customer found</div>';
+      } else {
+        filtered.forEach(opt => {
+          const item = document.createElement('div');
+          item.className = 'customer-result-item';
+          item.style.cssText = 'padding:0.65rem 1rem; cursor:pointer; font-size:0.88rem; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; transition:background 0.15s ease; color:#0f172a;';
+
+          let nameStr = opt.text;
+          let phoneStr = '';
+          if (opt.text.includes('(') && opt.text.includes(')')) {
+            const parts = opt.text.split('(');
+            nameStr = parts[0].trim();
+            phoneStr = parts[1].replace(')', '').trim();
+          }
+
+          if (phoneStr) {
+            item.innerHTML = `<span>👤 <strong>${nameStr}</strong></span> <span style="color:#0284c7; font-size:0.8rem; font-weight:600; background:#e0f2fe; padding:0.18rem 0.55rem; border-radius:6px;">📞 ${phoneStr}</span>`;
+          } else {
+            item.innerHTML = `<span>👤 <strong>${nameStr}</strong></span>`;
+          }
+
+          item.addEventListener('mouseenter', () => item.style.background = '#f1f5f9');
+          item.addEventListener('mouseleave', () => item.style.background = '#ffffff');
+
+          item.addEventListener('click', function(e) {
+            e.stopPropagation();
+            searchInput.value = opt.text;
+            hiddenIdInput.value = opt.id;
+            customerSelect.value = opt.id;
+            resultsBox.style.display = 'none';
+          });
+
+          resultsBox.appendChild(item);
+        });
+      }
+      resultsBox.style.display = 'block';
+    }
+
+    searchInput.addEventListener('focus', function() {
+      renderSearchResults(this.value);
+    });
+
+    searchInput.addEventListener('input', function() {
+      hiddenIdInput.value = '';
+      renderSearchResults(this.value);
+    });
+
+    document.addEventListener('click', function(e) {
+      if (searchInput && resultsBox && !searchInput.contains(e.target) && !resultsBox.contains(e.target)) {
+        resultsBox.style.display = 'none';
+      }
+    });
+  }
 
   const fileInput = document.querySelector('input[type="file"][name="image"]');
   const previewContainer = document.getElementById('vehicle-photo-preview');

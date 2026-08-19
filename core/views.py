@@ -328,6 +328,28 @@ def customer_create(request):
 
 @login_required
 @role_required('owner', 'advisor')
+def customer_ajax_create(request):
+    if request.method == 'POST':
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            c = form.save(commit=False)
+            c.created_by = request.user
+            c.save()
+            return JsonResponse({
+                'success': True,
+                'customer_id': c.id,
+                'customer_name': c.name,
+                'customer_phone': c.phone,
+                'label': f"{c.name} ({c.phone})"
+            })
+        else:
+            errors_dict = {field: errors[0] for field, errors in form.errors.items()}
+            return JsonResponse({'success': False, 'errors': errors_dict})
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=400)
+
+
+@login_required
+@role_required('owner', 'advisor')
 def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     vehicles = customer.vehicles.all()

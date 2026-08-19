@@ -1,3 +1,4 @@
+import re
 from django import forms
 from django.db.models import Q
 from django.contrib.auth.models import User
@@ -7,6 +8,49 @@ from .models import (
     SparePart, PartCategory, Supplier, StockTransaction, JobPartUsage, Invoice,
     AMCPlan, CustomerAMC, AMCServiceSchedule, WhatsAppLog, Expense, GarageSettings
 )
+
+COMMON_TYPO_DOMAINS = {
+    'gmai.com': 'gmail.com',
+    'gamil.com': 'gmail.com',
+    'gmial.com': 'gmail.com',
+    'gmaill.com': 'gmail.com',
+    'gmal.com': 'gmail.com',
+    'yaho.com': 'yahoo.com',
+    'yahooo.com': 'yahoo.com',
+    'hotmai.com': 'hotmail.com',
+    'outloo.com': 'outlook.com',
+    'outlok.com': 'outlook.com',
+    'iclou.com': 'icloud.com',
+}
+
+DISALLOWED_FAKE_DOMAINS = {
+    'hh.com', 'aa.com', 'bb.com', 'cc.com', 'dd.com', 'ee.com', 'ff.com', 'gg.com',
+    'ii.com', 'jj.com', 'kk.com', 'll.com', 'mm.com', 'nn.com', 'oo.com', 'pp.com',
+    'qq.com', 'rr.com', 'ss.com', 'tt.com', 'uu.com', 'vv.com', 'ww.com', 'xx.com',
+    'yy.com', 'zz.com', '11.com', '22.com', '33.com', 'test.com', 'example.com',
+    'asdf.com', 'qwerty.com', 'abc.com', 'xyz.com', 'fake.com', 'temp.com', 'dummy.com',
+    '123.com', 'mailinator.com', 'dispostable.com', 'trashmail.com'
+}
+
+def validate_and_clean_email(email_str):
+    if not email_str:
+        return email_str
+    email_str = email_str.strip().lower()
+    
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if not re.match(email_pattern, email_str):
+        raise forms.ValidationError("Please enter a valid email address (e.g. user@gmail.com).")
+
+    domain = email_str.split('@')[-1]
+    if domain in COMMON_TYPO_DOMAINS:
+        correct_domain = COMMON_TYPO_DOMAINS[domain]
+        raise forms.ValidationError(f"Invalid email domain '@{domain}'. Did you mean '@{correct_domain}'?")
+
+    domain_name = domain.split('.')[0]
+    if domain in DISALLOWED_FAKE_DOMAINS or (len(domain_name) <= 2 and len(set(domain_name)) == 1):
+        raise forms.ValidationError(f"'{email_str}' is not a valid email address. Please provide a real email address (e.g. name@gmail.com).")
+
+    return email_str
 
 ROLE_CHOICES = [
     ('owner', 'Owner'),
@@ -82,7 +126,7 @@ class StaffCreationForm(forms.ModelForm):
         label="Custom Role Title (Specify if 'Custom Role' is selected)",
         widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Senior Electrician, Front Desk, Accountant', 'id': 'id_custom_role_input'})
     )
-    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={'class': 'form-input', 'maxlength': '10', 'placeholder': '10-digit Phone Number'}))
+    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={'class': 'form-input', 'maxlength': '20', 'placeholder': '10-digit Phone Number'}))
 
     class Meta:
         model = User
@@ -91,6 +135,9 @@ class StaffCreationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['role'].choices = get_customized_role_choices(include_owner=False)
+
+    def clean_email(self):
+        return validate_and_clean_email(self.cleaned_data.get('email'))
 
     def clean_first_name(self):
         val = self.cleaned_data.get('first_name', '').strip()
@@ -124,7 +171,7 @@ class StaffEditForm(forms.ModelForm):
         label="Custom Role Title (Specify if 'Custom Role' is selected)",
         widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Senior Electrician, Front Desk, Accountant', 'id': 'id_custom_role_input'})
     )
-    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={'class': 'form-input', 'maxlength': '10', 'placeholder': '10-digit Phone Number'}))
+    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={'class': 'form-input', 'maxlength': '20', 'placeholder': '10-digit Phone Number'}))
 
     class Meta:
         model = User
@@ -133,6 +180,9 @@ class StaffEditForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['role'].choices = get_customized_role_choices(include_owner=False)
+
+    def clean_email(self):
+        return validate_and_clean_email(self.cleaned_data.get('email'))
 
     def clean_first_name(self):
         val = self.cleaned_data.get('first_name', '').strip()
@@ -159,9 +209,12 @@ class CustomerForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Customer Name'}),
             'email': forms.EmailInput(attrs={'class': 'form-input', 'placeholder': 'customer@example.com'}),
-            'phone': forms.TextInput(attrs={'class': 'form-input', 'maxlength': '10', 'placeholder': '10-digit Phone Number'}),
+            'phone': forms.TextInput(attrs={'class': 'form-input', 'maxlength': '20', 'placeholder': '10-digit Phone Number'}),
             'address': forms.Textarea(attrs={'class': 'form-input', 'rows': 3, 'placeholder': 'Customer Address'}),
         }
+
+    def clean_email(self):
+        return validate_and_clean_email(self.cleaned_data.get('email'))
 
     def clean_name(self):
         val = self.cleaned_data.get('name', '').strip()
@@ -172,6 +225,12 @@ class CustomerForm(forms.ModelForm):
         cleaned_digits = ''.join(c for c in phone if c.isdigit())
         if len(cleaned_digits) != 10:
             raise forms.ValidationError("Please enter a valid 10-digit phone number.")
+        
+        qs = Customer.objects.filter(phone=cleaned_digits)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError("Phone number already exists.")
         return cleaned_digits
 
 
@@ -190,6 +249,32 @@ class VehicleForm(forms.ModelForm):
             'mileage': forms.NumberInput(attrs={'class': 'form-input'}),
             'image': forms.FileInput(attrs={'class': 'form-input', 'accept': 'image/*'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['customer'].label_from_instance = lambda obj: f"{obj.name} ({obj.phone})" if obj.phone else obj.name
+
+    def clean_license_plate(self):
+        plate = self.cleaned_data.get('license_plate', '').strip().upper()
+        if plate:
+            qs = Vehicle.objects.filter(license_plate__iexact=plate)
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                existing = qs.first()
+                raise forms.ValidationError(f"Vehicle with license plate '{plate}' is already registered to customer '{existing.customer.name}'.")
+        return plate
+
+    def clean_vin(self):
+        vin = self.cleaned_data.get('vin', '').strip().upper()
+        if vin:
+            qs = Vehicle.objects.filter(vin__iexact=vin)
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                existing = qs.first()
+                raise forms.ValidationError(f"VIN '{vin}' is already registered to another vehicle ({existing.make} {existing.model} - Owner: {existing.customer.name}). Each vehicle must have a unique VIN.")
+        return vin
 
 
 class MultipleFileInput(forms.FileInput):
@@ -226,7 +311,7 @@ class JobCardForm(forms.ModelForm):
     )
     customer_phone = forms.CharField(
         max_length=20,
-        widget=forms.TextInput(attrs={'class': 'form-input', 'maxlength': '10', 'placeholder': '10-digit Phone Number (e.g. 9876543210)'}),
+        widget=forms.TextInput(attrs={'class': 'form-input', 'maxlength': '20', 'placeholder': '10-digit Phone Number (e.g. 9876543210)'}),
         label='Customer Phone Number',
         required=True
     )
@@ -296,6 +381,9 @@ class JobCardForm(forms.ModelForm):
         if self.instance and self.instance.estimated_completion_time:
             self.initial['estimated_completion_time'] = self.instance.estimated_completion_time.strftime('%Y-%m-%dT%H:%M')
 
+    def clean_customer_email(self):
+        return validate_and_clean_email(self.cleaned_data.get('customer_email'))
+
     def clean_customer_phone(self):
         phone = self.cleaned_data.get('customer_phone', '').strip()
         cleaned_phone = ''.join(c for c in phone if c.isdigit())
@@ -329,10 +417,13 @@ class JobStatusForm(forms.ModelForm):
     )
     customer_phone = forms.CharField(
         max_length=20,
-        widget=forms.TextInput(attrs={'class': 'form-input', 'maxlength': '10', 'placeholder': '10-digit Phone Number'}),
+        widget=forms.TextInput(attrs={'class': 'form-input', 'maxlength': '20', 'placeholder': '10-digit Phone Number'}),
         label='Customer Phone Number',
         required=True
     )
+
+    def clean_customer_email(self):
+        return validate_and_clean_email(self.cleaned_data.get('customer_email'))
 
     def clean_customer_phone(self):
         phone = self.cleaned_data.get('customer_phone', '').strip()
@@ -438,10 +529,13 @@ class SupplierForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-input'}),
             'contact_person': forms.TextInput(attrs={'class': 'form-input'}),
-            'phone': forms.TextInput(attrs={'class': 'form-input', 'maxlength': '10', 'placeholder': '10-digit Phone Number'}),
+            'phone': forms.TextInput(attrs={'class': 'form-input', 'maxlength': '20', 'placeholder': '10-digit Phone Number'}),
             'email': forms.EmailInput(attrs={'class': 'form-input'}),
             'address': forms.Textarea(attrs={'class': 'form-input', 'rows': 2}),
         }
+
+    def clean_email(self):
+        return validate_and_clean_email(self.cleaned_data.get('email'))
 
     def clean_phone(self):
         phone = self.cleaned_data.get('phone', '').strip()
@@ -548,7 +642,7 @@ class UserProfileUpdateForm(forms.ModelForm):
     first_name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-input'}))
     last_name = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-input'}))
     email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-input'}))
-    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={'class': 'form-input', 'maxlength': '10', 'placeholder': '10-digit Phone Number'}))
+    phone = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={'class': 'form-input', 'maxlength': '20', 'placeholder': '10-digit Phone Number'}))
 
     class Meta:
         model = User
@@ -559,6 +653,9 @@ class UserProfileUpdateForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if user_profile:
             self.fields['phone'].initial = user_profile.phone
+
+    def clean_email(self):
+        return validate_and_clean_email(self.cleaned_data.get('email'))
 
     def clean_phone(self):
         phone = self.cleaned_data.get('phone', '').strip()
@@ -577,7 +674,7 @@ class GarageSettingsForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Krishna Auto Care'}),
             'tagline': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Multi-Brand Precision Car Clinic'}),
-            'phone': forms.TextInput(attrs={'class': 'form-input', 'maxlength': '10', 'placeholder': '10-digit Phone Number'}),
+            'phone': forms.TextInput(attrs={'class': 'form-input', 'maxlength': '20', 'placeholder': '10-digit Phone Number'}),
             'email': forms.EmailInput(attrs={'class': 'form-input', 'placeholder': 'info@krishnaautocare.com'}),
             'address': forms.Textarea(attrs={'class': 'form-input', 'rows': 2, 'placeholder': 'Street Address / Landmark'}),
             'city': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'City / Location'}),
@@ -586,6 +683,9 @@ class GarageSettingsForm(forms.ModelForm):
             'gst_number': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'GSTIN / Registration Number'}),
             'logo': forms.FileInput(attrs={'class': 'form-input', 'accept': 'image/*'}),
         }
+
+    def clean_email(self):
+        return validate_and_clean_email(self.cleaned_data.get('email'))
 
     def clean_phone(self):
         phone = self.cleaned_data.get('phone', '').strip()
