@@ -1,16 +1,19 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ garage.name|default:"Krishna Auto Care" }} | Premier Car Repair & Servicing</title>
-  
+
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
   <style>
     :root {
       --primary-red: #e11d48;
@@ -423,7 +426,7 @@
       height: 420px;
       object-fit: cover;
       border-radius: 20px;
-      box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
     }
 
     /* Services Grid Section */
@@ -446,7 +449,7 @@
       border-radius: 20px;
       overflow: hidden;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
     }
 
     .service-card:hover {
@@ -617,7 +620,7 @@
       justify-content: center;
       font-size: 1.8rem;
       cursor: pointer;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
       transition: transform 0.2s ease;
     }
 
@@ -745,8 +748,8 @@
     }
 
     .newsletter-banner {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 20px;
       padding: 2.5rem;
       display: flex;
@@ -806,7 +809,7 @@
     }
 
     .footer-bottom {
-      border-top: 1px solid rgba(255,255,255,0.1);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
       padding-top: 2rem;
       display: flex;
       justify-content: space-between;
@@ -839,15 +842,38 @@
     }
 
     @media (max-width: 900px) {
-      .hero-heading { font-size: 2.8rem; }
-      .statement-grid, .about-grid, .booking-grid, .faq-grid, .footer-grid { grid-template-columns: 1fr; }
-      .services-grid, .location-grid { grid-template-columns: 1fr; }
-      .nav-links { display: none; }
-      .brand-logo { min-width: 0; }
-      .brand-logo-copy { display: none; }
+      .hero-heading {
+        font-size: 2.8rem;
+      }
+
+      .statement-grid,
+      .about-grid,
+      .booking-grid,
+      .faq-grid,
+      .footer-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .services-grid,
+      .location-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .brand-logo {
+        min-width: 0;
+      }
+
+      .brand-logo-copy {
+        display: none;
+      }
     }
   </style>
 </head>
+
 <body>
 
   <!-- HEADER NAV -->
@@ -857,9 +883,9 @@
         <a href="{% url 'landing' %}" class="brand-logo">
           <span class="brand-logo-mark">
             {% if garage and garage.logo %}
-              <img src="{{ garage.logo.url }}" alt="{{ garage.name|default:'Garage' }} logo">
+            <img src="{{ garage.logo.url }}" alt="{{ garage.name|default:'Garage' }} logo">
             {% else %}
-              <img src="{% static 'core/images/logo.png' %}" alt="{{ garage.name|default:'Garage' }} logo">
+            <img src="{% static 'core/images/logo.png' %}" alt="{{ garage.name|default:'Garage' }} logo">
             {% endif %}
           </span>
           <span class="brand-logo-copy">
@@ -895,7 +921,8 @@
         CAR REPAIR <span class="red-accent">& SERVICING</span>
       </h1>
       <p class="hero-subtext">
-        Certified multi-brand car inspection, repair, and precision maintenance services. Experience ultimate vehicle performance, transparency, and roadside confidence.
+        Certified multi-brand car inspection, repair, and precision maintenance services. Experience ultimate vehicle
+        performance, transparency, and roadside confidence.
       </p>
 
       <div class="hero-banner-box">
@@ -909,17 +936,20 @@
     <div class="container">
       <span class="section-badge">OUR MISSION</span>
       <h2 class="statement-title">
-        Transform your car space into a sanctuary with fame & name company <span style="color: var(--primary-red);">{{ garage.name|default:"Krishna Auto Care" }}</span>.
+        Transform your car space into a sanctuary with fame & name company <span style="color: var(--primary-red);">{{
+          garage.name|default:"Krishna Auto Care" }}</span>.
       </h2>
 
       <div class="statement-grid">
         <div>
           <div class="quote-box">
             <p class="quote-text">
-              "Amazing service and exceptional efficiency! They exceeded all my expectations, saving me time and money on my periodic car servicing. Thank you team!"
+              "Amazing service and exceptional efficiency! They exceeded all my expectations, saving me time and money
+              on my periodic car servicing. Thank you team!"
             </p>
             <div class="author-info">
-              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Client" class="author-avatar">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
+                alt="Client" class="author-avatar">
               <div>
                 <strong style="display: block; color: var(--dark-navy); font-size: 1rem;">Fabian M. Oberfoell</strong>
                 <span style="font-size: 0.85rem; color: var(--slate-muted);">Satisfied Car Owner</span>
@@ -940,7 +970,8 @@
         </div>
 
         <div class="statement-img-box">
-          <img src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=800&q=80" alt="Mechanic Working">
+          <img src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=800&q=80"
+            alt="Mechanic Working">
         </div>
       </div>
 
@@ -964,7 +995,9 @@
           <span class="section-badge">WHO WE ARE</span>
           <h2 class="about-title">Trusted by thousands of car owners & companies</h2>
           <p style="color: var(--slate-muted); font-size: 1.05rem;">
-            At {{ garage.name|default:"Krishna Auto Care" }}, we deliver dealership-grade precision with transparent pricing. From quick periodic oil changes to complex engine diagnostics, our certified technicians ensure maximum safety and reliability.
+            At {{ garage.name|default:"Krishna Auto Care" }}, we deliver dealership-grade precision with transparent
+            pricing. From quick periodic oil changes to complex engine diagnostics, our certified technicians ensure
+            maximum safety and reliability.
           </p>
 
           <ul class="check-list">
@@ -973,13 +1006,12 @@
             <li><span class="check-icon">✓</span> Transparent price & genuine parts guarantee</li>
           </ul>
 
-          <a href="#appointment" class="btn-red-pill" style="display: inline-block;">
-            Book Service Appointment →
-          </a>
+
         </div>
 
         <div class="about-img">
-          <img src="https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?auto=format&fit=crop&w=800&q=80" alt="Certified Mechanic">
+          <img src="https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?auto=format&fit=crop&w=800&q=80"
+            alt="Certified Mechanic">
         </div>
       </div>
     </div>
@@ -992,28 +1024,34 @@
 
     <div class="services-grid">
       <div class="service-card">
-        <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=600&q=80" alt="Oil Change" class="service-card-img">
+        <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=600&q=80"
+          alt="Oil Change" class="service-card-img">
         <div class="service-card-body">
           <h3 class="service-title">Oil & Filter Changes</h3>
-          <p class="service-desc">Complete synthetic oil flush, filter replacements, and vital fluid checkups to keep your engine smooth.</p>
+          <p class="service-desc">Complete synthetic oil flush, filter replacements, and vital fluid checkups to keep
+            your engine smooth.</p>
           <a href="#appointment" class="service-link">READ MORE →</a>
         </div>
       </div>
 
       <div class="service-card">
-        <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=600&q=80" alt="Brake Repair" class="service-card-img">
+        <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=600&q=80"
+          alt="Brake Repair" class="service-card-img">
         <div class="service-card-body">
           <h3 class="service-title">Brake Inspection & Repairs</h3>
-          <p class="service-desc">Precision brake pad replacements, disc resurfacing, and ABS system troubleshooting for ultimate stopping power.</p>
+          <p class="service-desc">Precision brake pad replacements, disc resurfacing, and ABS system troubleshooting for
+            ultimate stopping power.</p>
           <a href="#appointment" class="service-link">READ MORE →</a>
         </div>
       </div>
 
       <div class="service-card">
-        <img src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&w=600&q=80" alt="Diagnostics" class="service-card-img">
+        <img src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&w=600&q=80"
+          alt="Diagnostics" class="service-card-img">
         <div class="service-card-body">
           <h3 class="service-title">Diagnostics & Tune-ups</h3>
-          <p class="service-desc">Advanced ECU computer scan, electrical fault resolution, and engine tuning for optimal fuel economy.</p>
+          <p class="service-desc">Advanced ECU computer scan, electrical fault resolution, and engine tuning for optimal
+            fuel economy.</p>
           <a href="#appointment" class="service-link">READ MORE →</a>
         </div>
       </div>
@@ -1035,25 +1073,24 @@
           </div>
           <div class="info-item">
             <label>Street Address</label>
-            <p>{{ garage.address|default:'Old Petrol Pump Road, Meppayur - Perambra Rd' }}, {{ garage.city|default:'Perambra' }}</p>
+            <p>{{ garage.address|default:'Old Petrol Pump Road, Meppayur - Perambra Rd' }}, {{
+              garage.city|default:'Perambra' }}</p>
           </div>
           <div class="info-item">
             <label>Working Hours</label>
             <p>Mon - Sat: 8:30 AM - 7:00 PM</p>
           </div>
         </div>
-
-        <a href="https://maps.google.com/?q={{ garage.address|default:'Perambra' }}" target="_blank" class="btn-red-pill" style="text-align: center;">
-          📍 Get Directions
-        </a>
       </div>
 
       <div class="location-img-card">
-        <img src="https://images.unsplash.com/photo-1625047509168-a7026f36de04?auto=format&fit=crop&w=600&q=80" alt="Workshop Exterior">
+        <img src="https://images.unsplash.com/photo-1625047509168-a7026f36de04?auto=format&fit=crop&w=600&q=80"
+          alt="Workshop Exterior">
       </div>
 
       <div class="location-img-card">
-        <img src="https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&w=600&q=80" alt="Workshop Interior">
+        <img src="https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&w=600&q=80"
+          alt="Workshop Interior">
       </div>
     </div>
   </section>
@@ -1064,10 +1101,13 @@
       <div class="faq-grid">
         <div class="faq-left-card">
           <div>
-            <span class="section-badge" style="background: rgba(255,255,255,0.1); color: #ffffff;">HAVE QUESTIONS?</span>
-            <h2 style="font-size: 2.2rem; font-weight: 900; margin-top: 1rem; line-height: 1.2;">Why choose our workshop?</h2>
+            <span class="section-badge" style="background: rgba(255,255,255,0.1); color: #ffffff;">HAVE
+              QUESTIONS?</span>
+            <h2 style="font-size: 2.2rem; font-weight: 900; margin-top: 1rem; line-height: 1.2;">Why choose our
+              workshop?</h2>
             <p style="color: #94a3b8; font-size: 0.95rem; margin-top: 1rem;">
-              We stand behind every repair with our workshop warranty, transparent job card digital updates, and OEM parts.
+              We stand behind every repair with our workshop warranty, transparent job card digital updates, and OEM
+              parts.
             </p>
           </div>
         </div>
@@ -1079,7 +1119,8 @@
               <span>▼</span>
             </div>
             <div class="accordion-body">
-              We recommend periodic maintenance every 10,000 km or 6 months (whichever comes first) to ensure engine longevity and fuel efficiency.
+              We recommend periodic maintenance every 10,000 km or 6 months (whichever comes first) to ensure engine
+              longevity and fuel efficiency.
             </div>
           </div>
 
@@ -1089,7 +1130,8 @@
               <span>▼</span>
             </div>
             <div class="accordion-body">
-              Yes! All replacement spare parts installed in our workshop carry manufacturer warranty and originate directly from certified OEM distributors.
+              Yes! All replacement spare parts installed in our workshop carry manufacturer warranty and originate
+              directly from certified OEM distributors.
             </div>
           </div>
 
@@ -1099,7 +1141,8 @@
               <span>▼</span>
             </div>
             <div class="accordion-body">
-              Once your vehicle is registered at our workshop, you receive automated WhatsApp notifications and job card status updates straight to your phone.
+              Once your vehicle is registered at our workshop, you receive automated WhatsApp notifications and job card
+              status updates straight to your phone.
             </div>
           </div>
 
@@ -1109,7 +1152,8 @@
               <span>▼</span>
             </div>
             <div class="accordion-body">
-              Yes, doorstep vehicle pickup and delivery is available for all scheduled service bookings within town limits.
+              Yes, doorstep vehicle pickup and delivery is available for all scheduled service bookings within town
+              limits.
             </div>
           </div>
         </div>
@@ -1123,7 +1167,8 @@
       <div class="newsletter-banner">
         <div>
           <h3 style="font-size: 1.6rem; font-weight: 800;">Get every single update weekly from us.</h3>
-          <p style="color: #94a3b8; font-size: 0.9rem;">Subscribe for maintenance tips, service offers, and seasonal discounts.</p>
+          <p style="color: #94a3b8; font-size: 0.9rem;">Subscribe for maintenance tips, service offers, and seasonal
+            discounts.</p>
         </div>
 
         <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Thank you for subscribing!');">
@@ -1138,7 +1183,8 @@
             ⚙️ {{ garage.name|default:"KRISHNA AUTO CARE"|upper }}
           </div>
           <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 1rem;">
-            {{ garage.address|default:'Old Petrol Pump Road, Meppayur - Perambra Rd' }}, {{ garage.city|default:'Perambra' }}
+            {{ garage.address|default:'Old Petrol Pump Road, Meppayur - Perambra Rd' }}, {{
+            garage.city|default:'Perambra' }}
           </p>
           <p style="color: #64748b; font-size: 0.85rem;">Certified Precision Workshop & Complete Automotive Clinic.</p>
         </div>
@@ -1165,8 +1211,10 @@
         <div class="footer-col">
           <h4>Contact Us</h4>
           <ul>
-            <li><a href="tel:{{ garage.phone|default:'+919876543210' }}">{{ garage.phone|default:'+91 98765 43210' }}</a></li>
-            <li><a href="mailto:{{ garage.email|default:'info@krishnaautocare.com' }}">{{ garage.email|default:'info@krishnaautocare.com' }}</a></li>
+            <li><a href="tel:{{ garage.phone|default:'+919876543210' }}">{{ garage.phone|default:'+91 98765 43210'
+                }}</a></li>
+            <li><a href="mailto:{{ garage.email|default:'info@krishnaautocare.com' }}">{{
+                garage.email|default:'info@krishnaautocare.com' }}</a></li>
             <li><a href="{% url 'login' %}">Staff Portal Login</a></li>
           </ul>
         </div>
@@ -1201,11 +1249,11 @@
 
   <!-- Global formatting & 10 digit phone validator -->
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      document.querySelectorAll('input[name*="phone"], input[id*="phone"], input[type="tel"]').forEach(function(input) {
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('input[name*="phone"], input[id*="phone"], input[type="tel"]').forEach(function (input) {
         input.setAttribute('maxlength', '10');
         input.setAttribute('inputmode', 'numeric');
-        input.addEventListener('input', function() {
+        input.addEventListener('input', function () {
           this.value = this.value.replace(/\D/g, '').slice(0, 10);
         });
       });
@@ -1213,18 +1261,18 @@
       const excludedNames = ['email', 'username', 'password', 'csrfmiddlewaretoken'];
       const uppercaseFields = ['vehicle', 'plate', 'license', 'vin', 'gst', 'part_number', 'registration', 'code'];
 
-      document.querySelectorAll('input[type="text"], input:not([type])').forEach(function(input) {
+      document.querySelectorAll('input[type="text"], input:not([type])').forEach(function (input) {
         const fieldName = (input.name || input.id || '').toLowerCase();
         if (excludedNames.some(ex => fieldName.includes(ex))) return;
 
-        input.addEventListener('input', function() {
+        input.addEventListener('input', function () {
           const start = this.selectionStart;
           const end = this.selectionEnd;
 
           if (uppercaseFields.some(uf => fieldName.includes(uf))) {
             this.value = this.value.toUpperCase();
           } else {
-            this.value = this.value.replace(/\b[a-z]/g, function(char) {
+            this.value = this.value.replace(/\b[a-z]/g, function (char) {
               return char.toUpperCase();
             });
           }
@@ -1237,4 +1285,5 @@
     });
   </script>
 </body>
+
 </html>
