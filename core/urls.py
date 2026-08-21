@@ -84,6 +84,7 @@ urlpatterns = [
     path('amc/plans/add/', views.amc_plan_create, name='amc_plan_create'),
     path('amc/add/', views.amc_create, name='amc_create'),
     path('amc/<int:pk>/', views.amc_detail, name='amc_detail'),
+    path('amc/<int:pk>/renew/', views.amc_renew, name='amc_renew'),
 
     # WhatsApp Notifications
     path('send-whatsapp/', views.send_whatsapp_view, name='send_whatsapp'),

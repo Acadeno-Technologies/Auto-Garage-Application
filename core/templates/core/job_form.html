@@ -871,6 +871,34 @@
       </div>
     </div>
 
+    <!-- AMC ACTIVE BANNER CONTAINER -->
+    <div id="amc-active-banner-container" style="display:none; margin-bottom: 1.5rem; background:#f0fdf4; border:1.5px solid #16a34a; border-radius:14px; padding:1.25rem; box-shadow:0 4px 16px rgba(22,163,74,0.1);">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem;">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span style="font-size:1.4rem;">🛡️</span>
+          <div>
+            <h4 style="margin:0; font-weight:800; color:#14532d; font-size:1rem;">AMC ACTIVE CONTRACT FOUND</h4>
+            <div style="font-size:0.82rem; color:#166534; font-weight:600;" id="amc-contract-title">Contract: AMC-2026-0001 (Basic AMC)</div>
+          </div>
+        </div>
+        <div class="badge-status-pill badge-success-green" id="amc-services-count-badge" style="font-size:0.82rem; font-weight:700;">
+          0 / 4 Used (4 Remaining)
+        </div>
+      </div>
+
+      <div style="font-size:0.82rem; color:#166534; margin-bottom:0.75rem; display:flex; gap:1.25rem; flex-wrap:wrap;">
+        <div>🏷️ Discount: <strong id="amc-discount-info">100% Off Labour</strong></div>
+        <div>🗓️ Valid Until: <strong id="amc-expiry-date">18-08-2027</strong></div>
+      </div>
+
+      <div class="custom-form-group" style="margin-bottom:0;">
+        <label style="font-weight:700; color:#14532d; margin-bottom:0.35rem;">Select Applicable AMC Service for this Job Card:</label>
+        <select name="amc_schedule_id" id="id_amc_schedule_select" class="form-input" style="border-color:#86efac; background:#ffffff; font-weight:600;">
+          <option value="">-- Standard Job Card (Do not apply AMC service usage) --</option>
+        </select>
+      </div>
+    </div>
+
     <!-- SECTION 3: SERVICE & JOB DETAILS -->
     <div class="form-section-card section-accent-blue">
       <div class="section-header">
@@ -1426,10 +1454,45 @@
       });
     }
 
+    function updateAMCBanner(active_amc) {
+      const banner = document.getElementById('amc-active-banner-container');
+      if (!banner) return;
+
+      if (active_amc) {
+        document.getElementById('amc-contract-title').textContent = `Contract: ${active_amc.contract_number} (${active_amc.plan_name})`;
+        document.getElementById('amc-services-count-badge').textContent = `${active_amc.used_services} / ${active_amc.total_services} Used (${active_amc.remaining_services} Remaining)`;
+        document.getElementById('amc-discount-info').textContent = `${active_amc.discount_percentage}% Off Labour`;
+        document.getElementById('amc-expiry-date').textContent = active_amc.end_date;
+
+        const selectEl = document.getElementById('id_amc_schedule_select');
+        if (selectEl) {
+          selectEl.innerHTML = '<option value="">-- Standard Job Card (Do not apply AMC service usage) --</option>';
+          if (active_amc.schedules && active_amc.schedules.length > 0) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const preselectedScheduleId = urlParams.get('amc_schedule_id');
+
+            active_amc.schedules.forEach(s => {
+              const opt = document.createElement('option');
+              opt.value = s.id;
+              opt.textContent = s.label;
+              if (preselectedScheduleId && String(s.id) === String(preselectedScheduleId)) {
+                opt.selected = true;
+              }
+              selectEl.appendChild(opt);
+            });
+          }
+        }
+        banner.style.display = 'block';
+      } else {
+        banner.style.display = 'none';
+      }
+    }
+
     // Helper function for Vehicle search
     function triggerVehicleSearch(vehicleNum) {
       if (!vehicleNum || vehicleNum.trim().length < 5) {
         vehicleBadge.style.display = 'none';
+        updateAMCBanner(null);
         return;
       }
       fetch(`{% url 'job_search_records' %}?vehicle_number=${encodeURIComponent(vehicleNum)}`)
@@ -1439,6 +1502,8 @@
             const v = data.vehicle;
             if (modelInput) modelInput.value = v.vehicle_model || '';
             if (colorInput) colorInput.value = v.vehicle_color || '';
+
+            updateAMCBanner(v.active_amc);
 
             // Check relationship with current phone
             const currentPhone = phoneInput ? phoneInput.value.trim() : '';
@@ -1466,9 +1531,10 @@
             vehicleBadge.className = 'badge-status-pill badge-info-blue';
             vehicleBadge.style.display = 'inline-flex';
             vehicleBadge.innerHTML = `ℹ️ New Vehicle (Enter vehicle details manually)`;
+            updateAMCBanner(null);
           }
         })
-        .catch(() => { });
+        .catch(() => { updateAMCBanner(null); });
     }
 
     // Search vehicle logic when user finishes typing / blurs input
@@ -1492,11 +1558,16 @@
       });
     }
 
-    // Initialize state
-    const initialName = nameInput ? nameInput.value.trim() : '';
-    const initialPhone = phoneInput ? phoneInput.value.trim() : '';
-    const initialEmail = emailInput ? emailInput.value.trim() : '';
-    const initialAddress = addressInput ? addressInput.value.trim() : '';
+    if (numInput && numInput.value.trim().length >= 5) {
+      triggerVehicleSearch(numInput.value.trim());
+    } else {
+      const urlParams = new URLSearchParams(window.location.search);
+      const vNumParam = urlParams.get('vehicle_number');
+      if (vNumParam && numInput) {
+        numInput.value = vNumParam;
+        triggerVehicleSearch(vNumParam);
+      }
+    }
 
     if (initialName || initialPhone) {
       switchCustomerState('selected', {
