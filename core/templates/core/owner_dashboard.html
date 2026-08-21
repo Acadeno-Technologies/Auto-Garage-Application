@@ -6,6 +6,14 @@
 {% block content %}
 
 <style>
+/* Desktop default styling */
+.desktop-dashboard-wrapper {
+  display: block;
+}
+.mobile-dashboard-wrapper {
+  display: none;
+}
+
 .owner-dashboard-topbar {
   display: flex;
   align-items: center;
@@ -53,15 +61,7 @@
   color: #475569;
 }
 
-.mobile-only {
-    display: none;
-  }
-
-  .mobile-bottom-nav {
-    display: none;
-  }
-
-  .owner-dashboard-profile {
+.owner-dashboard-profile {
   width: 42px;
   height: 42px;
   border-radius: 14px;
@@ -77,267 +77,921 @@
   padding: 0.55rem 1rem;
 }
 
+/* ==========================================================================
+   MOBILE DESIGN STYLES (Screen width <= 768px ONLY)
+   ========================================================================== */
 @media (max-width: 768px) {
-  .owner-dashboard-topbar {
-    padding: 0.85rem 0.85rem;
+  .desktop-dashboard-wrapper {
+    display: none !important;
   }
-}
-
-@media (max-width: 640px) {
-  .stats-grid {
-    grid-template-columns: 1fr !important;
+  .mobile-dashboard-wrapper {
+    display: block !important;
+    padding-bottom: 2rem;
   }
 
-  .grid-2 {
-    grid-template-columns: 1fr !important;
+  /* Adjust topbar and container padding on mobile */
+  .layout .main .topbar {
+    display: none !important;
+  }
+  .layout .main .content {
+    padding: 0.75rem 0.85rem 80px !important;
+    background: #f8fafc !important;
   }
 
-  .owner-dashboard-table-stack table,
-  .owner-dashboard-table-stack thead,
-  .owner-dashboard-table-stack tbody,
-  .owner-dashboard-table-stack tr,
-  .owner-dashboard-table-stack th,
-  .owner-dashboard-table-stack td {
-    display: block;
-    width: 100%;
+  /* Mobile Header */
+  .mob-dash-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.25rem 1rem 0.25rem;
+  }
+  
+  .mob-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
   }
 
-  .owner-dashboard-table-stack thead tr {
-    position: absolute;
-    top: -9999px;
-    left: -9999px;
-  }
-
-  .owner-dashboard-table-stack tr {
-    border: 1px solid #e5e7eb;
-    border-radius: 18px;
-    margin-bottom: 0.85rem;
+  .mob-menu-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
     background: #ffffff;
-    padding: 0.75rem 0;
+    border: 1px solid #e2e8f0;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
 
-  .owner-dashboard-table-stack td {
+  .mob-dash-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .mob-dash-sub {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin: 2px 0 0 0;
+  }
+
+  .mob-notif-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    display: grid;
+    place-items: center;
     position: relative;
-    padding: 0.75rem 1rem 0.75rem 46%;
-    text-align: left;
-    border: none;
-    border-bottom: 1px solid #f1f5f9;
-    white-space: normal;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
 
-  .owner-dashboard-table-stack td:last-child {
-    border-bottom: none;
-    padding-bottom: 0.75rem;
-  }
-
-  .owner-dashboard-table-stack td:before {
+  .mob-notif-dot {
     position: absolute;
-    top: 0.85rem;
-    left: 1rem;
-    width: calc(45% - 1rem);
-    font-weight: 700;
-    font-size: 0.78rem;
-    color: #475569;
-    white-space: normal;
+    top: 10px;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    border: 2px solid #ffffff;
   }
 
-  .owner-dashboard-table-stack td[data-label="Job #"]:before { content: "Job #"; }
-  .owner-dashboard-table-stack td[data-label="Vehicle"]:before { content: "Vehicle"; }
-  .owner-dashboard-table-stack td[data-label="Mechanic"]:before { content: "Mechanic"; }
-  .owner-dashboard-table-stack td[data-label="Status"]:before { content: "Status"; }
-  .owner-dashboard-table-stack td[data-label="Part"]:before { content: "Part"; }
-  .owner-dashboard-table-stack td[data-label="Part #"]:before { content: "Part #"; }
-  .owner-dashboard-table-stack td[data-label="Qty"]:before { content: "Qty"; }
-  .owner-dashboard-table-stack td[data-label="Min"]:before { content: "Min"; }
-  .owner-dashboard-table-stack td[data-label="Invoice"]:before { content: "Invoice"; }
-  .owner-dashboard-table-stack td[data-label="Customer"]:before { content: "Customer"; }
-  .owner-dashboard-table-stack td[data-label="Amount"]:before { content: "Amount"; }
-  .owner-dashboard-table-stack td[data-label="Actions"]:before { content: "Actions"; }
+  /* Workshop Summary Card */
+  .mob-workshop-summary-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .mob-summary-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  .mob-summary-left {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .mob-summary-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #ffe4e6;
+    color: #ef4444;
+    font-weight: 800;
+    font-size: 1.3rem;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+
+  .mob-summary-name {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  .mob-summary-subtitle {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin: 2px 0 0 0;
+  }
+
+  .mob-summary-bg-car {
+    position: absolute;
+    right: -10px;
+    top: -10px;
+    width: 170px;
+    height: 100px;
+    background: url('https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=400&q=80') no-repeat center right;
+    background-size: cover;
+    opacity: 0.3;
+    mask-image: linear-gradient(to left, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);
+    -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);
+    pointer-events: none;
+  }
+
+  /* Summary Stats Pill Grid */
+  .mob-summary-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.65rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  .mob-summary-stat-card {
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 14px;
+    padding: 0.75rem 0.6rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  }
+
+  .mob-stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+  }
+  .mob-stat-icon.blue { background: #eff6ff; color: #2563eb; }
+  .mob-stat-icon.green { background: #f0fdf4; color: #16a34a; }
+  .mob-stat-icon.purple { background: #faf5ff; color: #9333ea; }
+
+  .mob-stat-val {
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .mob-stat-val.blue { color: #2563eb; }
+  .mob-stat-val.green { color: #16a34a; }
+  .mob-stat-val.purple { color: #9333ea; }
+
+  .mob-stat-lbl {
+    font-size: 0.7rem;
+    color: #64748b;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* Section Title Bar */
+  .mob-sec-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.85rem;
+    margin-top: 1.5rem;
+  }
+
+  .mob-sec-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  .mob-view-all-btn {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #2563eb;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 0.35rem 0.85rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
+
+  /* Recent Job Cards */
+  .mob-job-card-item {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #22c55e;
+    border-radius: 16px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 14px rgba(15,23,42,0.03);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .mob-job-card-item:hover, .mob-job-card-item:active {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(15,23,42,0.08);
+  }
+
+  .mob-job-item-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.85rem;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .mob-job-id-box {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .mob-sq-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+  .mob-sq-icon.orange { background: #fff7ed; color: #ea580c; }
+  .mob-sq-icon.blue { background: #eff6ff; color: #2563eb; }
+  .mob-sq-icon.green { background: #f0fdf4; color: #16a34a; }
+  .mob-sq-icon.purple { background: #faf5ff; color: #9333ea; }
+  .mob-sq-icon.pink { background: #ffe4e6; color: #e11d48; }
+
+  .mob-job-id-link {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #ea580c;
+    text-decoration: none;
+  }
+
+  .mob-job-date {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    color: #64748b;
+  }
+
+  .mob-status-pill {
+    padding: 0.25rem 0.65rem;
+    border-radius: 20px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .mob-status-pill.green { background: #dcfce7; color: #15803d; }
+  .mob-status-pill.orange { background: #ffedd5; color: #c2410c; }
+  .mob-status-pill.blue { background: #dbeafe; color: #1d4ed8; }
+
+  .mob-job-item-middle {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .mob-vehicle-thumb {
+    width: 90px;
+    height: 65px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+
+  .mob-vehicle-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .mob-vehicle-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .mob-lbl-tiny {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    font-weight: 600;
+  }
+
+  .mob-vehicle-name {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  .mob-cust-name {
+    font-size: 0.8rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 2px;
+  }
+
+  .mob-dashed-line {
+    border-top: 1px dashed #e2e8f0;
+    margin: 0.75rem 0;
+  }
+
+  .mob-job-item-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .mob-mech-box {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .mob-val-bold {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .mob-price-highlight {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #2563eb;
+    font-family: var(--font-mono, monospace);
+  }
+
+  /* Mechanic Performance Widget */
+  .mob-perf-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1rem;
+    margin-top: 1rem;
+    box-shadow: 0 4px 14px rgba(15,23,42,0.03);
+  }
+
+  .mob-perf-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 0.75rem;
+  }
+
+  .mob-perf-title {
+    font-size: 0.98rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  .mob-perf-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f8fafc;
+  }
+
+  .mob-perf-row:last-child {
+    border-bottom: none;
+  }
+
+  .mob-perf-name {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  .mob-perf-sub {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin: 2px 0 0 0;
+  }
+
+  .mob-perf-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    display: grid;
+    place-items: center;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #ea580c;
+  }
+
+  /* Invoices Widget */
+  .mob-invoice-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 0.85rem 1rem;
+    margin-bottom: 0.85rem;
+    box-shadow: 0 4px 14px rgba(15,23,42,0.03);
+  }
+
+  .mob-inv-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.45rem 0;
+  }
+
+  .mob-inv-left {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.82rem;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  .mob-inv-id-text {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #ea580c;
+    text-decoration: none;
+  }
+
+  .mob-inv-divider {
+    border-top: 1px solid #f1f5f9;
+    margin: 0.2rem 0;
+  }
+
+  .mob-badge-pill {
+    padding: 0.2rem 0.65rem;
+    border-radius: 20px;
+    font-size: 0.74rem;
+    font-weight: 700;
+  }
+  .mob-badge-pill.unpaid { background: #ffe4e6; color: #e11d48; }
+  .mob-badge-pill.partial { background: #fef3c7; color: #d97706; }
+  .mob-badge-pill.paid { background: #dcfce7; color: #16a34a; }
+
+  .mob-empty-box {
+    padding: 1rem;
+    text-align: center;
+    color: #94a3b8;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    font-size: 0.85rem;
+  }
 }
 </style>
 
-<div class="owner-dashboard-topbar mobile-only">
-  <div class="owner-dashboard-brand">
-    <div class="owner-dashboard-logo">K</div>
-    <div class="owner-dashboard-brand-text">
-      <span class="owner-dashboard-brand-title">Krishna Auto</span>
-      <span class="owner-dashboard-brand-subtitle">Precision Workshop</span>
+
+<!-- ==========================================================================
+     MOBILE DASHBOARD VIEW (Visible ONLY on screens <= 768px)
+     ========================================================================== -->
+<div class="mobile-dashboard-wrapper">
+  
+  <!-- Mobile Header -->
+  <div class="mob-dash-header">
+    <div class="mob-header-left">
+      <button type="button" class="mob-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open');" aria-label="Toggle Sidebar Menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </button>
+      <div>
+        <h1 class="mob-dash-title">Owner Dashboard</h1>
+        <p class="mob-dash-sub">Welcome back! Here's your workshop overview.</p>
+      </div>
     </div>
-  </div>
-  <a href="{% url 'profile' %}" class="owner-dashboard-profile" aria-label="Profile">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c2.3 0 4-1.7 4-4s-1.7-4-4-4-4 1.7-4 4 1.7 4 4 4z"></path><path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path></svg>
-  </a>
-</div>
-
-<!-- STAT CARDS -->
-<div class="stats-grid">
-  <div class="stat-card accent">
-    <div class="stat-value">{{ active_jobs }}</div>
-    <div class="stat-label">Active Jobs</div>
-  </div>
-  <div class="stat-card green">
-    <div class="stat-value">{{ completed_jobs }}</div>
-    <div class="stat-label">Completed Jobs</div>
-  </div>
-  <div class="stat-card teal">
-    <div class="stat-value">{{ total_customers }}</div>
-    <div class="stat-label">Customers</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-value">{{ total_vehicles }}</div>
-    <div class="stat-label">Vehicles</div>
-  </div>
-  <div class="stat-card {% if low_stock_parts > 0 %}red{% endif %}">
-    <div class="stat-value">{{ low_stock_parts }}</div>
-    <div class="stat-label">Low Stock Parts</div>
-  </div>
-  <div class="stat-card {% if pending_invoices > 0 %}yellow{% endif %}">
-    <div class="stat-value">{{ pending_invoices }}</div>
-    <div class="stat-label">Unpaid Invoices</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-value">{{ staff_count }}</div>
-    <div class="stat-label">Staff Members</div>
-  </div>
-  <div class="stat-card green">
-    <div class="stat-value" style="font-size:1.4rem;">₹{{ monthly_revenue|floatformat:0 }}</div>
-    <div class="stat-label">Monthly Revenue</div>
-  </div>
-</div>
-
-<!-- MAIN CONTENT GRID -->
-<div class="grid-2 mb-3">
-
-  <!-- Recent Jobs -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">Recent Job Cards</span>
-      <a href="{% url 'job_list' %}" class="btn btn-secondary btn-sm">View All</a>
-    </div>
-    <div class="table-wrap owner-dashboard-table-stack">
-      <table>
-        <thead>
-          <tr><th>Job #</th><th>Vehicle</th><th>Mechanic</th><th>Status</th></tr>
-        </thead>
-        <tbody>
-          {% for job in recent_jobs %}
-          <tr>
-            <td data-label="Job #"><a href="{% url 'job_detail' job.pk %}" class="text-accent text-mono">{{ job.job_number }}</a></td>
-            <td data-label="Vehicle">{{ job.vehicle.make }} {{ job.vehicle.model }}<br>
-                <span class="text-muted">{{ job.vehicle.customer.name }}</span></td>
-            <td data-label="Mechanic">{% if job.mechanic %}{{ job.mechanic.get_full_name|default:job.mechanic.username }}{% else %}Unassigned{% endif %}</td>
-            <td data-label="Status"><span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span></td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="4" class="text-center text-muted">No jobs yet</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div class="mob-notif-btn" aria-label="Notifications">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+      <span class="mob-notif-dot"></span>
     </div>
   </div>
 
-  <!-- Low Stock -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">Low Stock Alert</span>
-      <a href="{% url 'parts_list' %}" class="btn btn-secondary btn-sm">All Parts</a>
-    </div>
-    <div class="table-wrap owner-dashboard-table-stack">
-      <table>
-        <thead>
-          <tr><th>Part</th><th>Part #</th><th>Qty</th><th>Min</th></tr>
-        </thead>
-        <tbody>
-          {% for part in low_stock_list %}
-          <tr class="low-stock">
-            <td data-label="Part">{{ part.name }}</td>
-            <td data-label="Part #" class="text-mono" style="font-size:0.78rem;">{{ part.part_number }}</td>
-            <td data-label="Qty" class="text-red font-bold">{{ part.stock_quantity }}</td>
-            <td data-label="Min" class="text-muted">{{ part.minimum_stock }}</td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="4" class="text-center text-muted">All stock levels OK</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% if low_stock_list %}
-    <div class="card-body" style="padding-top:0.5rem;">
-      <a href="{% url 'stock_transaction' %}" class="btn btn-primary btn-sm">Record Stock In</a>
-    </div>
-    {% endif %}
-  </div>
-
-</div>
-
-<!-- BOTTOM ROW -->
-<div class="grid-2">
-
-  <!-- Mechanic Performance -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">Mechanic Performance</span>
-    </div>
-    <div class="card-body">
-      {% for stat in mechanic_stats %}
-      <div class="flex-between mb-2">
+  <!-- Workshop Summary Card -->
+  <div class="mob-workshop-summary-card">
+    <div class="mob-summary-top">
+      <div class="mob-summary-left">
+        <div class="mob-summary-avatar">K</div>
         <div>
-          <div style="font-weight:500;font-size:0.9rem;">{% if stat.mechanic %}{{ stat.mechanic.get_full_name|default:stat.mechanic.username }}{% else %}Unassigned{% endif %}</div>
-          <div class="text-muted">{{ stat.completed }} jobs completed</div>
+          <h2 class="mob-summary-name">{{ garage_settings.name|default:"Krishna Auto" }}</h2>
+          <p class="mob-summary-subtitle">{{ garage_settings.tagline|default:"Precision Workshop" }}</p>
         </div>
-        <div class="text-accent font-bold text-mono">{{ stat.completed }}</div>
+      </div>
+      <div class="mob-summary-bg-car"></div>
+    </div>
+
+    <!-- 3 Summary Pills -->
+    <div class="mob-summary-stats-grid">
+      <div class="mob-summary-stat-card">
+        <div class="mob-stat-icon blue">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+        </div>
+        <span class="mob-stat-val blue">{{ total_jobs_count|default:recent_jobs.count }}</span>
+        <span class="mob-stat-lbl">Job Cards</span>
+      </div>
+
+      <div class="mob-summary-stat-card">
+        <div class="mob-stat-icon green">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        </div>
+        <span class="mob-stat-val green">{{ recent_invoices.count }}</span>
+        <span class="mob-stat-lbl">Invoices</span>
+      </div>
+
+      <div class="mob-summary-stat-card">
+        <div class="mob-stat-icon purple">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9333ea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+        </div>
+        <span class="mob-stat-val purple">{{ total_parts_count|default:38 }}</span>
+        <span class="mob-stat-lbl">Inventory Items</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Job Cards -->
+  <div class="mob-sec-header">
+    <h3 class="mob-sec-title">Recent Job Cards</h3>
+    <a href="{% url 'job_list' %}" class="mob-view-all-btn">View All <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
+  </div>
+
+  <div class="mob-job-cards-stack">
+    {% for job in recent_jobs %}
+    <div class="mob-job-card-item" onclick="window.location.href='{% url 'job_detail' job.pk %}';">
+      <div class="mob-job-item-top">
+        <div class="mob-job-id-box">
+          <div class="mob-sq-icon orange">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+          </div>
+          <div>
+            <span class="mob-lbl-tiny" style="display:block;">Job #</span>
+            <a href="{% url 'job_detail' job.pk %}" class="mob-job-id-link">{{ job.job_number }}</a>
+          </div>
+        </div>
+
+        <div class="mob-job-date">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span>{{ job.created_at|date:"d M Y" }}</span>
+        </div>
+
+        <div class="mob-status-pill {% if job.status == 'completed' or job.status == 'delivered' %}green{% elif job.status == 'pending' %}orange{% else %}blue{% endif %}">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>{{ job.get_status_display }}</span>
+        </div>
+      </div>
+
+      <div class="mob-job-item-middle">
+        <div class="mob-vehicle-thumb">
+          {% if 'Swift' in job.vehicle.model or 'swift' in job.vehicle.model %}
+            <img src="https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=200&q=80" alt="Maruti Swift">
+          {% else %}
+            <img src="https://images.unsplash.com/photo-1590362891991-f776e747a588?w=200&q=80" alt="Car">
+          {% endif %}
+        </div>
+        <div class="mob-vehicle-details">
+          <span class="mob-lbl-tiny">Vehicle</span>
+          <h4 class="mob-vehicle-name">{{ job.vehicle.make }} {{ job.vehicle.model }}</h4>
+          <div class="mob-cust-name">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span>{{ job.vehicle.customer.name }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mob-dashed-line"></div>
+
+      <div class="mob-job-item-bottom">
+        <div class="mob-mech-box">
+          <div class="mob-sq-icon purple" style="width:28px; height:28px; border-radius:50%;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9333ea" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          </div>
+          <div>
+            <span class="mob-lbl-tiny" style="display:block;">Mechanic</span>
+            <span class="mob-val-bold">{% if job.mechanic %}{{ job.mechanic.get_full_name|default:job.mechanic.username }}{% else %}Unassigned{% endif %}</span>
+          </div>
+        </div>
+
+        <div style="text-align:right;">
+          <span class="mob-lbl-tiny" style="display:block;">Total Amount</span>
+          <span class="mob-price-highlight">₹ {{ job.total_amount|default:"0.00"|floatformat:2 }}</span>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="mob-empty-box">No recent jobs found.</div>
+    {% endfor %}
+  </div>
+
+  <!-- Mechanic Performance Widget -->
+  <div class="mob-perf-card">
+    <div class="mob-perf-header">
+      <div class="mob-sq-icon purple">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9333ea" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      </div>
+      <h3 class="mob-perf-title">Mechanic Performance</h3>
+    </div>
+
+    <div class="mob-perf-body">
+      {% for stat in mechanic_stats %}
+      <div class="mob-perf-row">
+        <div>
+          <h4 class="mob-perf-name">{% if stat.mechanic %}{{ stat.mechanic.get_full_name|default:stat.mechanic.username }}{% else %}Unassigned{% endif %}</h4>
+          <p class="mob-perf-sub">{{ stat.completed }} jobs completed</p>
+        </div>
+        <div class="mob-perf-badge">{{ stat.completed }}</div>
       </div>
       {% empty %}
-      <p class="text-muted">No mechanics registered yet.</p>
+      <p style="color:#94a3b8; font-size:0.82rem; margin:0; padding:0.5rem 0;">No mechanics registered yet.</p>
       {% endfor %}
     </div>
   </div>
 
-  <!-- Recent Invoices -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">Recent Invoices</span>
-      <a href="{% url 'invoice_list' %}" class="btn btn-secondary btn-sm">View All</a>
+  <!-- Recent Invoices Widget -->
+  <div class="mob-sec-header">
+    <h3 class="mob-sec-title">Recent Invoices</h3>
+    <a href="{% url 'invoice_list' %}" class="mob-view-all-btn">View All <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></a>
+  </div>
+
+  <div class="mob-invoices-stack">
+    {% for inv in recent_invoices %}
+    <div class="mob-invoice-card">
+      <div class="mob-inv-row">
+        <div class="mob-inv-left">
+          <div class="mob-sq-icon orange">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+          </div>
+          <span>Invoice</span>
+        </div>
+        <a href="{% url 'invoice_detail' inv.pk %}" class="mob-inv-id-text">{{ inv.invoice_number }}</a>
+      </div>
+
+      <div class="mob-inv-divider"></div>
+
+      <div class="mob-inv-row">
+        <div class="mob-inv-left">
+          <div class="mob-sq-icon blue">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          </div>
+          <span>Customer</span>
+        </div>
+        <span class="mob-val-bold">{{ inv.job_card.vehicle.customer.name }}</span>
+      </div>
+
+      <div class="mob-inv-divider"></div>
+
+      <div class="mob-inv-row">
+        <div class="mob-inv-left">
+          <div class="mob-sq-icon green">
+            <span style="font-weight:800; font-size:0.85rem; color:#16a34a;">₹</span>
+          </div>
+          <span>Amount</span>
+        </div>
+        <span style="font-weight:700; font-family:var(--font-mono, monospace); color:#0f172a;">₹{{ inv.total_amount|floatformat:2 }}</span>
+      </div>
+
+      <div class="mob-inv-divider"></div>
+
+      <div class="mob-inv-row">
+        <div class="mob-inv-left">
+          <div class="mob-sq-icon pink">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="2"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+          </div>
+          <span>Status</span>
+        </div>
+        <div>
+          {% if inv.status == 'unpaid' %}
+            <span class="mob-badge-pill unpaid">Unpaid</span>
+          {% elif inv.status == 'partial' %}
+            <span class="mob-badge-pill partial">Partial</span>
+          {% else %}
+            <span class="mob-badge-pill paid">Paid</span>
+          {% endif %}
+        </div>
+      </div>
     </div>
-    <div class="table-wrap owner-dashboard-table-stack">
-      <table>
-        <thead>
-          <tr><th>Invoice</th><th>Customer</th><th>Amount</th><th>Status</th></tr>
-        </thead>
-        <tbody>
-          {% for inv in recent_invoices %}
-          <tr>
-            <td data-label="Invoice"><a href="{% url 'invoice_detail' inv.pk %}" class="text-accent text-mono">{{ inv.invoice_number }}</a></td>
-            <td data-label="Customer">{{ inv.job_card.vehicle.customer.name }}</td>
-            <td data-label="Amount" class="text-mono">₹{{ inv.total_amount|floatformat:2 }}</td>
-            <td data-label="Status"><span class="badge badge-{{ inv.status }}">{{ inv.get_status_display }}</span></td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="4" class="text-center text-muted">No invoices yet</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+    {% empty %}
+    <div class="mob-empty-box">No recent invoices found.</div>
+    {% endfor %}
   </div>
 
 </div>
 
-<div class="mobile-bottom-nav">
-  <a href="{% url 'dashboard' %}" class="active">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1v-9z"></path></svg>
-    Dashboard
-  </a>
-  <a href="{% url 'job_list' %}">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18"></path><path d="M6 10h.01"></path><path d="M10 10h.01"></path><path d="M14 10h.01"></path><path d="M18 10h.01"></path><path d="M5 14h14"></path><path d="M5 18h14"></path></svg>
-    Jobs
-  </a>
-  <a href="{% url 'invoice_list' %}">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"></path><path d="M8 4v16"></path><path d="M16 4v16"></path></svg>
-    Invoices
-  </a>
-  <a href="{% url 'parts_list' %}">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v4H4z"></path><path d="M4 10h16v4H4z"></path><path d="M4 16h16v4H4z"></path></svg>
-    Inventory
-  </a>
+
+<!-- ==========================================================================
+     DESKTOP DASHBOARD VIEW (Visible ONLY on screens > 768px)
+     ========================================================================== -->
+<div class="desktop-dashboard-wrapper">
+  
+  <div class="owner-dashboard-topbar">
+    <div class="owner-dashboard-brand">
+      <div class="owner-dashboard-logo">K</div>
+      <div class="owner-dashboard-brand-text">
+        <span class="owner-dashboard-brand-title">{{ garage_settings.name|default:"Krishna Auto" }}</span>
+        <span class="owner-dashboard-brand-subtitle">{{ garage_settings.tagline|default:"Precision Workshop" }}</span>
+      </div>
+    </div>
+    <a href="{% url 'profile' %}" class="owner-dashboard-profile" aria-label="Profile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c2.3 0 4-1.7 4-4s-1.7-4-4-4-4 1.7-4 4 1.7 4 4 4z"></path><path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path></svg>
+    </a>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stats-grid">
+    <div class="stat-card accent">
+      <div class="stat-value">{{ active_jobs }}</div>
+      <div class="stat-label">Active Jobs</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-value">{{ completed_jobs }}</div>
+      <div class="stat-label">Completed Jobs</div>
+    </div>
+    <div class="stat-card teal">
+      <div class="stat-value">{{ total_customers }}</div>
+      <div class="stat-label">Customers</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ total_vehicles }}</div>
+      <div class="stat-label">Vehicles</div>
+    </div>
+    <div class="stat-card {% if low_stock_parts > 0 %}red{% endif %}">
+      <div class="stat-value">{{ low_stock_parts }}</div>
+      <div class="stat-label">Low Stock Parts</div>
+    </div>
+    <div class="stat-card {% if pending_invoices > 0 %}yellow{% endif %}">
+      <div class="stat-value">{{ pending_invoices }}</div>
+      <div class="stat-label">Unpaid Invoices</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ staff_count }}</div>
+      <div class="stat-label">Staff Members</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-value" style="font-size:1.4rem;">₹{{ monthly_revenue|floatformat:0 }}</div>
+      <div class="stat-label">Monthly Revenue</div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT GRID -->
+  <div class="grid-2 mb-3">
+
+    <!-- Recent Jobs -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Recent Job Cards</span>
+        <a href="{% url 'job_list' %}" class="btn btn-secondary btn-sm">View All</a>
+      </div>
+      <div class="table-wrap owner-dashboard-table-stack">
+        <table>
+          <thead>
+            <tr><th>Job #</th><th>Vehicle</th><th>Mechanic</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            {% for job in recent_jobs %}
+            <tr onclick="window.location.href='{% url 'job_detail' job.pk %}';" style="cursor:pointer;">
+              <td data-label="Job #"><a href="{% url 'job_detail' job.pk %}" class="text-accent text-mono">{{ job.job_number }}</a></td>
+              <td data-label="Vehicle">{{ job.vehicle.make }} {{ job.vehicle.model }}<br>
+                  <span class="text-muted">{{ job.vehicle.customer.name }}</span></td>
+              <td data-label="Mechanic">{% if job.mechanic %}{{ job.mechanic.get_full_name|default:job.mechanic.username }}{% else %}Unassigned{% endif %}</td>
+              <td data-label="Status"><span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center text-muted">No jobs yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Low Stock -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Low Stock Alert</span>
+        <a href="{% url 'parts_list' %}" class="btn btn-secondary btn-sm">All Parts</a>
+      </div>
+      <div class="table-wrap owner-dashboard-table-stack">
+        <table>
+          <thead>
+            <tr><th>Part</th><th>Part #</th><th>Qty</th><th>Min</th></tr>
+          </thead>
+          <tbody>
+            {% for part in low_stock_list %}
+            <tr class="low-stock">
+              <td data-label="Part">{{ part.name }}</td>
+              <td data-label="Part #" class="text-mono" style="font-size:0.78rem;">{{ part.part_number }}</td>
+              <td data-label="Qty" class="text-red font-bold">{{ part.stock_quantity }}</td>
+              <td data-label="Min" class="text-muted">{{ part.minimum_stock }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center text-muted">All stock levels OK</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if low_stock_list %}
+      <div class="card-body" style="padding-top:0.5rem;">
+        <a href="{% url 'stock_transaction' %}" class="btn btn-primary btn-sm">Record Stock In</a>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- BOTTOM ROW -->
+  <div class="grid-2">
+
+    <!-- Mechanic Performance -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Mechanic Performance</span>
+      </div>
+      <div class="card-body">
+        {% for stat in mechanic_stats %}
+        <div class="flex-between mb-2">
+          <div>
+            <div style="font-weight:500;font-size:0.9rem;">{% if stat.mechanic %}{{ stat.mechanic.get_full_name|default:stat.mechanic.username }}{% else %}Unassigned{% endif %}</div>
+            <div class="text-muted">{{ stat.completed }} jobs completed</div>
+          </div>
+          <div class="text-accent font-bold text-mono">{{ stat.completed }}</div>
+        </div>
+        {% empty %}
+        <p class="text-muted">No mechanics registered yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Recent Invoices -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Recent Invoices</span>
+        <a href="{% url 'invoice_list' %}" class="btn btn-secondary btn-sm">View All</a>
+      </div>
+      <div class="table-wrap owner-dashboard-table-stack">
+        <table>
+          <thead>
+            <tr><th>Invoice</th><th>Customer</th><th>Amount</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            {% for inv in recent_invoices %}
+            <tr>
+              <td data-label="Invoice"><a href="{% url 'invoice_detail' inv.pk %}" class="text-accent text-mono">{{ inv.invoice_number }}</a></td>
+              <td data-label="Customer">{{ inv.job_card.vehicle.customer.name }}</td>
+              <td data-label="Amount" class="text-mono">₹{{ inv.total_amount|floatformat:2 }}</td>
+              <td data-label="Status"><span class="badge badge-{{ inv.status }}">{{ inv.get_status_display }}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center text-muted">No invoices yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
 </div>
+
 {% endblock %}
+

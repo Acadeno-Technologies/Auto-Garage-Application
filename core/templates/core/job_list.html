@@ -2,89 +2,706 @@
 {% block title %}Job Cards{% endblock %}
 {% block page_title %}Job Cards{% endblock %}
 {% block topbar_actions %}<a href="{% url 'job_create' %}" class="btn btn-primary">+ Add Job Card</a>{% endblock %}
+
 {% block content %}
-<div class="card mb-2" style="padding:1rem 1.5rem;">
-  <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:1rem;">
-    <!-- Status Filter Pills -->
-    <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
-      <a href="{% url 'job_list' %}{% if q %}?q={{ q }}{% endif %}" class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-secondary{% endif %}">
+
+<style>
+/* Default Desktop View */
+.desktop-jobs-wrapper {
+  display: block;
+}
+.mobile-jobs-wrapper {
+  display: none;
+}
+
+/* ==========================================================================
+   MOBILE JOB CARDS DESIGN (Screen width <= 768px ONLY)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .desktop-jobs-wrapper {
+    display: none !important;
+  }
+  .mobile-jobs-wrapper {
+    display: block !important;
+    padding-bottom: 2rem;
+  }
+
+  /* Adjust topbar and content background on mobile */
+  .layout .main .topbar {
+    display: none !important;
+  }
+  .layout .main .content {
+    padding: 0.75rem 0.85rem 80px !important;
+    background: #f8fafc !important;
+  }
+
+  /* Mobile Top Header */
+  .mob-jobs-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.25rem 1rem 0.25rem;
+    gap: 0.5rem;
+  }
+
+  .mob-jobs-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .mob-menu-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+
+  .mob-jobs-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  .mob-add-job-btn {
+    background: #ea580c;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.82rem;
+    padding: 0.55rem 0.85rem;
+    border-radius: 12px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);
+  }
+
+  /* Mobile Filter Card */
+  .mob-filter-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 2px 10px rgba(15,23,42,0.03);
+  }
+
+  .mob-filter-pills {
+    display: flex;
+    gap: 0.45rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+    scrollbar-width: none;
+  }
+  .mob-filter-pills::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mob-filter-pill {
+    padding: 0.4rem 0.85rem;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+  }
+
+  .mob-filter-pill.active {
+    background: #ea580c;
+    color: #ffffff;
+    border-color: #ea580c;
+    box-shadow: 0 2px 8px rgba(234,88,12,0.25);
+  }
+
+  .mob-search-form {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .mob-search-input {
+    flex: 1;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.82rem;
+    outline: none;
+    background: #ffffff;
+  }
+
+  .mob-search-btn {
+    background: #0f172a;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 0.5rem 0.85rem;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+  }
+
+  /* Mobile Card Item */
+  .mob-job-card-box {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #22c55e;
+    border-radius: 16px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 14px rgba(15,23,42,0.03);
+  }
+
+  .mob-job-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.85rem;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .mob-job-id-grp {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .mob-icon-sq {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+  .mob-icon-sq.orange { background: #fff7ed; color: #ea580c; }
+  .mob-icon-sq.purple { background: #faf5ff; color: #9333ea; }
+  .mob-icon-sq.blue { background: #eff6ff; color: #2563eb; }
+
+  .mob-job-id-text {
+    font-size: 0.98rem;
+    font-weight: 800;
+    color: #ea580c;
+    text-decoration: none;
+  }
+
+  .mob-job-date {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    color: #64748b;
+  }
+
+  .mob-badge {
+    padding: 0.25rem 0.65rem;
+    border-radius: 20px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .mob-badge.green { background: #dcfce7; color: #15803d; }
+  .mob-badge.orange { background: #ffedd5; color: #c2410c; }
+  .mob-badge.blue { background: #dbeafe; color: #1d4ed8; }
+
+  .mob-job-card-mid {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .mob-car-thumb {
+    width: 90px;
+    height: 65px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+
+  .mob-car-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .mob-vehicle-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .mob-lbl {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    font-weight: 600;
+  }
+
+  .mob-vehicle-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  .mob-plate-text {
+    font-size: 0.78rem;
+    font-family: var(--font-mono, monospace);
+    color: #ea580c;
+    font-weight: 700;
+  }
+
+  .mob-cust-text {
+    font-size: 0.8rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 1px;
+  }
+
+  .mob-dashed-div {
+    border-top: 1px dashed #e2e8f0;
+    margin: 0.75rem 0;
+  }
+
+  .mob-job-card-bot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.85rem;
+  }
+
+  .mob-mech-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .mob-val-text {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .mob-price-text {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #2563eb;
+    font-family: var(--font-mono, monospace);
+  }
+
+  .mob-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: 0.85rem;
+    border-top: 1px dashed #e2e8f0;
+    margin-top: 0.85rem;
+  }
+
+  .mob-btn-action-equal {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.4rem;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  }
+
+  .mob-btn-action-equal.view {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #2563eb;
+  }
+
+  .mob-btn-action-equal.edit {
+    background: #fff7ed;
+    border: 1px solid #ffedd5;
+    color: #ea580c;
+  }
+
+  .mob-btn-action-equal.delete {
+    background: #ffe4e6;
+    border: 1px solid #fca5a5;
+    color: #dc2626;
+  }
+
+  .mob-empty-box {
+    padding: 1.5rem;
+    text-align: center;
+    color: #94a3b8;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    font-size: 0.88rem;
+  }
+
+  /* Mobile Delete Modal */
+  .mob-delete-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .mob-delete-modal-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 340px;
+    text-align: center;
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+  }
+
+  .mob-delete-modal-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #ffe4e6;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 1rem auto;
+  }
+
+  .mob-delete-modal-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .mob-delete-modal-text {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 1.25rem;
+    line-height: 1.4;
+  }
+
+  .mob-delete-modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+  }
+
+  .mob-modal-btn {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .mob-modal-btn.cancel {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+  }
+
+  .mob-modal-btn.delete {
+    background: #dc2626;
+    border: 1px solid #dc2626;
+    color: #ffffff;
+  }
+}
+</style>
+
+<!-- Mobile Delete Confirmation Modal -->
+<div id="mobDeleteModal" class="mob-delete-modal-overlay">
+  <div class="mob-delete-modal-card">
+    <div class="mob-delete-modal-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+    </div>
+    <h3 class="mob-delete-modal-title">Delete Job Card</h3>
+    <p class="mob-delete-modal-text">Are you sure you want to delete this job card <strong id="mobDeleteJobIdText"></strong>?</p>
+    <div class="mob-delete-modal-actions">
+      <button type="button" class="mob-modal-btn cancel" onclick="closeMobDeleteModal()">Cancel</button>
+      <form id="mobDeleteForm" method="post" action="" style="flex:1; margin:0;">
+        {% csrf_token %}
+        <button type="submit" class="mob-modal-btn delete" style="width:100%;">Delete</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function openMobDeleteModal(deleteUrl, jobNum) {
+  document.getElementById('mobDeleteJobIdText').innerText = jobNum;
+  document.getElementById('mobDeleteForm').action = deleteUrl;
+  document.getElementById('mobDeleteModal').style.display = 'flex';
+}
+function closeMobDeleteModal() {
+  document.getElementById('mobDeleteModal').style.display = 'none';
+}
+</script>
+
+<!-- ==========================================================================
+     MOBILE JOB CARDS VIEW (Visible ONLY on screens <= 768px)
+     ========================================================================== -->
+<div class="mobile-jobs-wrapper">
+  
+  <!-- Mobile Header -->
+  <div class="mob-jobs-header">
+    <div class="mob-jobs-header-left">
+      <button type="button" class="mob-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open');" aria-label="Toggle Navigation Sidebar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </button>
+      <h1 class="mob-jobs-title">Job Cards</h1>
+    </div>
+    <a href="{% url 'job_create' %}" class="mob-add-job-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      Add Job Card
+    </a>
+  </div>
+
+  <!-- Section Card Wrapper -->
+  <div class="mob-filter-card mb-3" style="padding:1rem;">
+    <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+      <div class="mob-icon-sq orange" style="width:36px; height:36px; border-radius:10px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+      </div>
+      <h2 style="font-size:1.15rem; font-weight:800; color:#0f172a; margin:0;">Job Cards</h2>
+    </div>
+
+    <!-- Filter Pills -->
+    <div class="mob-filter-pills">
+      <a href="{% url 'job_list' %}{% if q %}?q={{ q }}{% endif %}" class="mob-filter-pill {% if not status_filter %}active{% endif %}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
         All
       </a>
-      <a href="?status=pending{% if q %}&q={{ q }}{% endif %}" class="btn btn-sm {% if status_filter == 'pending' %}btn-primary{% else %}btn-secondary{% endif %}">
+      <a href="?status=pending{% if q %}&q={{ q }}{% endif %}" class="mob-filter-pill {% if status_filter == 'pending' %}active{% endif %}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
         Pending
       </a>
-      <a href="?status=in_progress{% if q %}&q={{ q }}{% endif %}" class="btn btn-sm {% if status_filter == 'in_progress' %}btn-primary{% else %}btn-secondary{% endif %}">
+      <a href="?status=in_progress{% if q %}&q={{ q }}{% endif %}" class="mob-filter-pill {% if status_filter == 'in_progress' %}active{% endif %}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
         In Progress
       </a>
-      <a href="?status=completed{% if q %}&q={{ q }}{% endif %}" class="btn btn-sm {% if status_filter == 'completed' %}btn-primary{% else %}btn-secondary{% endif %}">
+      <a href="?status=completed{% if q %}&q={{ q }}{% endif %}" class="mob-filter-pill {% if status_filter == 'completed' %}active{% endif %}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
         Completed
       </a>
-      <a href="?status=delivered{% if q %}&q={{ q }}{% endif %}" class="btn btn-sm {% if status_filter == 'delivered' %}btn-primary{% else %}btn-secondary{% endif %}">
+      <a href="?status=delivered{% if q %}&q={{ q }}{% endif %}" class="mob-filter-pill {% if status_filter == 'delivered' %}active{% endif %}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
         Delivered
       </a>
     </div>
 
     <!-- Search Form -->
-    <form method="get" style="display:flex; gap:0.75rem; align-items:center;">
+    <form method="get" class="mob-search-form">
       {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
-      <input type="text" name="q" value="{{ q }}" class="form-input" style="max-width:280px;" placeholder="Search job #, customer or plate…">
-      <button class="btn btn-secondary">Search</button>
-      {% if q %}<a href="{% url 'job_list' %}{% if status_filter %}?status={{ status_filter }}{% endif %}" class="btn btn-secondary">Clear</a>{% endif %}
+      <div style="position:relative; flex:1;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="position:absolute; left:12px; top:50%; transform:translateY(-50%);"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" name="q" value="{{ q }}" class="mob-search-input" style="padding-left:36px;" placeholder="Search job #, customer, vehicle…">
+      </div>
+      <button type="submit" class="mob-search-btn" style="background:#fff7ed; color:#ea580c; border:1px solid #ffedd5; font-weight:700;">Search</button>
+      {% if q %}<a href="{% url 'job_list' %}{% if status_filter %}?status={{ status_filter }}{% endif %}" class="mob-filter-pill" style="display:inline-flex; align-items:center;">Clear</a>{% endif %}
     </form>
   </div>
+
+  <!-- Job Cards List -->
+  <div class="mob-job-cards-stack">
+    {% for job in jobs %}
+    <div class="mob-job-card-box" onclick="window.location.href='{% url 'job_detail' job.pk %}';" style="cursor:pointer;">
+      
+      <!-- Top Row -->
+      <div class="mob-job-card-top">
+        <span class="mob-job-id-text" style="font-size:1.05rem;">{{ job.job_number }}</span>
+
+        <div class="mob-job-date">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span>{{ job.created_at|date:"d M Y" }}</span>
+        </div>
+
+        <div class="mob-badge {% if job.status == 'completed' or job.status == 'delivered' %}green{% elif job.status == 'pending' %}orange{% else %}blue{% endif %}">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>{{ job.get_status_display }}</span>
+        </div>
+      </div>
+
+      <!-- Middle Row: Vehicle (Left) & Mechanic (Right) -->
+      <div class="mob-job-card-mid" style="display:flex; align-items:flex-start; justify-content:space-between; gap:0.75rem; margin-bottom:0.75rem;">
+        <div style="display:flex; align-items:flex-start; gap:0.75rem; flex:1;">
+          <div class="mob-car-thumb">
+            {% if 'Swift' in job.vehicle.model or 'swift' in job.vehicle.model %}
+              <img src="https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=200&q=80" alt="Maruti Swift">
+            {% elif 'Honda' in job.vehicle.make or 'City' in job.vehicle.model %}
+              <img src="https://images.unsplash.com/photo-1590362891991-f776e747a588?w=200&q=80" alt="Honda City">
+            {% else %}
+              <img src="https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=200&q=80" alt="Car Thumbnail">
+            {% endif %}
+          </div>
+          <div class="mob-vehicle-info">
+            <span class="mob-lbl">Vehicle</span>
+            <h4 class="mob-vehicle-title">{{ job.vehicle.make }} {{ job.vehicle.model }}</h4>
+            <span class="mob-plate-text">{{ job.vehicle.license_plate }}</span>
+            <div class="mob-cust-text">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              <span>{{ job.vehicle.customer.name }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; align-items:flex-start; min-width:95px;">
+          <span class="mob-lbl" style="margin-bottom:4px;">Mechanic</span>
+          <div style="display:flex; align-items:center; gap:0.4rem;">
+            <div class="mob-icon-sq purple" style="width:32px; height:32px; border-radius:10px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9333ea" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </div>
+            <span class="mob-val-text" style="font-size:0.85rem;">{% if job.mechanic %}{{ job.mechanic.get_full_name|default:job.mechanic.username }}{% else %}Unassigned{% endif %}</span>
+          </div>
+        </div>
+      <!-- Action Buttons Row -->
+      <div class="mob-actions-row">
+        <a href="{% url 'job_detail' job.pk %}" class="mob-btn-action-equal view" onclick="event.stopPropagation();">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          View
+        </a>
+        <a href="{% url 'job_update_status' job.pk %}" class="mob-btn-action-equal edit" onclick="event.stopPropagation();">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          Edit
+        </a>
+        {% if user.profile.role == 'owner' or user.profile.role == 'advisor' or user.is_superuser %}
+        <button type="button" class="mob-btn-action-equal delete" onclick="event.stopPropagation(); openMobDeleteModal('{% url 'job_delete' job.pk %}', '{{ job.job_number }}');">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          Delete
+        </button>
+        {% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <div class="mob-empty-box">No job cards found matching your criteria.</div>
+    {% endfor %}
+  </div>
+
 </div>
 
-<div class="card">
-  <div class="card-header"><span class="card-title">Job Cards</span></div>
-  <div class="table-wrap"><table>
-    <thead>
-      <tr>
-        <th>Job #</th>
-        <th>Vehicle</th>
-        <th>Customer</th>
-        <th>Mechanic</th>
-        <th>Labour</th>
-        <th>Status</th>
-        <th>Created</th>
-        <th>Est. Completion</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for job in jobs %}
-      <tr>
-        <td><a href="{% url 'job_detail' job.pk %}" class="text-accent text-mono" style="font-weight:700;">{{ job.job_number }}</a></td>
-        <td>
-          <strong style="color:var(--text-1);">{{ job.vehicle.make }} {{ job.vehicle.model }}</strong><br>
-          <span class="text-mono" style="font-size:0.78rem; color:#ea580c; font-weight:700;">{{ job.vehicle.license_plate }}</span>
-        </td>
-        <td style="font-weight:600; color:var(--text-1);">{{ job.vehicle.customer.name }}</td>
-        <td>
-          {% if job.mechanic %}
-            {{ job.mechanic.get_full_name|default:job.mechanic.username }}
-          {% else %}
-            <span class="text-muted" style="font-style:italic;">Unassigned</span>
-          {% endif %}
-        </td>
-        <td class="text-mono text-green" style="font-weight:700;">₹{{ job.labour_cost|floatformat:2 }}</td>
-        <td><span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span></td>
-        <td class="text-muted">{{ job.created_at|date:"d M Y" }}</td>
-        <td class="text-muted">{{ job.estimated_completion_time|date:"d M H:i"|default:"—" }}</td>
-        <td style="white-space:nowrap; text-align:right;">
-          <a href="{% url 'job_detail' job.pk %}" class="btn btn-secondary btn-sm">View</a>
-          <a href="{% url 'job_update_status' job.pk %}" class="btn btn-secondary btn-sm">Edit</a>
-          {% if user.profile.role == 'owner' or user.profile.role == 'advisor' or user.is_superuser %}
-          <form method="post" action="{% url 'job_delete' job.pk %}" onsubmit="return confirm('Delete Job Card {{ job.job_number }}?');" style="display:inline; margin:0;">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger btn-sm" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; border-radius:6px; padding:0.25rem 0.6rem; font-size:0.78rem; font-weight:600; cursor:pointer;">Delete</button>
-          </form>
-          {% endif %}
-        </td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="9" class="text-center text-muted">No job cards found</td></tr>
-      {% endfor %}
-    </tbody>
-  </table></div>
+
+<!-- ==========================================================================
+     DESKTOP JOB CARDS VIEW (Visible ONLY on screens > 768px)
+     ========================================================================== -->
+<div class="desktop-jobs-wrapper">
+  
+  <div class="card mb-2" style="padding:1rem 1.5rem;">
+    <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:1rem;">
+      <!-- Status Filter Pills -->
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+        <a href="{% url 'job_list' %}{% if q %}?q={{ q }}{% endif %}" class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-secondary{% endif %}">
+          All
+        </a>
+        <a href="?status=pending{% if q %}&q={{ q }}{% endif %}" class="btn btn-sm {% if status_filter == 'pending' %}btn-primary{% else %}btn-secondary{% endif %}">
+          Pending
+        </a>
+        <a href="?status=in_progress{% if q %}&q={{ q }}{% endif %}" class="btn btn-sm {% if status_filter == 'in_progress' %}btn-primary{% else %}btn-secondary{% endif %}">
+          In Progress
+        </a>
+        <a href="?status=completed{% if q %}&q={{ q }}{% endif %}" class="btn btn-sm {% if status_filter == 'completed' %}btn-primary{% else %}btn-secondary{% endif %}">
+          Completed
+        </a>
+        <a href="?status=delivered{% if q %}&q={{ q }}{% endif %}" class="btn btn-sm {% if status_filter == 'delivered' %}btn-primary{% else %}btn-secondary{% endif %}">
+          Delivered
+        </a>
+      </div>
+
+      <!-- Search Form -->
+      <form method="get" style="display:flex; gap:0.75rem; align-items:center;">
+        {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+        <input type="text" name="q" value="{{ q }}" class="form-input" style="max-width:280px;" placeholder="Search job #, customer or plate…">
+        <button class="btn btn-secondary">Search</button>
+        {% if q %}<a href="{% url 'job_list' %}{% if status_filter %}?status={{ status_filter }}{% endif %}" class="btn btn-secondary">Clear</a>{% endif %}
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-title">Job Cards</span></div>
+    <div class="table-wrap"><table>
+      <thead>
+        <tr>
+          <th>Job #</th>
+          <th>Vehicle</th>
+          <th>Customer</th>
+          <th>Mechanic</th>
+          <th>Labour</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Est. Completion</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job in jobs %}
+        <tr>
+          <td><a href="{% url 'job_detail' job.pk %}" class="text-accent text-mono" style="font-weight:700;">{{ job.job_number }}</a></td>
+          <td>
+            <strong style="color:var(--text-1);">{{ job.vehicle.make }} {{ job.vehicle.model }}</strong><br>
+            <span class="text-mono" style="font-size:0.78rem; color:#ea580c; font-weight:700;">{{ job.vehicle.license_plate }}</span>
+          </td>
+          <td style="font-weight:600; color:var(--text-1);">{{ job.vehicle.customer.name }}</td>
+          <td>
+            {% if job.mechanic %}
+              {{ job.mechanic.get_full_name|default:job.mechanic.username }}
+            {% else %}
+              <span class="text-muted" style="font-style:italic;">Unassigned</span>
+            {% endif %}
+          </td>
+          <td class="text-mono text-green" style="font-weight:700;">₹{{ job.labour_cost|floatformat:2 }}</td>
+          <td><span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span></td>
+          <td class="text-muted">{{ job.created_at|date:"d M Y" }}</td>
+          <td class="text-muted">{{ job.estimated_completion_time|date:"d M H:i"|default:"—" }}</td>
+          <td style="white-space:nowrap; text-align:right;">
+            <a href="{% url 'job_detail' job.pk %}" class="btn btn-secondary btn-sm">View</a>
+            <a href="{% url 'job_update_status' job.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+            {% if user.profile.role == 'owner' or user.profile.role == 'advisor' or user.is_superuser %}
+            <form method="post" action="{% url 'job_delete' job.pk %}" onsubmit="return confirm('Delete Job Card {{ job.job_number }}?');" style="display:inline; margin:0;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger btn-sm" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; border-radius:6px; padding:0.25rem 0.6rem; font-size:0.78rem; font-weight:600; cursor:pointer;">Delete</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="text-center text-muted">No job cards found</td></tr>
+        {% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+
 </div>
+
 {% endblock %}
+

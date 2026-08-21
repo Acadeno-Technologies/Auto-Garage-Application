@@ -24,46 +24,144 @@
 @media (max-width: 900px) {
   .inventory-grid-layout {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
-}
+  
+  .inv-subnav-card {
+    position: static;
+    padding: 0.85rem;
+  }
 
-/* Sub Navigation Card */
-.inv-subnav-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 1rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-  position: sticky;
-  top: 80px;
-}
-
-.inv-subnav-title {
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  padding: 0.25rem 0.5rem 0.65rem 0.5rem;
-  border-bottom: 1px solid #f1f5f9;
-  margin-bottom: 0.5rem;
-}
-
-.inv-subnav-menu {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-@media (max-width: 900px) {
   .inv-subnav-menu {
     flex-direction: row;
     overflow-x: auto;
-    padding-bottom: 0.25rem;
+    padding-bottom: 0.35rem;
+    gap: 0.5rem;
   }
-  .inv-subnav-card {
-    position: static;
+
+  .inv-subnav-item {
+    white-space: nowrap;
+    padding: 0.5rem 0.85rem;
+    border-left: none;
+    border-bottom: 3px solid transparent;
   }
+
+  .inv-subnav-item.active {
+    border-left-color: transparent;
+    border-bottom-color: #dc2626;
+  }
+
+  .inv-stats-mini {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem !important;
+    margin-top: 0.75rem !important;
+    padding-top: 0.75rem !important;
+  }
+
+  .inv-stat-mini-row {
+    background: #f8fafc;
+    padding: 0.45rem 0.65rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .inv-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .inv-search-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .inv-search-input-wrap,
+  .inv-search-select,
+  .inv-btn-secondary {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Responsive Table Card Stack */
+  .table-wrap table,
+  .table-wrap thead,
+  .table-wrap tbody,
+  .table-wrap tr,
+  .table-wrap th,
+  .table-wrap td {
+    display: block;
+    width: 100%;
+  }
+
+  .table-wrap thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  .table-wrap tr {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    margin-bottom: 0.85rem;
+    background: #ffffff;
+    padding: 0.85rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  }
+
+  .table-wrap td {
+    position: relative;
+    padding: 0.55rem 0.55rem 0.55rem 45%;
+    text-align: left;
+    border: none;
+    border-bottom: 1px solid #f1f5f9;
+    white-space: normal;
+    font-size: 0.85rem;
+    box-sizing: border-box;
+  }
+
+  .table-wrap td:last-child {
+    border-bottom: none;
+    text-align: left !important;
+    padding-top: 0.75rem;
+  }
+
+  .table-wrap td:before {
+    position: absolute;
+    top: 0.55rem;
+    left: 0.55rem;
+    width: calc(40% - 0.55rem);
+    font-weight: 700;
+    font-size: 0.75rem;
+    color: #64748b;
+    text-transform: uppercase;
+  }
+
+  /* Parts table labels */
+  #parts-table td:nth-of-type(1):before { content: "Name"; }
+  #parts-table td:nth-of-type(2):before { content: "Part #"; }
+  #parts-table td:nth-of-type(3):before { content: "Category"; }
+  #parts-table td:nth-of-type(4):before { content: "Price"; }
+  #parts-table td:nth-of-type(5):before { content: "Stock"; }
+  #parts-table td:nth-of-type(6):before { content: "Min Stock"; }
+  #parts-table td:nth-of-type(7):before { content: "Status"; }
+  #parts-table td:nth-of-type(8):before { content: "Actions"; }
+
+  /* Categories table labels */
+  #categories-table td:nth-of-type(1):before { content: "Name"; }
+  #categories-table td:nth-of-type(2):before { content: "Description"; }
+  #categories-table td:nth-of-type(3):before { content: "Parts Count"; }
+  #categories-table td:nth-of-type(4):before { content: "Actions"; }
+
+  /* Suppliers table labels */
+  #suppliers-table td:nth-of-type(1):before { content: "Name"; }
+  #suppliers-table td:nth-of-type(2):before { content: "Contact"; }
+  #suppliers-table td:nth-of-type(3):before { content: "Phone"; }
+  #suppliers-table td:nth-of-type(4):before { content: "Email"; }
+  #suppliers-table td:nth-of-type(5):before { content: "Actions"; }
 }
 
 .inv-subnav-item {
@@ -519,7 +617,7 @@
 
       <!-- Categories Table -->
       <div class="table-wrap">
-        <table style="width:100%;">
+        <table id="categories-table" style="width:100%;">
           <thead>
             <tr>
               <th>NAME</th>
@@ -590,7 +688,7 @@
 
       <!-- Suppliers Table -->
       <div class="table-wrap">
-        <table style="width:100%;">
+        <table id="suppliers-table" style="width:100%;">
           <thead>
             <tr>
               <th>NAME</th>
