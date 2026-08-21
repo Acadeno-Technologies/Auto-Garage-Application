@@ -685,7 +685,11 @@
 
       <div class="mob-job-item-middle">
         <div class="mob-vehicle-thumb">
-          {% if 'Swift' in job.vehicle.model or 'swift' in job.vehicle.model %}
+          {% if job.vehicle.image %}
+            <img src="{{ job.vehicle.image.url }}" alt="{{ job.vehicle.make }} {{ job.vehicle.model }}">
+          {% elif job.photos.first %}
+            <img src="{{ job.photos.first.image.url }}" alt="{{ job.vehicle.make }} {{ job.vehicle.model }}">
+          {% elif 'Swift' in job.vehicle.model or 'swift' in job.vehicle.model %}
             <img src="https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=200&q=80" alt="Maruti Swift">
           {% else %}
             <img src="https://images.unsplash.com/photo-1590362891991-f776e747a588?w=200&q=80" alt="Car">

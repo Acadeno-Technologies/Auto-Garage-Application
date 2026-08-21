@@ -361,82 +361,83 @@
     font-size: 0.88rem;
   }
 
-  /* Mobile Delete Modal */
-  .mob-delete-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(15, 23, 42, 0.5);
-    backdrop-filter: blur(4px);
-    z-index: 1000;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-  }
+}
 
-  .mob-delete-modal-card {
-    background: #ffffff;
-    border-radius: 20px;
-    padding: 1.5rem;
-    width: 100%;
-    max-width: 340px;
-    text-align: center;
-    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
-  }
+/* Mobile Delete Modal (Hidden by default on both desktop and mobile) */
+.mob-delete-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
 
-  .mob-delete-modal-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: #ffe4e6;
-    display: grid;
-    place-items: center;
-    margin: 0 auto 1rem auto;
-  }
+.mob-delete-modal-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 340px;
+  text-align: center;
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+}
 
-  .mob-delete-modal-title {
-    font-size: 1.1rem;
-    font-weight: 800;
-    color: #0f172a;
-    margin: 0 0 0.5rem 0;
-  }
+.mob-delete-modal-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #ffe4e6;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 1rem auto;
+}
 
-  .mob-delete-modal-text {
-    font-size: 0.85rem;
-    color: #64748b;
-    margin-bottom: 1.25rem;
-    line-height: 1.4;
-  }
+.mob-delete-modal-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.5rem 0;
+}
 
-  .mob-delete-modal-actions {
-    display: flex;
-    gap: 0.75rem;
-    justify-content: center;
-  }
+.mob-delete-modal-text {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 1.25rem;
+  line-height: 1.4;
+}
 
-  .mob-modal-btn {
-    flex: 1;
-    padding: 0.6rem 1rem;
-    border-radius: 12px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    cursor: pointer;
-  }
+.mob-delete-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
 
-  .mob-modal-btn.cancel {
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    color: #475569;
-  }
+.mob-modal-btn {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
 
-  .mob-modal-btn.delete {
-    background: #dc2626;
-    border: 1px solid #dc2626;
-    color: #ffffff;
-  }
+.mob-modal-btn.cancel {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+}
+
+.mob-modal-btn.delete {
+  background: #dc2626;
+  border: 1px solid #dc2626;
+  color: #ffffff;
 }
 </style>
 
@@ -557,7 +558,11 @@ function closeMobDeleteModal() {
       <div class="mob-job-card-mid" style="display:flex; align-items:flex-start; justify-content:space-between; gap:0.75rem; margin-bottom:0.75rem;">
         <div style="display:flex; align-items:flex-start; gap:0.75rem; flex:1;">
           <div class="mob-car-thumb">
-            {% if 'Swift' in job.vehicle.model or 'swift' in job.vehicle.model %}
+            {% if job.vehicle.image %}
+              <img src="{{ job.vehicle.image.url }}" alt="{{ job.vehicle.make }} {{ job.vehicle.model }}">
+            {% elif job.photos.first %}
+              <img src="{{ job.photos.first.image.url }}" alt="{{ job.vehicle.make }} {{ job.vehicle.model }}">
+            {% elif 'Swift' in job.vehicle.model or 'swift' in job.vehicle.model %}
               <img src="https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=200&q=80" alt="Maruti Swift">
             {% elif 'Honda' in job.vehicle.make or 'City' in job.vehicle.model %}
               <img src="https://images.unsplash.com/photo-1590362891991-f776e747a588?w=200&q=80" alt="Honda City">
