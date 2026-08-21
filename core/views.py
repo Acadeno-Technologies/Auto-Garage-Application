@@ -194,11 +194,16 @@ def owner_dashboard(request):
         count = JobCard.objects.filter(mechanic=m, status='completed').count()
         mechanic_stats.append({'mechanic': m, 'completed': count})
 
+    total_jobs_count = JobCard.objects.count()
+    total_parts_count = SparePart.objects.count()
+
     ctx = {
         'total_customers': total_customers,
         'total_vehicles': total_vehicles,
         'active_jobs': active_jobs,
         'completed_jobs': completed_jobs,
+        'total_jobs_count': total_jobs_count,
+        'total_parts_count': total_parts_count,
         'low_stock_parts': SparePart.objects.filter(stock_quantity__lte=5).count(),
         'pending_invoices': pending_invoices,
         'staff_count': staff_count,

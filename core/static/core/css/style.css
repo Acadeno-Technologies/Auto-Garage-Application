@@ -499,27 +499,28 @@ textarea{ resize: vertical; min-height: 90px; }
   .mobile-only{ display: flex !important; }
   .topbar{ padding: 1rem 1.25rem; }
   .content{ padding: 1.25rem; }
-  .stats-grid{ grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 640px){
-  .stats-grid{ grid-template-columns: 1fr; }
-  .content{ padding: 1rem; }
-  .card-body{ padding: 1.1rem; }
-  .two-col-grid{ grid-template-columns: 1fr; }
-  body{ padding-bottom: 64px; }
+  .stats-grid{ display: none !important; }
+  body{ padding-bottom: 70px; }
   .mobile-bottom-nav{
-    display: flex !important; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+    display: flex !important; position: fixed; bottom: 0; left: 0; right: 0; z-index: 999;
     background: var(--surface); border-top: 1px solid var(--border);
     justify-content: space-around; padding: 0.5rem 0.25rem;
     box-shadow: 0 -8px 24px rgba(15,23,42,0.08);
   }
   .mobile-bottom-nav a{
-    display: flex; flex-direction: column; align-items: center; gap: 0.2rem;
-    font-size: 0.62rem; font-weight: 700; color: var(--muted);
+    display: flex; flex-direction: column; align-items: center; gap: 0.25rem;
+    font-size: 0.65rem; font-weight: 700; color: var(--muted);
+    text-decoration: none;
   }
-  .mobile-bottom-nav a svg{ width: 20px; height: 20px; }
+  .mobile-bottom-nav a svg{ width: 22px; height: 22px; }
   .mobile-bottom-nav a.active{ color: var(--accent); }
+}
+
+@media (max-width: 640px){
+  .stats-grid{ display: none !important; }
+  .content{ padding: 1rem; }
+  .card-body{ padding: 1.1rem; }
+  .two-col-grid{ grid-template-columns: 1fr; }
 }
 
 /* ---------- 15. COUNTRY PICKER & PHONE INPUT STYLES ---------- */
