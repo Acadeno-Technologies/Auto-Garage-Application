@@ -585,6 +585,8 @@ function closeMobDeleteModal() {
             <span class="mob-val-text" style="font-size:0.85rem;">{% if job.mechanic %}{{ job.mechanic.get_full_name|default:job.mechanic.username }}{% else %}Unassigned{% endif %}</span>
           </div>
         </div>
+      </div>
+
       <!-- Action Buttons Row -->
       <div class="mob-actions-row">
         <a href="{% url 'job_detail' job.pk %}" class="mob-btn-action-equal view" onclick="event.stopPropagation();">
