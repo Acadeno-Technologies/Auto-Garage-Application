@@ -1,0 +1,59 @@
+{% extends 'core/base.html' %}
+{% block title %}Vehicles{% endblock %}
+{% block page_title %}Vehicles{% endblock %}
+{% block topbar_actions %}<a href="{% url 'vehicle_create' %}" class="btn btn-primary">+ Add Vehicle</a>{% endblock %}
+{% block content %}
+<div class="card mb-2" style="padding:1rem 1.5rem;">
+  <form method="get" style="display:flex;gap:0.75rem;align-items:center;">
+    <input type="text" name="q" value="{{ q }}" class="form-input" style="max-width:300px;" placeholder="Search plate, model or owner…">
+    <button class="btn btn-secondary">Search</button>
+    {% if q %}<a href="{% url 'vehicle_list' %}" class="btn btn-secondary">Clear</a>{% endif %}
+  </form>
+</div>
+<div class="card">
+  <div class="card-header"><span class="card-title">All Vehicles</span></div>
+  <div class="table-wrap"><table>
+    <thead>
+      <tr>
+        <th style="width:60px;">Photo</th>
+        <th>Vehicle</th>
+        <th>Owner</th>
+        <th>Plate</th>
+        <th>Year</th>
+        <th>Color</th>
+        <th>Mileage</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for v in vehicles %}
+      <tr>
+        <td>
+          {% if v.image %}
+            <img src="{{ v.image.url }}" alt="{{ v }}" style="width:38px; height:38px; border-radius:6px; object-fit:cover; border:1px solid var(--border);" onerror="this.outerHTML='<div style=\'width:38px; height:38px; border-radius:6px; background:var(--bg-deep); display:grid; place-items:center; font-size:1rem; border:1px solid var(--border);\'>🚗</div>';">
+          {% else %}
+            <div style="width:38px; height:38px; border-radius:6px; background:var(--bg-deep); display:grid; place-items:center; font-size:1rem; border:1px solid var(--border);">🚗</div>
+          {% endif %}
+        </td>
+        <td><strong style="color:var(--text-1);">{{ v.make }} {{ v.model }}</strong></td>
+        <td><a href="{% url 'customer_detail' v.customer.pk %}" style="color:var(--teal); font-weight:600;">{{ v.customer.name }}</a></td>
+        <td><span class="text-mono text-accent" style="font-weight:700;">{{ v.license_plate }}</span></td>
+        <td class="text-muted">{{ v.year }}</td>
+        <td class="text-muted">{{ v.color|default:"—" }}</td>
+        <td class="text-mono">{{ v.mileage|default:"—" }} km</td>
+        <td style="white-space:nowrap; text-align:right;">
+          <a href="{% url 'vehicle_detail' v.pk %}" class="btn btn-secondary btn-sm">View</a>
+          <a href="{% url 'vehicle_edit' v.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+          <form method="post" action="{% url 'vehicle_delete' v.pk %}" onsubmit="return confirm('Are you sure you want to delete vehicle {{ v.license_plate }}?');" style="display:inline; margin:0;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-sm" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; border-radius:6px; padding:0.25rem 0.6rem; font-size:0.78rem; font-weight:600; cursor:pointer;">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" class="text-center text-muted">No vehicles found</td></tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% endblock %}

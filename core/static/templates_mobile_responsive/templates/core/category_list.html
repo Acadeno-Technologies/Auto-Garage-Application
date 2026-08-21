@@ -1,0 +1,216 @@
+{% extends 'core/base.html' %}
+{% block title %}Part Categories — Inventory Management{% endblock %}
+{% block page_title %}
+<div>
+  <h1 style="color:#0f172a; font-weight:800; font-size:1.35rem; line-height:1.2; margin:0;">Inventory Management</h1>
+  <p style="color:#64748b; font-size:0.83rem; font-weight:500; margin:2px 0 0 0;">Manage part categories and organization</p>
+</div>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'parts_list' %}" class="btn btn-secondary btn-sm" style="border-radius:8px; font-weight:600; padding:0.5rem 1rem; text-decoration:none; font-size:0.85rem; margin-right:0.5rem;">
+  ← Back to Inventory
+</a>
+<a href="{% url 'category_create' %}" class="btn btn-primary btn-sm" style="background:#dc2626; color:white; border-radius:8px; font-weight:600; padding:0.5rem 1rem; border:none; box-shadow:0 3px 10px rgba(220,38,38,0.25); text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; font-size:0.85rem;">
+  <span style="font-weight:700;">+</span> Add Category
+</a>
+{% endblock %}
+
+{% block content %}
+
+<style>
+.inventory-grid-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 1.25rem;
+  align-items: start;
+  max-width: 1250px;
+  margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+  .inventory-grid-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.inv-subnav-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+  position: sticky;
+  top: 80px;
+}
+
+.inv-subnav-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 0.25rem 0.5rem 0.65rem 0.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 0.5rem;
+}
+
+.inv-subnav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.inv-subnav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  color: #475569;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: all 0.15s ease;
+  border-left: 3px solid transparent;
+  white-space: nowrap;
+}
+
+.inv-subnav-item:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.inv-subnav-item.active {
+  background: rgba(220,38,38,0.08);
+  color: #dc2626;
+  border-left-color: #dc2626;
+}
+
+.inv-subnav-item .icon {
+  font-size: 1.05rem;
+  width: 20px;
+  display: inline-grid;
+  place-items: center;
+}
+
+.inv-main-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+  overflow: hidden;
+}
+
+.inv-card-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.action-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-left: 0.2rem;
+  text-decoration: none;
+}
+
+.action-icon-btn.edit-btn:hover {
+  border-color: #cbd5e1;
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.action-icon-btn.delete-btn:hover {
+  border-color: #fca5a5;
+  color: #dc2626;
+  background: #fef2f2;
+}
+</style>
+
+<div class="inventory-grid-layout">
+
+  <!-- LEFT: Inventory Sub-Navigation Panel -->
+  <div class="inv-subnav-card">
+    <div class="inv-subnav-title">Inventory Menu</div>
+    <div class="inv-subnav-menu">
+      <a href="{% url 'parts_list' %}" class="inv-subnav-item">
+        <span class="icon">📦</span>
+        <span>All Spare Parts</span>
+      </a>
+      <a href="{% url 'category_list' %}" class="inv-subnav-item active">
+        <span class="icon">🏷️</span>
+        <span>Part Categories</span>
+      </a>
+      <a href="{% url 'supplier_list' %}" class="inv-subnav-item">
+        <span class="icon">🏭</span>
+        <span>Suppliers</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- RIGHT: Categories Content Card -->
+  <div class="inv-main-card">
+    <div class="inv-card-header">
+      <div style="display:flex; align-items:center; gap:0.6rem;">
+        <div style="width:34px; height:34px; border-radius:8px; background:#f3e8ff; color:#9333ea; display:grid; place-items:center; flex-shrink:0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+        </div>
+        <h2 style="font-weight:800; color:#0f172a; font-size:1.1rem; margin:0;">Part Categories</h2>
+      </div>
+
+      <a href="{% url 'category_create' %}" class="btn btn-primary btn-sm" style="background:#dc2626; color:white; border-radius:8px; font-weight:600; padding:0.45rem 0.9rem; border:none; height:36px; display:inline-flex; align-items:center; text-decoration:none; font-size:0.8rem; box-shadow:0 2px 8px rgba(220,38,38,0.25);">
+        + Add Category
+      </a>
+    </div>
+
+    <div class="table-wrap">
+      <table style="width:100%;">
+        <thead>
+          <tr>
+            <th>NAME</th>
+            <th>DESCRIPTION</th>
+            <th style="width:100px; text-align:right;">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cat in categories %}
+          <tr>
+            <td><strong style="color:#0f172a; font-size:0.9rem;">{{ cat.name }}</strong></td>
+            <td style="color:#64748b; font-size:0.85rem;">{{ cat.description|default:"—" }}</td>
+            <td class="text-right" style="white-space:nowrap;">
+              <a href="{% url 'category_edit' cat.pk %}" class="action-icon-btn edit-btn" title="Edit Category">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              </a>
+              <form method="post" action="{% url 'category_delete' cat.pk %}" onsubmit="return confirm('Delete category {{ cat.name }}?');" style="display:inline; margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="action-icon-btn delete-btn" title="Delete Category">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-center text-muted p-4">No categories created yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

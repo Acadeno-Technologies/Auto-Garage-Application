@@ -1,0 +1,92 @@
+{% extends 'core/base.html' %}
+{% block title %}Reports{% endblock %}
+{% block page_title %}Business Reports{% endblock %}
+{% block content %}
+
+<div class="stats-grid mb-3">
+  <div class="stat-card green">
+    <div class="stat-icon">☀️</div>
+    <div class="stat-value" style="font-size:1.5rem;">₹{{ daily_revenue|floatformat:0 }}</div>
+    <div class="stat-label">Today's Revenue</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-icon">📅</div>
+    <div class="stat-value" style="font-size:1.5rem;">₹{{ monthly_revenue|floatformat:0 }}</div>
+    <div class="stat-label">Monthly Revenue</div>
+  </div>
+  <div class="stat-card yellow">
+    <div class="stat-icon">⏳</div>
+    <div class="stat-value">{{ pending_jobs.count }}</div>
+    <div class="stat-label">Pending Jobs</div>
+  </div>
+  <div class="stat-card teal">
+    <div class="stat-icon">💰</div>
+    <div class="stat-value" style="font-size:1.5rem;">₹{{ inventory_value|floatformat:0 }}</div>
+    <div class="stat-label">Inventory Value</div>
+  </div>
+</div>
+
+<div class="report-grid">
+
+  <!-- Pending Jobs -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">⏳ Pending Job Report</span></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Job #</th><th>Vehicle</th><th>Status</th><th>Days Open</th></tr></thead>
+      <tbody>
+        {% for job in pending_jobs %}
+        <tr>
+          <td><a href="{% url 'job_detail' job.pk %}" class="text-accent text-mono">{{ job.job_number }}</a></td>
+          <td>{{ job.vehicle.make }} {{ job.vehicle.model }}<br><span class="text-muted">{{ job.vehicle.customer.name }}</span></td>
+          <td><span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span></td>
+          <td class="text-mono">{{ job.created_at|timesince|truncatewords:2 }}</td>
+        </tr>
+        {% empty %}<tr><td colspan="4" class="text-center text-muted">✅ No pending jobs!</td></tr>
+        {% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- Mechanic Performance -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">🔧 Mechanic Performance</span></div>
+    <div class="card-body">
+      {% for stat in mechanic_performance %}
+      <div class="mb-3">
+        <div class="flex-between mb-1">
+          <span style="font-weight:500;">{% if stat.mechanic %}{{ stat.mechanic.get_full_name|default:stat.mechanic.username }}{% else %}Unassigned{% endif %}</span>
+          <span class="text-mono text-accent">{{ stat.completed }}/{{ stat.total }}</span>
+        </div>
+        {% if stat.total > 0 %}
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" style="width:{% widthratio stat.completed stat.total 100 %}%"></div>
+        </div>
+        {% endif %}
+        <div class="text-muted mt-1" style="font-size:0.75rem;">{{ stat.completed }} completed of {{ stat.total }} total</div>
+      </div>
+      {% empty %}<p class="text-muted">No mechanics found.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Low Stock Inventory -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">⚠️ Inventory Report (Low Stock)</span></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Part</th><th>Stock</th><th>Min</th><th>Value</th></tr></thead>
+      <tbody>
+        {% for part in low_stock %}
+        <tr class="low-stock">
+          <td>{{ part.name }}</td>
+          <td class="text-red font-bold text-mono">{{ part.stock_quantity }}</td>
+          <td class="text-muted text-mono">{{ part.minimum_stock }}</td>
+          <td class="text-mono">₹{{ part.unit_price }}</td>
+        </tr>
+        {% empty %}<tr><td colspan="4" class="text-center text-muted">✅ All stock OK</td></tr>
+        {% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+
+</div>
+{% endblock %}

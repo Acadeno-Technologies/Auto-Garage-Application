@@ -1,0 +1,90 @@
+{% extends 'core/base.html' %}
+{% block title %}Job Cards{% endblock %}
+{% block page_title %}Job Cards{% endblock %}
+{% block topbar_actions %}<a href="{% url 'job_create' %}" class="btn btn-primary">+ Add Job Card</a>{% endblock %}
+{% block content %}
+<div class="card mb-2" style="padding:1rem 1.5rem;">
+  <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:1rem;">
+    <!-- Status Filter Pills -->
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+      <a href="{% url 'job_list' %}{% if q %}?q={{ q }}{% endif %}" class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-secondary{% endif %}">
+        All
+      </a>
+      <a href="?status=pending{% if q %}&q={{ q }}{% endif %}" class="btn btn-sm {% if status_filter == 'pending' %}btn-primary{% else %}btn-secondary{% endif %}">
+        Pending
+      </a>
+      <a href="?status=in_progress{% if q %}&q={{ q }}{% endif %}" class="btn btn-sm {% if status_filter == 'in_progress' %}btn-primary{% else %}btn-secondary{% endif %}">
+        In Progress
+      </a>
+      <a href="?status=completed{% if q %}&q={{ q }}{% endif %}" class="btn btn-sm {% if status_filter == 'completed' %}btn-primary{% else %}btn-secondary{% endif %}">
+        Completed
+      </a>
+      <a href="?status=delivered{% if q %}&q={{ q }}{% endif %}" class="btn btn-sm {% if status_filter == 'delivered' %}btn-primary{% else %}btn-secondary{% endif %}">
+        Delivered
+      </a>
+    </div>
+
+    <!-- Search Form -->
+    <form method="get" style="display:flex; gap:0.75rem; align-items:center;">
+      {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+      <input type="text" name="q" value="{{ q }}" class="form-input" style="max-width:280px;" placeholder="Search job #, customer or plate…">
+      <button class="btn btn-secondary">Search</button>
+      {% if q %}<a href="{% url 'job_list' %}{% if status_filter %}?status={{ status_filter }}{% endif %}" class="btn btn-secondary">Clear</a>{% endif %}
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><span class="card-title">Job Cards</span></div>
+  <div class="table-wrap"><table>
+    <thead>
+      <tr>
+        <th>Job #</th>
+        <th>Vehicle</th>
+        <th>Customer</th>
+        <th>Mechanic</th>
+        <th>Labour</th>
+        <th>Status</th>
+        <th>Created</th>
+        <th>Est. Completion</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for job in jobs %}
+      <tr>
+        <td><a href="{% url 'job_detail' job.pk %}" class="text-accent text-mono" style="font-weight:700;">{{ job.job_number }}</a></td>
+        <td>
+          <strong style="color:var(--text-1);">{{ job.vehicle.make }} {{ job.vehicle.model }}</strong><br>
+          <span class="text-mono" style="font-size:0.78rem; color:#ea580c; font-weight:700;">{{ job.vehicle.license_plate }}</span>
+        </td>
+        <td style="font-weight:600; color:var(--text-1);">{{ job.vehicle.customer.name }}</td>
+        <td>
+          {% if job.mechanic %}
+            {{ job.mechanic.get_full_name|default:job.mechanic.username }}
+          {% else %}
+            <span class="text-muted" style="font-style:italic;">Unassigned</span>
+          {% endif %}
+        </td>
+        <td class="text-mono text-green" style="font-weight:700;">₹{{ job.labour_cost|floatformat:2 }}</td>
+        <td><span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span></td>
+        <td class="text-muted">{{ job.created_at|date:"d M Y" }}</td>
+        <td class="text-muted">{{ job.estimated_completion_time|date:"d M H:i"|default:"—" }}</td>
+        <td style="white-space:nowrap; text-align:right;">
+          <a href="{% url 'job_detail' job.pk %}" class="btn btn-secondary btn-sm">View</a>
+          <a href="{% url 'job_update_status' job.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+          {% if user.profile.role == 'owner' or user.profile.role == 'advisor' or user.is_superuser %}
+          <form method="post" action="{% url 'job_delete' job.pk %}" onsubmit="return confirm('Delete Job Card {{ job.job_number }}?');" style="display:inline; margin:0;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-sm" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; border-radius:6px; padding:0.25rem 0.6rem; font-size:0.78rem; font-weight:600; cursor:pointer;">Delete</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="9" class="text-center text-muted">No job cards found</td></tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'core/base.html' %}
+{% block title %}Confirm Delete{% endblock %}
+{% block page_title %}Confirm Delete{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px;">
+  <div class="card-body">
+    <p style="margin-bottom:1.5rem;">Are you sure you want to delete <strong>{{ obj }}</strong>? This action cannot be undone.</p>
+    <form method="post" style="display:flex;gap:0.75rem;">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Delete</button>
+      <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

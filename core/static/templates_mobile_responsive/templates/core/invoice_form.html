@@ -1,0 +1,1033 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}
+<div>
+  <h1 style="color:#0f172a; font-weight:800; font-size:1.3rem; line-height:1.2; margin:0;">{{ title }}</h1>
+  <p style="color:#64748b; font-size:0.82rem; font-weight:500; margin:2px 0 0 0;">Update invoice details and save</p>
+</div>
+{% endblock %}
+{% block topbar_actions %}
+  <a href="{% url 'invoice_list' %}" class="btn btn-secondary">← Back to Invoices</a>
+  {% if job %}<a href="{% url 'job_detail' job.pk %}" class="btn-job-outline-header">View Job {{ job.job_number }}</a>{% endif %}
+{% endblock %}
+
+{% block content %}
+<style>
+/* Modern SaaS Invoice Edit Layout */
+.edit-invoice-wrapper {
+  max-width: 1180px;
+  margin: 0 auto;
+  font-family: inherit;
+}
+
+/* Page Header Bar */
+.invoice-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.header-left-group {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.invoice-page-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.invoice-page-subtitle {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin: 0.15rem 0 0 0;
+}
+
+.btn-job-outline-header {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 0.84rem;
+  font-weight: 600;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.2s ease;
+}
+
+.btn-job-outline-header:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+/* Two-Column Grid Layout */
+.invoice-grid-layout {
+  display: grid;
+  grid-template-columns: 65% calc(35% - 24px);
+  gap: 24px;
+  align-items: flex-start;
+}
+
+@media (max-width: 950px) {
+  .invoice-grid-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Left Card - Invoice Form */
+.invoice-form-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* Summary Grid at top of form */
+.invoice-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.summary-card-item {
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.summary-card-full {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 640px) {
+  .invoice-summary-grid {
+    grid-template-columns: 1fr;
+  }
+  .summary-card-full {
+    grid-column: 1;
+  }
+}
+
+.icon-box-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.icon-box-blue {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.icon-box-green {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.summary-meta-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.15rem;
+}
+
+.summary-meta-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.summary-meta-value.red-accent {
+  color: #dc2626;
+  font-family: var(--font-data, monospace);
+}
+
+.summary-meta-value.green-accent {
+  color: #16a34a;
+  font-size: 1.15rem;
+  font-family: var(--font-data, monospace);
+}
+
+.form-divider {
+  border: 0;
+  border-top: 1px solid #f1f5f9;
+  margin: 1.5rem 0;
+}
+
+/* Custom Form Controls */
+.custom-form-group {
+  margin-bottom: 1.2rem;
+}
+
+.custom-form-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.4rem;
+}
+
+.input-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon-wrapper .input-prefix-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.input-style-saas {
+  width: 100%;
+  height: 46px;
+  padding: 0 1rem;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  font-size: 0.92rem;
+  color: #0f172a;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.input-icon-wrapper input.input-style-saas,
+.input-icon-wrapper select.input-style-saas {
+  padding-left: 2.75rem;
+}
+
+select.input-style-saas {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 2.5rem;
+}
+
+.input-style-saas:focus {
+  outline: none;
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+
+textarea.input-style-saas {
+  height: auto;
+  min-height: 85px;
+  padding: 0.65rem 0.85rem;
+  resize: vertical;
+}
+
+/* Checkbox Style */
+.checkbox-custom-card {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  height: 46px;
+  padding: 0 1rem;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-custom-card input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #dc2626;
+  cursor: pointer;
+}
+
+.checkbox-label-text {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Two Column Form Row */
+.form-row-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .form-row-2col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Form Action Buttons */
+.form-actions-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.btn-save-saas {
+  background: #dc2626;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.92rem;
+  padding: 0.7rem 1.6rem;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.btn-save-saas:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.btn-cancel-saas {
+  background: #ffffff;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 0.7rem 1.4rem;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel-saas:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+/* Right Card - Invoice Summary */
+.invoice-summary-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  position: sticky;
+  top: 90px;
+}
+
+.summary-header-box {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.summary-header-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #fef2f2;
+  color: #dc2626;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.summary-header-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.summary-header-sub {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin: 0.1rem 0 0 0;
+}
+
+/* Summary Rows */
+.summary-rows-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-row-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 0;
+  border-bottom: 1px dashed #f1f5f9;
+  font-size: 0.86rem;
+}
+
+.summary-row-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.summary-row-right {
+  font-weight: 600;
+  color: #0f172a;
+  text-align: right;
+}
+
+.summary-row-right.red-text {
+  color: #ef4444;
+  font-family: var(--font-data, monospace);
+  font-weight: 700;
+}
+
+.summary-row-right.green-text {
+  color: #16a34a;
+  font-family: var(--font-data, monospace);
+  font-weight: 700;
+}
+
+/* Pill Badges in Summary */
+.pill-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.65rem;
+  border-radius: 12px;
+  display: inline-block;
+}
+
+.pill-unpaid {
+  background: #fff7ed;
+  color: #ea580c;
+  border: 1px solid #ffedd5;
+}
+
+.pill-paid {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+.pill-partial {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
+.pill-included {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+.pill-excluded {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+/* Balance Due Box */
+.balance-due-box {
+  margin-top: 1.25rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.balance-due-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #166534;
+}
+
+.balance-due-amount {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #15803d;
+  font-family: var(--font-data, monospace);
+}
+</style>
+
+<div class="edit-invoice-wrapper">
+
+  {% if not job %}
+  <!-- STEP 1: SELECT JOB CARD WORKFLOW -->
+  <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:1.75rem; box-shadow:0 1px 3px rgba(0,0,0,0.04); margin-bottom:1.5rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.25rem;">
+      <div>
+        <h2 style="font-size:1.25rem; font-weight:800; color:#0f172a; margin:0;">Select Job Card</h2>
+        <p style="color:#64748b; font-size:0.84rem; margin:0.15rem 0 0 0;">Search and select an unbilled job card to generate its invoice directly</p>
+      </div>
+    </div>
+
+    <!-- Search Job Card Form -->
+    <form method="get" style="display:flex; gap:0.75rem; align-items:center; margin-bottom:1.5rem;">
+      <div style="position:relative; flex:1; max-width:500px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute; left:14px; top:50%; transform:translateY(-50%);"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" name="q" value="{{ q }}" class="form-input" style="padding-left:2.5rem; width:100%; height:44px; border-radius:10px;" placeholder="Search Job Card #, Customer Name, Vehicle Plate…">
+      </div>
+      <button type="submit" class="btn btn-secondary" style="height:44px; padding:0 1.25rem;">Search</button>
+      {% if q %}<a href="{% url 'invoice_create_select' %}" class="btn btn-secondary" style="height:44px; display:inline-flex; align-items:center;">Clear</a>{% endif %}
+    </form>
+
+    <div style="font-size:0.78rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.85rem;">Recent / Available Job Cards</div>
+
+    <!-- Job Cards Cards Grid -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:1.25rem;">
+      {% for j in available_jobs %}
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:1.25rem; display:flex; flex-direction:column; justify-content:space-between; transition:all 0.2s ease;">
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+            <span style="font-family:var(--font-data, monospace); font-weight:800; color:#dc2626; font-size:1.05rem;">{{ j.job_number }}</span>
+            <span class="badge badge-{{ j.status }}">{{ j.get_status_display }}</span>
+          </div>
+
+          <div style="margin-bottom:0.4rem; font-size:0.92rem; color:#0f172a; font-weight:700;">
+            👤 {{ j.vehicle.customer.name }}
+          </div>
+
+          <div style="margin-bottom:0.5rem; font-size:0.86rem; color:#475569;">
+            🚘 {{ j.vehicle.make }} {{ j.vehicle.model }}
+            <span style="font-family:var(--font-data, monospace); color:#ea580c; font-weight:700; font-size:0.8rem; margin-left:0.25rem;">({{ j.vehicle.license_plate }})</span>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.82rem; color:#64748b; margin-top:0.75rem; padding-top:0.65rem; border-top:1px dashed #e2e8f0;">
+            <span>📅 {{ j.created_at|date:"d M Y" }}</span>
+            <span style="font-size:1.05rem; font-weight:800; color:#16a34a; font-family:var(--font-data, monospace);">₹{{ j.total_cost|floatformat:2 }}</span>
+          </div>
+        </div>
+
+        <div style="margin-top:1.1rem;">
+          <a href="{% url 'invoice_create_select' %}?job_id={{ j.pk }}" class="btn btn-primary" style="width:100%; text-align:center; justify-content:center; padding:0.55rem; font-weight:700; border-radius:8px;">
+            Select Job Card
+          </a>
+        </div>
+      </div>
+      {% empty %}
+      <div style="grid-column: 1 / -1; text-align:center; padding:3rem 1rem; background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px;">
+        <div style="font-size:2.5rem; margin-bottom:0.5rem;">📋</div>
+        <h4 style="font-weight:700; color:#0f172a; margin:0 0 0.25rem 0;">No Pending Job Cards Found</h4>
+        <p style="color:#64748b; font-size:0.85rem; margin:0;">All job cards have already been invoiced or no unbilled cards match your search query.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+
+  {% if job %}
+  <!-- STEP 2: SELECTED JOB CARD BANNER & AUTO-POPULATED INVOICE FORM -->
+  <div style="background:#eff6ff; border:1.5px solid #3b82f6; border-radius:14px; padding:1rem 1.25rem; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem;">
+    <div style="display:flex; align-items:center; gap:0.85rem;">
+      <div style="width:40px; height:40px; border-radius:10px; background:#3b82f6; color:#ffffff; display:grid; place-items:center; font-weight:800; font-size:1.1rem;">✓</div>
+      <div>
+        <div style="font-size:0.72rem; font-weight:800; color:#1d4ed8; text-transform:uppercase; letter-spacing:0.5px;">SELECTED JOB CARD</div>
+        <div style="font-size:1.05rem; font-weight:800; color:#1e3a8a;">
+          {{ job.job_number }} &bull; {{ job.vehicle.customer.name }} &bull; {{ job.vehicle.make }} {{ job.vehicle.model }} ({{ job.vehicle.license_plate }})
+        </div>
+      </div>
+    </div>
+    <a href="{% url 'invoice_create_select' %}" class="btn btn-secondary btn-sm" style="border-color:#3b82f6; color:#1d4ed8; font-weight:700; background:#ffffff; text-decoration:none;">
+      🔄 Change Job Card
+    </a>
+  </div>
+
+  <!-- MAIN TWO COLUMN LAYOUT -->
+  <div class="invoice-grid-layout">
+
+    <!-- LEFT COLUMN: INVOICE FORM CARD -->
+    <div class="invoice-form-card">
+      
+      <!-- SUMMARY CARDS GRID AT TOP OF FORM -->
+      <div class="invoice-summary-grid">
+        
+        <!-- 1. JOB # -->
+        <div class="summary-card-item">
+          <div class="icon-box-circle icon-box-blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+          </div>
+          <div>
+            <div class="summary-meta-label">JOB #</div>
+            <div class="summary-meta-value red-accent">{{ job.job_number }}</div>
+          </div>
+        </div>
+
+        <!-- 2. VEHICLE -->
+        <div class="summary-card-item">
+          <div class="icon-box-circle icon-box-blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C1.4 11.2 1 12.1 1 13v3c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><circle cx="17" cy="17" r="2"></circle></svg>
+          </div>
+          <div>
+            <div class="summary-meta-label">VEHICLE</div>
+            <div class="summary-meta-value">{{ job.vehicle.make }} {{ job.vehicle.model }}</div>
+          </div>
+        </div>
+
+        <!-- 3. CUSTOMER -->
+        <div class="summary-card-item">
+          <div class="icon-box-circle icon-box-blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          </div>
+          <div>
+            <div class="summary-meta-label">CUSTOMER</div>
+            <div class="summary-meta-value">{{ job.vehicle.customer.name }}</div>
+          </div>
+        </div>
+
+        <!-- 4. ESTIMATED TOTAL -->
+        <div class="summary-card-item summary-card-full">
+          <div class="icon-box-circle icon-box-green">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+          </div>
+          <div>
+            <div class="summary-meta-label">TOTAL SERVICE AMOUNT</div>
+            <div class="summary-meta-value green-accent">₹{{ job.total_cost|floatformat:2 }}</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- INVOICE ITEMS BREAKDOWN TABLE -->
+      <div style="margin:1.5rem 0; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:1.25rem;">
+        <div style="font-size:0.78rem; font-weight:800; color:#475569; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.75rem;">INVOICE ITEMS BREAKDOWN</div>
+        <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
+          <thead>
+            <tr style="border-bottom:1px solid #cbd5e1; text-align:left; color:#64748b; font-size:0.78rem; text-transform:uppercase;">
+              <th style="padding:0.5rem 0;">Service / Part</th>
+              <th style="padding:0.5rem 0; text-align:center;">Qty</th>
+              <th style="padding:0.5rem 0; text-align:right;">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px dashed #e2e8f0;">
+              <td style="padding:0.65rem 0;">
+                <strong style="color:#0f172a;">Labour Charge / Service Instruction</strong>
+                {% if job.problem_description %}<br><span style="font-size:0.78rem; color:#64748b;">{{ job.problem_description|truncatewords:10 }}</span>{% endif %}
+              </td>
+              <td style="padding:0.65rem 0; text-align:center; color:#475569;">1</td>
+              <td style="padding:0.65rem 0; text-align:right; font-family:var(--font-data, monospace); font-weight:700;">₹{{ job.labour_cost|floatformat:2 }}</td>
+            </tr>
+            {% for p in parts_used %}
+            <tr style="border-bottom:1px dashed #e2e8f0;">
+              <td style="padding:0.65rem 0;">
+                <strong style="color:#0f172a;">{{ p.part.name }}</strong>
+                <span style="font-size:0.78rem; color:#64748b; margin-left:0.25rem;">({{ p.part.part_number }})</span>
+              </td>
+              <td style="padding:0.65rem 0; text-align:center; color:#475569;">{{ p.quantity }}</td>
+              <td style="padding:0.65rem 0; text-align:right; font-family:var(--font-data, monospace); font-weight:700;">₹{{ p.total_price|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2" style="padding:0.75rem 0 0 0; font-weight:700; color:#0f172a;">Subtotal (Labour + Parts)</td>
+              <td style="padding:0.75rem 0 0 0; text-align:right; font-family:var(--font-data, monospace); font-weight:800; color:#16a34a; font-size:1rem;">₹{{ job.total_cost|floatformat:2 }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <hr class="form-divider">
+
+      <!-- INVOICE FORM -->
+      <form method="post" id="invoice-edit-form">
+        {% csrf_token %}
+
+        {% if active_amc %}
+        <!-- AMC DETAILS BOX -->
+        <div style="background:#f0fdf4; border:1.5px solid #16a34a; border-radius:14px; padding:1.25rem; margin-bottom:1.5rem; color:#14532d; box-shadow:0 4px 14px rgba(22,163,74,0.08);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; border-bottom:1px solid #bbf7d0; padding-bottom:0.75rem; margin-bottom:0.75rem;">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <span style="font-size:1.3rem;">🛡️</span>
+              <h4 style="margin:0; font-size:1rem; font-weight:800; color:#14532d;">AMC DETAILS</h4>
+            </div>
+            <span class="badge-status-pill badge-success-green" style="font-weight:700;">Active Policy</span>
+          </div>
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:0.75rem; font-size:0.84rem;">
+            <div><span style="color:#166534; font-weight:600; display:block; font-size:0.75rem;">PLAN</span> <strong style="color:#14532d;">{{ active_amc.plan.name }}</strong></div>
+            <div><span style="color:#166534; font-weight:600; display:block; font-size:0.75rem;">CONTRACT</span> <strong style="color:#14532d;">{{ active_amc.contract_number }}</strong></div>
+            <div><span style="color:#166534; font-weight:600; display:block; font-size:0.75rem;">SERVICE</span> <strong style="color:#14532d;">{% if amc_service %}Service #{{ amc_service.service_number }}{% else %}Covered Service{% endif %}</strong></div>
+            <div><span style="color:#166534; font-weight:600; display:block; font-size:0.75rem;">COVERAGE</span> <strong style="color:#14532d;">Labour / Service</strong></div>
+            <div><span style="color:#166534; font-weight:600; display:block; font-size:0.75rem;">DISCOUNT</span> <strong style="color:#16a34a;">{{ amc_discount_pct|floatformat:0 }}% Off</strong></div>
+            <div><span style="color:#166534; font-weight:600; display:block; font-size:0.75rem;">AMC DISCOUNT</span> <strong style="color:#16a34a;">₹{{ calculated_amc_discount|floatformat:2 }}</strong></div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- STATUS & AMC DISCOUNT (2 Columns) -->
+        <div class="form-row-2col">
+          <div class="custom-form-group">
+            <label class="custom-form-label" for="{{ form.status.id_for_label }}">STATUS</label>
+            {{ form.status }}
+            {% if form.status.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ form.status.errors.0 }}</span>{% endif %}
+          </div>
+
+          <div class="custom-form-group">
+            <label class="custom-form-label" for="{{ form.amc_discount.id_for_label }}">AMC POLICY DISCOUNT</label>
+            <div class="input-icon-wrapper">
+              <span class="input-prefix-icon">₹</span>
+              {% if active_amc %}
+                <input type="number" name="amc_discount" value="{{ calculated_amc_discount|floatformat:2 }}" step="0.01" class="form-input" id="id_amc_discount" readonly style="background:#f8fafc; font-weight:700; color:#16a34a; cursor:not-allowed;" title="AMC Discount is automatically controlled by AMC policy rules.">
+              {% else %}
+                {{ form.amc_discount }}
+              {% endif %}
+            </div>
+            {% if form.amc_discount.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ form.amc_discount.errors.0 }}</span>{% endif %}
+          </div>
+        </div>
+
+        <!-- VEHICLE PICKUP SERVICE & CHARGE (2 Columns) -->
+        <div class="form-row-2col">
+          <div class="custom-form-group">
+            <label class="custom-form-label">VEHICLE PICKUP & DROP SERVICE</label>
+            <label class="checkbox-custom-card">
+              {{ form.is_pickup_service }}
+              <span class="checkbox-label-text">Included</span>
+            </label>
+          </div>
+
+          <div class="custom-form-group" id="group_pickup_charge">
+            <label class="custom-form-label" for="{{ form.pickup_charge.id_for_label }}">PICKUP & DROP CHARGE</label>
+            <div class="input-icon-wrapper">
+              <span class="input-prefix-icon">₹</span>
+              {{ form.pickup_charge }}
+            </div>
+            {% if form.pickup_charge.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ form.pickup_charge.errors.0 }}</span>{% endif %}
+          </div>
+        </div>
+
+        <!-- AMOUNT PAID -->
+        <div class="custom-form-group">
+          <label class="custom-form-label" for="{{ form.amount_paid.id_for_label }}">AMOUNT PAID</label>
+          <div class="input-icon-wrapper">
+            <span class="input-prefix-icon">₹</span>
+            {{ form.amount_paid }}
+          </div>
+          {% if form.amount_paid.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ form.amount_paid.errors.0 }}</span>{% endif %}
+        </div>
+
+        <!-- PAYMENT METHOD -->
+        <div class="custom-form-group">
+          <label class="custom-form-label" for="{{ form.payment_method.id_for_label }}">PAYMENT METHOD</label>
+          <div class="input-icon-wrapper">
+            <svg class="input-prefix-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+            {{ form.payment_method }}
+          </div>
+          {% if form.payment_method.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ form.payment_method.errors.0 }}</span>{% endif %}
+        </div>
+
+        <!-- DUE DATE & NOTES (2 Columns) -->
+        <div class="form-row-2col">
+          <div class="custom-form-group">
+            <label class="custom-form-label" for="{{ form.due_date.id_for_label }}">DUE DATE</label>
+            <div class="input-icon-wrapper">
+              <svg class="input-prefix-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              {{ form.due_date }}
+            </div>
+            {% if form.due_date.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ form.due_date.errors.0 }}</span>{% endif %}
+          </div>
+
+          <div class="custom-form-group">
+            <label class="custom-form-label" for="{{ form.notes.id_for_label }}">NOTES</label>
+            {{ form.notes }}
+            {% if form.notes.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ form.notes.errors.0 }}</span>{% endif %}
+          </div>
+        </div>
+
+        <!-- FORM ACTIONS -->
+        <div class="form-actions-row">
+          <button type="submit" class="btn-save-saas">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+            Create Invoice
+          </button>
+          <a href="{% url 'invoice_list' %}" class="btn-cancel-saas">
+            Cancel
+          </a>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- RIGHT COLUMN: INVOICE SUMMARY CARD -->
+    <div class="invoice-summary-card">
+      
+      <!-- Summary Header -->
+      <div class="summary-header-box">
+        <div class="summary-header-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        </div>
+        <div>
+          <h3 class="summary-header-title">Invoice Summary</h3>
+          <p class="summary-header-sub">Quick overview of invoice details</p>
+        </div>
+      </div>
+
+      <!-- Summary Rows -->
+      <div class="summary-rows-list">
+        
+        <!-- Job # -->
+        <div class="summary-row-item">
+          <div class="summary-row-left">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+            <span>Job #</span>
+          </div>
+          <div class="summary-row-right red-text">{{ job.job_number|default:"-" }}</div>
+        </div>
+
+        <!-- Vehicle -->
+        <div class="summary-row-item">
+          <div class="summary-row-left">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C1.4 11.2 1 12.1 1 13v3c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><circle cx="17" cy="17" r="2"></circle></svg>
+            <span>Vehicle</span>
+          </div>
+          <div class="summary-row-right">{% if job %}{{ job.vehicle.make }} {{ job.vehicle.model }}{% else %}-{% endif %}</div>
+        </div>
+
+        <!-- Customer -->
+        <div class="summary-row-item">
+          <div class="summary-row-left">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span>Customer</span>
+          </div>
+          <div class="summary-row-right">{% if job %}{{ job.vehicle.customer.name }}{% else %}-{% endif %}</div>
+        </div>
+
+        <!-- Status -->
+        <div class="summary-row-item">
+          <div class="summary-row-left">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+            <span>Status</span>
+          </div>
+          <div class="summary-row-right">
+            <span id="summary-status-badge" class="pill-badge pill-unpaid">Unpaid</span>
+          </div>
+        </div>
+
+        <!-- Pickup & Drop Service -->
+        <div class="summary-row-item">
+          <div class="summary-row-left">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+            <span>Pickup & Drop Service</span>
+          </div>
+          <div class="summary-row-right">
+            <span id="summary-pickup-badge" class="pill-badge pill-included">Included</span>
+          </div>
+        </div>
+
+        <!-- Pickup & Drop Charge -->
+        <div class="summary-row-item">
+          <div class="summary-row-left">
+            <span style="font-weight:700; font-size:0.85rem; width:15px; text-align:center;">₹</span>
+            <span>Pickup & Drop Charge</span>
+          </div>
+          <div class="summary-row-right" id="summary-pickup-charge">₹0.00</div>
+        </div>
+
+        <!-- Amount Paid -->
+        <div class="summary-row-item">
+          <div class="summary-row-left">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+            <span>Amount Paid</span>
+          </div>
+          <div class="summary-row-right" id="summary-amount-paid">₹0.00</div>
+        </div>
+
+        <!-- Estimated Total -->
+        <div class="summary-row-item">
+          <div class="summary-row-left">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            <span>Subtotal (Labour + Parts)</span>
+          </div>
+          <div class="summary-row-right green-text">₹{{ job.total_cost|default:"0.00" }}</div>
+        </div>
+
+        <!-- Due Date -->
+        <div class="summary-row-item">
+          <div class="summary-row-left">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span>Due Date</span>
+          </div>
+          <div class="summary-row-right" id="summary-due-date">-</div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="summary-row-item">
+          <div class="summary-row-left">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+            <span>Payment Method</span>
+          </div>
+          <div class="summary-row-right" id="summary-payment-method">-</div>
+        </div>
+
+      </div>
+
+      <!-- Balance Due Highlight Box -->
+      <div class="balance-due-box">
+        <span class="balance-due-label">Balance Due</span>
+        <span class="balance-due-amount" id="summary-balance-due">₹0.00</span>
+      </div>
+
+    </div>
+
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- Realtime Client-side Sync Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const inputs = document.querySelectorAll('#invoice-edit-form input:not([type="checkbox"]), #invoice-edit-form select, #invoice-edit-form textarea');
+  inputs.forEach(input => {
+    input.classList.add('input-style-saas');
+  });
+
+  const pickupCheck = document.getElementById('id_is_pickup_service');
+  const pickupGroup = document.getElementById('group_pickup_charge');
+  const pickupInput = document.getElementById('id_pickup_charge');
+  const amcDiscountInput = document.getElementById('id_amc_discount');
+  const statusSelect = document.querySelector('[name="status"]');
+  const amountPaidInput = document.querySelector('[name="amount_paid"]');
+  const paymentMethodInput = document.querySelector('[name="payment_method"]');
+  const dueDateInput = document.querySelector('[name="due_date"]');
+
+  const summaryStatusBadge = document.getElementById('summary-status-badge');
+  const summaryPickupBadge = document.getElementById('summary-pickup-badge');
+  const summaryPickupCharge = document.getElementById('summary-pickup-charge');
+  const summaryAmountPaid = document.getElementById('summary-amount-paid');
+  const summaryDueDate = document.getElementById('summary-due-date');
+  const summaryPaymentMethod = document.getElementById('summary-payment-method');
+  const summaryBalanceDue = document.getElementById('summary-balance-due');
+
+  const baseTotalCost = parseFloat("{{ job.total_cost|default:'0' }}") || 0;
+
+  function updateSummary() {
+    // 1. Pickup service toggle & calculation
+    const isPickup = pickupCheck ? pickupCheck.checked : false;
+    if (pickupGroup) {
+      pickupGroup.style.display = isPickup ? 'block' : 'none';
+    }
+
+    if (summaryPickupBadge) {
+      if (isPickup) {
+        summaryPickupBadge.textContent = 'Included';
+        summaryPickupBadge.className = 'pill-badge pill-included';
+      } else {
+        summaryPickupBadge.textContent = 'Not Included';
+        summaryPickupBadge.className = 'pill-badge pill-excluded';
+      }
+    }
+
+    const pickupChargeVal = (isPickup && pickupInput) ? (parseFloat(pickupInput.value) || 0) : 0;
+    if (summaryPickupCharge) {
+      summaryPickupCharge.textContent = '₹' + pickupChargeVal.toFixed(2);
+    }
+
+    // 2. Amount Paid & AMC Discount
+    const amcDiscountVal = amcDiscountInput ? (parseFloat(amcDiscountInput.value) || 0) : 0;
+    const amountPaidVal = amountPaidInput ? (parseFloat(amountPaidInput.value) || 0) : 0;
+    if (summaryAmountPaid) {
+      summaryAmountPaid.textContent = '₹' + amountPaidVal.toFixed(2);
+    }
+
+    // 3. Balance Due & Status Calculation
+    const subtotalAfterDiscount = Math.max(0, baseTotalCost - amcDiscountVal);
+    const totalTaxable = subtotalAfterDiscount + pickupChargeVal;
+    const taxAmount = totalTaxable * 0.05;
+    const grandTotal = totalTaxable + taxAmount;
+    const balanceDue = Math.max(0, grandTotal - amountPaidVal);
+
+    if (summaryBalanceDue) {
+      summaryBalanceDue.textContent = '₹' + balanceDue.toFixed(2);
+    }
+
+    // Auto update status select & badge
+    if (statusSelect) {
+      if (grandTotal === 0 || amountPaidVal >= grandTotal) {
+        statusSelect.value = 'paid';
+      } else if (amountPaidVal > 0) {
+        statusSelect.value = 'partial';
+      } else {
+        statusSelect.value = 'unpaid';
+      }
+
+      if (summaryStatusBadge) {
+        const val = statusSelect.value;
+        if (val === 'paid') {
+          summaryStatusBadge.textContent = 'Paid';
+          summaryStatusBadge.className = 'pill-badge pill-paid';
+        } else if (val === 'partial') {
+          summaryStatusBadge.textContent = 'Partial';
+          summaryStatusBadge.className = 'pill-badge pill-partial';
+        } else {
+          summaryStatusBadge.textContent = 'Unpaid';
+          summaryStatusBadge.className = 'pill-badge pill-unpaid';
+        }
+      }
+    }
+
+    // 4. Payment Method
+    if (paymentMethodInput && summaryPaymentMethod) {
+      const methodVal = paymentMethodInput.value.trim();
+      summaryPaymentMethod.textContent = methodVal ? methodVal : '-';
+    }
+
+    // 5. Due Date
+    if (dueDateInput && summaryDueDate) {
+      const dateVal = dueDateInput.value;
+      summaryDueDate.textContent = dateVal ? dateVal : '-';
+    }
+  }
+
+  // Event Listeners for live reactivity
+  if (pickupCheck) pickupCheck.addEventListener('change', updateSummary);
+  if (pickupInput) pickupInput.addEventListener('input', updateSummary);
+  if (statusSelect) statusSelect.addEventListener('change', updateSummary);
+  if (amountPaidInput) amountPaidInput.addEventListener('input', updateSummary);
+  if (paymentMethodInput) paymentMethodInput.addEventListener('input', updateSummary);
+  if (dueDateInput) dueDateInput.addEventListener('change', updateSummary);
+
+  // Initialize on page load
+  updateSummary();
+});
+</script>
+{% endblock %}
