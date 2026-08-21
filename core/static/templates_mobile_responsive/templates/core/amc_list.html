@@ -1,0 +1,229 @@
+{% extends 'core/base.html' %}
+
+{% block title %}AMC Management — Krishna Auto Care{% endblock %}
+{% block page_title %}Annual Maintenance Contracts (AMC){% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'amc_plan_create' %}" class="btn btn-secondary"><span>➕</span> Add AMC Plan</a>
+  <a href="{% url 'amc_create' %}" class="btn btn-primary"><span>🛡️</span> New Customer AMC</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- SUMMARY CARDS -->
+<div class="stats-grid mb-6" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+  <div class="card" style="padding:1.1rem; border-left: 4px solid #16a34a;">
+    <div style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase;">Active AMCs</div>
+    <div style="font-size:1.6rem; font-weight:800; color:#16a34a; margin-top:0.2rem;">{{ active_amc_count }}</div>
+  </div>
+  <div class="card" style="padding:1.1rem; border-left: 4px solid #d97706;">
+    <div style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase;">Expiring Soon</div>
+    <div style="font-size:1.6rem; font-weight:800; color:#d97706; margin-top:0.2rem;">{{ expiring_soon_count }}</div>
+  </div>
+  <div class="card" style="padding:1.1rem; border-left: 4px solid #dc2626;">
+    <div style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase;">Expired</div>
+    <div style="font-size:1.6rem; font-weight:800; color:#dc2626; margin-top:0.2rem;">{{ expired_count }}</div>
+  </div>
+  <div class="card" style="padding:1.1rem; border-left: 4px solid #0284c7;">
+    <div style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase;">Services Due (15 Days)</div>
+    <div style="font-size:1.6rem; font-weight:800; color:#0284c7; margin-top:0.2rem;">{{ services_due_count }}</div>
+  </div>
+  <div class="card" style="padding:1.1rem; border-left: 4px solid #6366f1;">
+    <div style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase;">Services Completed</div>
+    <div style="font-size:1.6rem; font-weight:800; color:#6366f1; margin-top:0.2rem;">{{ services_completed_count }}</div>
+  </div>
+</div>
+
+<div class="grid grid-3 mb-6">
+
+  <!-- UPCOMING & OVERDUE AMC SERVICES NOTIFICATIONS -->
+  <div class="card col-span-3" style="grid-column: span 3; margin-bottom: 1.5rem;">
+    <div class="card-header flex-between" style="background:#fff; border-bottom:1px solid #e2e8f0; padding:1rem 1.25rem;">
+      <h3 style="margin:0; font-size:1.1rem; font-weight:700;">⏰ Garage Notifications: Upcoming & Due AMC Services</h3>
+      <span class="badge badge-warning" style="font-size:0.8rem; font-weight:700;">{{ upcoming_services|length }} Reminders</span>
+    </div>
+    <div class="card-body" style="padding:1.25rem;">
+      {% if upcoming_services %}
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Due Date</th>
+              <th>Customer</th>
+              <th>Vehicle</th>
+              <th>Service #</th>
+              <th>Contract No</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in upcoming_services %}
+            <tr>
+              <td>
+                {% if s.computed_status == 'overdue' %}
+                  <span class="badge-status-pill badge-danger-red">Overdue</span>
+                {% elif s.computed_status == 'due' %}
+                  <span class="badge-status-pill badge-warning-amber">Due Today</span>
+                {% else %}
+                  <span class="badge-status-pill badge-info-blue">Upcoming</span>
+                {% endif %}
+              </td>
+              <td><strong>{{ s.scheduled_date|date:"d M Y" }}</strong></td>
+              <td>
+                <div style="font-weight:700;">{{ s.amc.vehicle.customer.name }}</div>
+                <small class="text-muted">📞 {{ s.amc.vehicle.customer.phone }}</small>
+              </td>
+              <td>
+                <div style="font-weight:600;">{{ s.amc.vehicle.make }} {{ s.amc.vehicle.model }}</div>
+                <small class="text-muted">{{ s.amc.vehicle.license_plate }}</small>
+              </td>
+              <td><strong>Service #{{ s.service_number }}</strong></td>
+              <td><a href="{% url 'amc_detail' s.amc.pk %}" style="font-weight:700; color:var(--accent);">{{ s.amc.contract_number }}</a></td>
+              <td style="display:flex; gap:0.4rem; align-items:center;">
+                <a href="{% url 'job_create' %}?vehicle_number={{ s.amc.vehicle.license_plate }}&amc_schedule_id={{ s.id }}" class="btn btn-sm btn-primary" style="padding:0.35rem 0.65rem; font-size:0.8rem;">
+                  🚗 Create Job Card
+                </a>
+                <a href="{% url 'send_whatsapp' %}?type=amc_reminder&schedule_id={{ s.id }}&phone={{ s.amc.vehicle.customer.phone }}&name={{ s.amc.vehicle.customer.name }}" target="_blank" class="btn btn-sm btn-success" style="background:#25D366; color:white; padding:0.35rem 0.65rem; font-size:0.8rem; border:none;">
+                  📱 WhatsApp
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <p class="text-muted" style="padding: 1rem 0; margin:0;">No upcoming AMC service reminders for the next 15 days.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ACTIVE AMC CONTRACTS TABLE (Full Width for Maximum Clarity & Breathing Space) -->
+  <div class="card col-span-3" style="grid-column: span 3; margin-bottom: 1.5rem;">
+    <div class="card-header flex-between" style="background:#fff; border-bottom:1px solid #e2e8f0; padding:1rem 1.25rem;">
+      <h3 style="margin:0; font-size:1.1rem; font-weight:700;">🛡️ Customer AMC Contracts</h3>
+      <span class="badge-status-pill badge-info-blue" style="font-weight:700;">{{ amcs|length }} Contracts</span>
+    </div>
+    <div class="card-body" style="padding:1.25rem;">
+      {% if amcs %}
+      <div class="table-responsive" style="overflow-x:auto;">
+        <table class="table" style="width:100%; border-collapse:collapse; white-space:nowrap;">
+          <thead>
+            <tr style="border-bottom: 2px solid #e2e8f0; font-size:0.75rem; text-transform:uppercase; color:#64748b;">
+              <th style="padding:0.75rem 0.5rem; text-align:left; white-space:nowrap;">CONTRACT #</th>
+              <th style="padding:0.75rem 0.5rem; text-align:left;">CUSTOMER & VEHICLE</th>
+              <th style="padding:0.75rem 0.5rem; text-align:left; white-space:nowrap;">PLAN</th>
+              <th style="padding:0.75rem 0.5rem; text-align:left; white-space:nowrap;">VALIDITY PERIOD</th>
+              <th style="padding:0.75rem 0.5rem; text-align:center; white-space:nowrap;">SERVICE USAGE</th>
+              <th style="padding:0.75rem 0.5rem; text-align:center; white-space:nowrap;">PAYMENT</th>
+              <th style="padding:0.75rem 0.5rem; text-align:center; white-space:nowrap;">STATUS</th>
+              <th style="padding:0.75rem 0.5rem; text-align:center; white-space:nowrap;">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in amcs %}
+            <tr style="border-bottom:1px solid #f1f5f9; vertical-align:middle;">
+              <td style="padding:0.85rem 0.5rem; white-space:nowrap;">
+                <a href="{% url 'amc_detail' a.pk %}" style="font-weight:800; color:#dc2626; text-decoration:none; font-size:0.92rem;">
+                  {{ a.contract_number }}
+                </a>
+              </td>
+              <td style="padding:0.85rem 0.5rem; white-space:normal; min-width:200px;">
+                <div style="font-weight:700; color:#0f172a; font-size:0.9rem;">{{ a.vehicle.customer.name }}</div>
+                <div style="font-size:0.8rem; color:#64748b;">{{ a.vehicle.make }} {{ a.vehicle.model }} ({{ a.vehicle.license_plate }})</div>
+              </td>
+              <td style="padding:0.85rem 0.5rem; white-space:nowrap;">
+                <div style="font-weight:700; color:#1e293b; font-size:0.88rem;">{{ a.plan.name }}</div>
+                <div style="font-size:0.8rem; color:#64748b;">₹{{ a.plan.price|floatformat:0 }}</div>
+              </td>
+              <td style="padding:0.85rem 0.5rem; white-space:nowrap; font-size:0.84rem; font-weight:600; color:#334155;">
+                {{ a.start_date|date:"d M Y" }} → {{ a.end_date|date:"d M Y" }}
+              </td>
+              <td style="padding:0.85rem 0.5rem; text-align:center; white-space:nowrap;">
+                <span class="badge-status-pill badge-info-blue" style="font-weight:700; font-size:0.8rem;">
+                  {{ a.used_services }} / {{ a.total_services }} Used ({{ a.remaining_services }} Left)
+                </span>
+              </td>
+              <td style="padding:0.85rem 0.5rem; text-align:center; white-space:nowrap;">
+                {% if a.payment_status == 'paid' %}
+                  <span class="badge-status-pill badge-success-green">Paid</span>
+                {% elif a.payment_status == 'partially_paid' %}
+                  <span class="badge-status-pill badge-warning-amber">Partial (Bal: ₹{{ a.balance_amount|floatformat:0 }})</span>
+                {% else %}
+                  <span class="badge-status-pill badge-danger-red">Unpaid</span>
+                {% endif %}
+              </td>
+              <td style="padding:0.85rem 0.5rem; text-align:center; white-space:nowrap;">
+                {% if a.computed_status == 'active' %}
+                  <span class="badge-status-pill badge-success-green">Active</span>
+                {% elif a.computed_status == 'expiring_soon' %}
+                  <span class="badge-status-pill badge-warning-amber">Expiring Soon</span>
+                {% elif a.computed_status == 'expired' %}
+                  <span class="badge-status-pill badge-danger-red">Expired</span>
+                {% else %}
+                  <span class="badge-status-pill badge-secondary">{{ a.get_status_display }}</span>
+                {% endif %}
+              </td>
+              <td style="padding:0.85rem 0.5rem; text-align:center; white-space:nowrap;">
+                <div style="display:inline-flex; gap:0.35rem; align-items:center;">
+                  <a href="{% url 'amc_detail' a.pk %}" class="btn btn-sm btn-light" style="padding:0.3rem 0.65rem; font-weight:700; color:#2563eb; background:#eff6ff; border:1px solid #bfdbfe;">View</a>
+                  {% if a.computed_status == 'expired' or a.computed_status == 'expiring_soon' %}
+                    <a href="{% url 'amc_renew' a.pk %}" class="btn btn-sm btn-warning" style="padding:0.3rem 0.65rem; font-weight:700; background:#d97706; color:#fff; border:none;">
+                      🔄 Renew
+                    </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <p class="text-muted" style="padding: 1rem 0; margin:0;">No active AMC contracts created yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- AMC PACKAGES / PLANS (Full Width Grid) -->
+  <div class="card col-span-3" style="grid-column: span 3;">
+    <div class="card-header flex-between" style="background:#fff; border-bottom:1px solid #e2e8f0; padding:1rem 1.25rem;">
+      <h3 style="margin:0; font-size:1.1rem; font-weight:700;">📜 AMC Packages / Plans</h3>
+      <a href="{% url 'amc_plan_create' %}" class="btn btn-sm btn-primary" style="padding:0.35rem 0.75rem; font-size:0.82rem;">+ Add New Plan</a>
+    </div>
+    <div class="card-body" style="padding:1.25rem;">
+      {% if plans %}
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1rem;">
+          {% for p in plans %}
+          <div style="border: 1px solid var(--border, #cbd5e1); padding: 1.15rem; border-radius: 12px; background:#ffffff; box-shadow:0 2px 8px rgba(15,23,42,0.03);">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <h4 style="margin:0; font-size:1.05rem; font-weight:800; color:#0f172a;">{{ p.name }}</h4>
+              {% if p.is_active %}
+                <span class="badge-status-pill badge-success-green" style="font-size:0.7rem; padding:0.15rem 0.5rem;">Active</span>
+              {% else %}
+                <span class="badge-status-pill badge-secondary" style="font-size:0.7rem; padding:0.15rem 0.5rem;">Inactive</span>
+              {% endif %}
+            </div>
+            <div style="font-size: 1.45rem; font-weight: 800; color: var(--accent); margin:0.4rem 0;">₹{{ p.price|floatformat:0 }}</div>
+            <div style="font-size:0.82rem; font-weight:600; color:#475569;">
+              🗓️ {{ p.duration_months }} Months Coverage | 🛠️ {{ p.services_included }} Services
+            </div>
+            <div style="font-size:0.8rem; font-weight:600; color:#64748b; margin-top:0.25rem;">
+              ⏱️ Service Interval: Every {{ p.service_interval_months }} Months
+            </div>
+            <div style="font-size:0.8rem; font-weight:700; color:#16a34a; margin-top:0.25rem;">
+              🏷️ Labour Discount: {{ p.discount_percentage|floatformat:0 }}% Off
+            </div>
+            {% if p.description %}<p style="font-size: 0.82rem; margin-top: 0.6rem; margin-bottom:0; color: #64748b; line-height:1.4;">{{ p.description }}</p>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted" style="margin:0;">No AMC plans configured in database.</p>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

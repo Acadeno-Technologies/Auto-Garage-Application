@@ -1,0 +1,556 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block topbar_actions %}<a href="{% url 'vehicle_list' %}" class="btn btn-secondary">← Back to Vehicles</a>{% endblock %}
+{% block content %}
+
+<style>
+.edit-vehicle-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  font-family: inherit;
+}
+
+/* Main Content Card (Form + Photo) */
+.main-form-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  margin-bottom: 1.5rem;
+}
+
+.form-grid-layout {
+  display: flex;
+  gap: 2.25rem;
+  align-items: flex-start;
+}
+
+@media (max-width: 950px) {
+  .form-grid-layout {
+    flex-direction: column;
+  }
+}
+
+.form-left-col {
+  flex: 1 1 65%;
+  width: 100%;
+}
+
+.photo-right-col {
+  flex: 1 1 35%;
+  width: 100%;
+}
+
+/* Custom Form Controls */
+.form-field-group {
+  margin-bottom: 1.2rem;
+}
+
+.form-label-custom {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.4rem;
+}
+
+.form-label-custom .req-star {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+.input-style-custom {
+  width: 100%;
+  height: 48px;
+  padding: 0 1rem;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  font-size: 0.92rem;
+  color: #0f172a;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+select.input-style-custom {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 2.5rem;
+}
+
+.input-style-custom:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.two-col-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .two-col-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Mileage Input with Suffix */
+.mileage-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.mileage-wrapper input {
+  padding-right: 3.5rem;
+}
+
+.mileage-suffix {
+  position: absolute;
+  right: 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+  pointer-events: none;
+  background: #f1f5f9;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+
+/* Right Side - Photo Card */
+.photo-panel-box {
+  background: #faf5ff;
+  border: 1px dashed #c084fc;
+  border-radius: 14px;
+  padding: 1.25rem;
+}
+
+.photo-panel-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.85rem;
+}
+
+.upload-area-container {
+  border: 1.5px dashed #cbd5e1;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.upload-area-container:hover {
+  border-color: #6366f1;
+  background: #f8fafc;
+}
+
+.btn-upload-fake {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #eef2ff;
+  color: #6366f1;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.file-chosen-text {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-left: 0.4rem;
+  word-break: break-all;
+}
+
+.upload-subtext {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.75rem;
+  line-height: 1.35;
+}
+
+.preview-image-box {
+  margin-top: 1rem;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  position: relative;
+  aspect-ratio: 4 / 3;
+}
+
+.preview-img-tag {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.current-photo-badge {
+  font-size: 0.78rem;
+  color: #6366f1;
+  font-weight: 600;
+  margin-top: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Bottom Action Bar */
+.bottom-action-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.25rem 1.75rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.btn-save-orange {
+  background: #dc2626;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.92rem;
+  padding: 0.7rem 1.75rem;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: all 0.2s ease;
+}
+
+.btn-save-orange:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.btn-cancel-neutral {
+  background: #ffffff;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 0.7rem 1.5rem;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel-neutral:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+</style>
+
+<div class="edit-vehicle-wrapper">
+
+  <form method="post" enctype="multipart/form-data" id="edit-vehicle-form">
+    {% csrf_token %}
+
+    <!-- MAIN FORM CARD -->
+    <div class="main-form-card">
+      <div class="form-grid-layout">
+        
+        <!-- LEFT SIDE: FORM FIELDS -->
+        <div class="form-left-col">
+          
+          <!-- CUSTOMER (Single Interactive Search Field - No Separate Dropdown Below) -->
+          <div class="form-field-group" style="position:relative;">
+            <label class="form-label-custom" for="customerSearchInput">
+              CUSTOMER <span class="req-star">*</span>
+            </label>
+
+            <!-- Single Search Input Box -->
+            <div style="position:relative;">
+              <span style="position:absolute; left:0.85rem; top:50%; transform:translateY(-50%); color:#64748b; font-size:0.9rem; pointer-events:none;">🔍</span>
+              <input type="text" id="customerSearchInput" class="input-style-custom" style="padding-left:2.4rem; height:48px; font-size:0.92rem; border-color:#cbd5e1;" placeholder="Type customer name or phone number to select..." autocomplete="off">
+              <input type="hidden" name="customer" id="selectedCustomerId" value="{% if form.customer.value %}{{ form.customer.value }}{% endif %}" required>
+            </div>
+
+            <!-- Floating Search Results Dropdown -->
+            <div id="customerSearchResults" style="position:absolute; left:0; right:0; top:100%; background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.12); max-height:220px; overflow-y:auto; z-index:1000; display:none; margin-top:4px;">
+            </div>
+
+            <!-- Hidden fallback select for Django form validation -->
+            <div style="display:none;">
+              {{ form.customer }}
+            </div>
+
+            {% if form.customer.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ form.customer.errors.0 }}</span>{% endif %}
+          </div>
+
+          <!-- MAKE & MODEL (2 Columns) -->
+          <div class="two-col-grid">
+            <div class="form-field-group">
+              <label class="form-label-custom" for="{{ form.make.id_for_label }}">
+                MAKE <span class="req-star">*</span>
+              </label>
+              {{ form.make }}
+              {% if form.make.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ form.make.errors.0 }}</span>{% endif %}
+            </div>
+
+            <div class="form-field-group">
+              <label class="form-label-custom" for="{{ form.model.id_for_label }}">
+                MODEL <span class="req-star">*</span>
+              </label>
+              {{ form.model }}
+              {% if form.model.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ form.model.errors.0 }}</span>{% endif %}
+            </div>
+          </div>
+
+          <!-- YEAR & LICENSE PLATE (2 Columns) -->
+          <div class="two-col-grid">
+            <div class="form-field-group">
+              <label class="form-label-custom" for="{{ form.year.id_for_label }}">
+                YEAR <span class="req-star">*</span>
+              </label>
+              {{ form.year }}
+              {% if form.year.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ form.year.errors.0 }}</span>{% endif %}
+            </div>
+
+            <div class="form-field-group">
+              <label class="form-label-custom" for="{{ form.license_plate.id_for_label }}">
+                LICENSE PLATE <span class="req-star">*</span>
+              </label>
+              {{ form.license_plate }}
+              {% if form.license_plate.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ form.license_plate.errors.0 }}</span>{% endif %}
+            </div>
+          </div>
+
+          <!-- VIN & COLOR (2 Columns) -->
+          <div class="two-col-grid">
+            <div class="form-field-group">
+              <label class="form-label-custom" for="{{ form.vin.id_for_label }}">
+                VIN
+              </label>
+              {{ form.vin }}
+              {% if form.vin.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ form.vin.errors.0 }}</span>{% endif %}
+            </div>
+
+            <div class="form-field-group">
+              <label class="form-label-custom" for="{{ form.color.id_for_label }}">
+                COLOR <span class="req-star">*</span>
+              </label>
+              {{ form.color }}
+              {% if form.color.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ form.color.errors.0 }}</span>{% endif %}
+            </div>
+          </div>
+
+          <!-- MILEAGE (Half Width Grid) -->
+          <div class="two-col-grid">
+            <div class="form-field-group">
+              <label class="form-label-custom" for="{{ form.mileage.id_for_label }}">
+                MILEAGE
+              </label>
+              <div class="mileage-wrapper">
+                {{ form.mileage }}
+                <span class="mileage-suffix">km</span>
+              </div>
+              {% if form.mileage.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ form.mileage.errors.0 }}</span>{% endif %}
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT SIDE: VEHICLE PHOTO CARD -->
+        <div class="photo-right-col">
+          <div class="photo-panel-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+              <div class="photo-panel-title" style="margin:0;">VEHICLE PHOTO</div>
+              <button type="button" onclick="openCameraModal('id_image')" class="btn btn-sm" style="background:#0284c7; color:#fff; font-weight:700; border:none; padding:0.35rem 0.75rem; border-radius:6px; display:inline-flex; align-items:center; gap:0.35rem; cursor:pointer; font-size:0.78rem; box-shadow:0 2px 6px rgba(2,132,199,0.25);">
+                📷 Camera
+              </button>
+            </div>
+
+            <!-- Upload Control Area -->
+            <div class="upload-area-container" id="upload-trigger-area">
+              <div style="display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:0.4rem;">
+                <span class="btn-upload-fake">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                  Choose File
+                </span>
+                <span id="file-chosen-name" class="file-chosen-text">No file chosen</span>
+              </div>
+
+              <div class="upload-subtext">
+                Upload vehicle photo (JPG, PNG).<br>Recommended size 800x600px.
+              </div>
+
+              <!-- Native File Input overlaid transparently -->
+              <div style="position:absolute; inset:0; opacity:0; cursor:pointer;">
+                {{ form.image }}
+              </div>
+            </div>
+
+            <!-- Preview Image Area -->
+            <div id="vehicle-photo-preview" style="display:{% if vehicle and vehicle.image %}block{% else %}none{% endif %};">
+              <div class="preview-image-box">
+                <img src="{% if vehicle and vehicle.image %}{{ vehicle.image.url }}{% endif %}" id="vehicle-preview-img" class="preview-img-tag" alt="Vehicle Photo">
+              </div>
+              <div class="current-photo-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                Current vehicle photo
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- BOTTOM ACTION CARD -->
+    <div class="bottom-action-card">
+      <button type="submit" class="btn-save-orange">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+        Save Vehicle
+      </button>
+      <a href="javascript:history.back()" class="btn-cancel-neutral">
+        Cancel
+      </a>
+    </div>
+
+  </form>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Apply custom styling class to form inputs automatically
+  const inputs = document.querySelectorAll('#edit-vehicle-form input:not([type="file"]), #edit-vehicle-form select');
+  inputs.forEach(input => {
+    input.classList.add('input-style-custom');
+  });
+
+  // Single Customer Interactive Search Component
+  const customerSelect = document.querySelector('select[name="customer"]');
+  const searchInput = document.getElementById('customerSearchInput');
+  const hiddenIdInput = document.getElementById('selectedCustomerId');
+  const resultsBox = document.getElementById('customerSearchResults');
+
+  if (customerSelect && searchInput) {
+    // Extract options from underlying select
+    const customerOptions = Array.from(customerSelect.options)
+      .filter(opt => opt.value)
+      .map(opt => ({
+        id: opt.value,
+        text: opt.text,
+        selected: opt.selected
+      }));
+
+    // Pre-populate if customer is already selected
+    const initialSelected = customerOptions.find(opt => opt.selected || opt.id === hiddenIdInput.value);
+    if (initialSelected) {
+      searchInput.value = initialSelected.text;
+      hiddenIdInput.value = initialSelected.id;
+      customerSelect.value = initialSelected.id;
+    }
+
+    function renderSearchResults(query = '') {
+      resultsBox.innerHTML = '';
+      const filtered = customerOptions.filter(opt =>
+        opt.text.toLowerCase().includes(query.toLowerCase().trim())
+      );
+
+      if (filtered.length === 0) {
+        resultsBox.innerHTML = '<div style="padding:0.75rem 1rem; color:#94a3b8; font-size:0.85rem;">❌ No matching customer found</div>';
+      } else {
+        filtered.forEach(opt => {
+          const item = document.createElement('div');
+          item.className = 'customer-result-item';
+          item.style.cssText = 'padding:0.65rem 1rem; cursor:pointer; font-size:0.88rem; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; transition:background 0.15s ease; color:#0f172a;';
+
+          let nameStr = opt.text;
+          let phoneStr = '';
+          if (opt.text.includes('(') && opt.text.includes(')')) {
+            const parts = opt.text.split('(');
+            nameStr = parts[0].trim();
+            phoneStr = parts[1].replace(')', '').trim();
+          }
+
+          if (phoneStr) {
+            item.innerHTML = `<span>👤 <strong>${nameStr}</strong></span> <span style="color:#0284c7; font-size:0.8rem; font-weight:600; background:#e0f2fe; padding:0.18rem 0.55rem; border-radius:6px;">📞 ${phoneStr}</span>`;
+          } else {
+            item.innerHTML = `<span>👤 <strong>${nameStr}</strong></span>`;
+          }
+
+          item.addEventListener('mouseenter', () => item.style.background = '#f1f5f9');
+          item.addEventListener('mouseleave', () => item.style.background = '#ffffff');
+
+          item.addEventListener('click', function(e) {
+            e.stopPropagation();
+            searchInput.value = opt.text;
+            hiddenIdInput.value = opt.id;
+            customerSelect.value = opt.id;
+            resultsBox.style.display = 'none';
+          });
+
+          resultsBox.appendChild(item);
+        });
+      }
+      resultsBox.style.display = 'block';
+    }
+
+    searchInput.addEventListener('focus', function() {
+      renderSearchResults(this.value);
+    });
+
+    searchInput.addEventListener('input', function() {
+      hiddenIdInput.value = '';
+      renderSearchResults(this.value);
+    });
+
+    document.addEventListener('click', function(e) {
+      if (searchInput && resultsBox && !searchInput.contains(e.target) && !resultsBox.contains(e.target)) {
+        resultsBox.style.display = 'none';
+      }
+    });
+  }
+
+  const fileInput = document.querySelector('input[type="file"][name="image"]');
+  const previewContainer = document.getElementById('vehicle-photo-preview');
+  const previewImg = document.getElementById('vehicle-preview-img');
+  const fileNameDisplay = document.getElementById('file-chosen-name');
+
+  if (fileInput) {
+    fileInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        if (fileNameDisplay) fileNameDisplay.textContent = file.name;
+        if (file.type.startsWith('image/') && previewContainer && previewImg) {
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+            previewImg.src = evt.target.result;
+            previewContainer.style.display = 'block';
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    });
+  }
+});
+</script>
+
+{% endblock %}

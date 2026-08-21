@@ -1,0 +1,122 @@
+{% extends 'core/base.html' %}
+{% block title %}Advisor Dashboard{% endblock %}
+{% block page_title %}Service Advisor Dashboard{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'customer_create' %}" class="btn btn-secondary btn-sm">+ Customer</a>
+<a href="{% url 'job_create' %}" class="btn btn-primary btn-sm">+ Job Card</a>
+{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+  <div class="stat-card yellow">
+    <div class="stat-icon" style="color:#ca8a04;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polyline points="12 6 12 12 16 14"></polyline>
+      </svg>
+    </div>
+    <div class="stat-value">{{ pending }}</div>
+    <div class="stat-label">Pending</div>
+  </div>
+  <div class="stat-card teal">
+    <div class="stat-icon" style="color:#2563eb;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+      </svg>
+    </div>
+    <div class="stat-value">{{ in_progress }}</div>
+    <div class="stat-label">In Progress</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-icon" style="color:#16a34a;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+    </div>
+    <div class="stat-value">{{ completed }}</div>
+    <div class="stat-label">Completed</div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title" style="display:flex; align-items:center; gap:0.5rem;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+          <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+        </svg>
+        My Job Cards
+      </span>
+      <a href="{% url 'job_create' %}" class="btn btn-primary btn-sm">+ New</a>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Job #</th>
+            <th>Vehicle / Customer</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for job in my_jobs %}
+          <tr>
+            <td><a href="{% url 'job_detail' job.pk %}" class="text-accent text-mono">{{ job.job_number }}</a></td>
+            <td>{{ job.vehicle.make }} {{ job.vehicle.model }}<br><span class="text-muted">{{ job.vehicle.customer.name }}</span></td>
+            <td><span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span></td>
+            <td><a href="{% url 'job_detail' job.pk %}" class="btn btn-secondary btn-sm">View</a></td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="text-center text-muted">No jobs created yet</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title" style="display:flex; align-items:center; gap:0.5rem;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        Recent Customers
+      </span>
+      <a href="{% url 'customer_create' %}" class="btn btn-primary btn-sm">+ New</a>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in recent_customers %}
+          <tr>
+            <td>{{ c.name }}</td>
+            <td class="text-mono">{{ c.phone }}</td>
+            <td><a href="{% url 'customer_detail' c.pk %}" class="btn btn-secondary btn-sm">View</a></td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3" class="text-center text-muted">No customers yet</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
