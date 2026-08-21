@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from datetime import date
 from decimal import Decimal
 
 
@@ -105,6 +106,7 @@ class JobCard(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
     estimated_completion_time = models.DateTimeField(null=True, blank=True, verbose_name="Estimated Completion Time")
     labour_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    amc_service = models.ForeignKey('AMCServiceSchedule', on_delete=models.SET_NULL, null=True, blank=True, related_name='job_cards')
     notes = models.TextField(blank=True)
 
     def save(self, *args, **kwargs):
@@ -124,6 +126,14 @@ class JobCard(models.Model):
             self.notes = to_camel_case(self.notes)
         
         super().save(*args, **kwargs)
+
+        # Update AMC service schedule status when job card is completed
+        if self.amc_service and self.status in ['completed', 'delivered']:
+            if self.amc_service.status != 'completed':
+                self.amc_service.status = 'completed'
+                self.amc_service.completed_date = date.today()
+                self.amc_service.job_card = self
+                self.amc_service.save()
 
     def total_parts_cost(self):
         return sum(u.total_price for u in self.parts_used.all())
@@ -243,6 +253,15 @@ class Invoice(models.Model):
             last = Invoice.objects.order_by('-id').first()
             num = (last.id + 1) if last else 1
             self.invoice_number = f"INV-{num:05d}"
+        
+        paid = self.amount_paid or Decimal('0.00')
+        gt = self.grand_total
+        if gt <= Decimal('0.00') or paid >= gt:
+            self.status = 'paid'
+        elif paid > Decimal('0.00'):
+            self.status = 'partial'
+        else:
+            self.status = 'unpaid'
         super().save(*args, **kwargs)
 
     @property
@@ -260,16 +279,16 @@ class Invoice(models.Model):
         return self.subtotal_after_discount
 
     @property
-    def balance_due(self):
-        return self.grand_total - self.amount_paid
-
-    @property
     def tax_amount(self):
-        return self.total_amount * Decimal('0.05')
+        return (self.total_amount * Decimal('0.05')).quantize(Decimal('0.01'))
 
     @property
     def grand_total(self):
         return self.total_amount + self.tax_amount
+
+    @property
+    def balance_due(self):
+        return max(Decimal('0.00'), self.grand_total - (self.amount_paid or Decimal('0.00')))
 
     def __str__(self):
         return f"{self.invoice_number} - {self.job_card.vehicle.customer.name}"
@@ -281,11 +300,14 @@ class AMCPlan(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     duration_months = models.PositiveIntegerField(default=12)
     services_included = models.PositiveIntegerField(default=4)
+    service_interval_months = models.PositiveIntegerField(default=3, verbose_name="Service Interval (Months)")
     discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('100.00'), verbose_name="Labour/Service Discount %")
+    is_active = models.BooleanField(default=True, verbose_name="Is Active Plan")
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.name} ({self.duration_months} Months / {self.services_included} Services)"
+        return f"{self.name} (₹{self.price:,.0f} | {self.duration_months} Months / {self.services_included} Services)"
 
 
 class CustomerAMC(models.Model):
@@ -295,36 +317,82 @@ class CustomerAMC(models.Model):
         ('cancelled', 'Cancelled'),
     ]
     contract_number = models.CharField(max_length=30, unique=True, blank=True)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='amc_contracts', null=True, blank=True)
     vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='amc_contracts')
     plan = models.ForeignKey(AMCPlan, on_delete=models.PROTECT)
+    previous_contract = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='renewals')
     start_date = models.DateField(default=timezone.now)
     end_date = models.DateField()
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='active')
-    amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
+        if self.vehicle and self.vehicle.customer:
+            self.customer = self.vehicle.customer
         if not self.contract_number:
+            year = timezone.now().year
             last = CustomerAMC.objects.order_by('-id').first()
             num = (last.id + 1) if last else 1
-            self.contract_number = f"AMC-{num:05d}"
+            self.contract_number = f"AMC-{year}-{num:04d}"
         super().save(*args, **kwargs)
 
     @property
+    def amount_payable(self):
+        return self.plan.price if self.plan else Decimal('0.00')
+
+    @property
+    def balance_amount(self):
+        return max(Decimal('0.00'), self.amount_payable - (self.amount_paid or Decimal('0.00')))
+
+    @property
+    def payment_status(self):
+        paid = self.amount_paid or Decimal('0.00')
+        payable = self.amount_payable
+        if paid >= payable and payable > Decimal('0.00'):
+            return 'paid'
+        elif paid > Decimal('0.00'):
+            return 'partially_paid'
+        return 'unpaid'
+
+    @property
+    def computed_status(self):
+        if self.status == 'cancelled':
+            return 'cancelled'
+        today = date.today()
+        if today > self.end_date:
+            return 'expired'
+        days_left = (self.end_date - today).days
+        if 0 <= days_left <= 30:
+            return 'expiring_soon'
+        return 'active'
+
+    @property
     def is_expiring_soon(self):
-        if self.status != 'active':
-            return False
-        days_left = (self.end_date - date.today()).days
-        return 0 <= days_left <= 30
+        return self.computed_status == 'expiring_soon'
+
+    @property
+    def total_services(self):
+        return self.plan.services_included if self.plan else 0
+
+    @property
+    def used_services(self):
+        return self.schedules.filter(status='completed').count()
+
+    @property
+    def remaining_services(self):
+        return max(0, self.total_services - self.used_services)
 
     def __str__(self):
-        return f"{self.contract_number} - {self.vehicle}"
+        return f"{self.contract_number} - {self.vehicle.make} {self.vehicle.model} ({self.vehicle.license_plate})"
 
 
 class AMCServiceSchedule(models.Model):
     STATUS_CHOICES = [
-        ('scheduled', 'Scheduled'),
+        ('upcoming', 'Upcoming'),
+        ('due', 'Due'),
         ('completed', 'Completed'),
         ('overdue', 'Overdue'),
         ('cancelled', 'Cancelled'),
@@ -332,19 +400,33 @@ class AMCServiceSchedule(models.Model):
     amc = models.ForeignKey(CustomerAMC, on_delete=models.CASCADE, related_name='schedules')
     service_number = models.PositiveIntegerField()
     scheduled_date = models.DateField()
-    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='scheduled')
-    job_card = models.ForeignKey(JobCard, on_delete=models.SET_NULL, null=True, blank=True, related_name='amc_service')
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='upcoming')
+    completed_date = models.DateField(null=True, blank=True)
+    job_card = models.ForeignKey(JobCard, on_delete=models.SET_NULL, null=True, blank=True, related_name='amc_schedules')
     notes = models.TextField(blank=True)
 
     @property
+    def computed_status(self):
+        if self.status == 'completed':
+            return 'completed'
+        if self.status == 'cancelled':
+            return 'cancelled'
+        today = date.today()
+        if self.scheduled_date < today:
+            return 'overdue'
+        if self.scheduled_date == today:
+            return 'due'
+        return 'upcoming'
+
+    @property
     def is_due_soon(self):
-        if self.status != 'scheduled':
+        if self.status in ['completed', 'cancelled']:
             return False
         days = (self.scheduled_date - date.today()).days
-        return -7 <= days <= 7
+        return -15 <= days <= 15
 
     def __str__(self):
-        return f"Service #{self.service_number} for {self.amc.contract_number}"
+        return f"Service #{self.service_number} for {self.amc.contract_number} (Due: {self.scheduled_date})"
 
 
 class WhatsAppLog(models.Model):

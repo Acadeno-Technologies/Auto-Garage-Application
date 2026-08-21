@@ -529,6 +529,32 @@ def job_search_records(request):
                 'vehicles': vehicles_list
             }
 
+    def get_active_amc_data(v):
+        today = date.today()
+        amc = CustomerAMC.objects.filter(vehicle=v, status='active', end_date__gte=today).select_related('plan').first()
+        if not amc:
+            return None
+        schedules = amc.schedules.filter(status__in=['upcoming', 'due', 'overdue', 'scheduled']).order_by('service_number')
+        sched_list = []
+        for s in schedules:
+            sched_list.append({
+                'id': s.id,
+                'service_number': s.service_number,
+                'scheduled_date': s.scheduled_date.strftime('%d-%m-%Y'),
+                'status': s.computed_status,
+                'label': f"AMC Service #{s.service_number} (Due: {s.scheduled_date.strftime('%d-%m-%Y')})"
+            })
+        return {
+            'contract_number': amc.contract_number,
+            'plan_name': amc.plan.name,
+            'end_date': amc.end_date.strftime('%d-%m-%Y'),
+            'total_services': amc.total_services,
+            'used_services': amc.used_services,
+            'remaining_services': amc.remaining_services,
+            'discount_percentage': float(amc.plan.discount_percentage),
+            'schedules': sched_list
+        }
+
     # 2. Vehicle search by vehicle number / license plate
     if vehicle_number:
         v_clean = vehicle_number.replace(" ", "").upper()
@@ -548,7 +574,8 @@ def job_search_records(request):
                 'customer_name': vehicle.customer.name,
                 'customer_phone': vehicle.customer.phone,
                 'customer_email': vehicle.customer.email,
-                'customer_address': vehicle.customer.address
+                'customer_address': vehicle.customer.address,
+                'active_amc': get_active_amc_data(vehicle)
             }
 
     # 3. General query fallback search
@@ -588,7 +615,8 @@ def job_search_records(request):
                 'vehicle_vin': v.vin or '',
                 'vehicle_mileage': v.mileage or 0,
                 'has_active_job': bool(active_jc_data),
-                'active_job': active_jc_data
+                'active_job': active_jc_data,
+                'active_amc': get_active_amc_data(v)
             })
             
         if len(response_data['results']) < 5:
@@ -1294,7 +1322,7 @@ def invoice_create(request, job_pk=None):
             pass
 
     if job_pk:
-        job = get_object_or_404(JobCard.objects.select_related('vehicle__customer', 'mechanic', 'advisor'), pk=job_pk)
+        job = get_object_or_404(JobCard.objects.select_related('vehicle__customer', 'mechanic', 'advisor', 'amc_service__amc__plan'), pk=job_pk)
         if hasattr(job, 'invoice'):
             messages.info(request, f"Invoice already exists for Job Card {job.job_number}.")
             return redirect('invoice_detail', pk=job.invoice.pk)
@@ -1302,34 +1330,49 @@ def invoice_create(request, job_pk=None):
         parts_used = job.parts_used.select_related('part').all()
         parts_total = sum(p.total_price for p in parts_used)
 
-        active_amc = CustomerAMC.objects.filter(
-            vehicle=job.vehicle,
-            status='active',
-            start_date__lte=timezone.now().date(),
-            end_date__gte=timezone.now().date()
-        ).select_related('plan').first()
+        amc_service = getattr(job, 'amc_service', None)
+        active_amc = amc_service.amc if amc_service else None
+
+        if not active_amc:
+            today = date.today()
+            active_amc = CustomerAMC.objects.filter(
+                vehicle=job.vehicle,
+                status='active',
+                start_date__lte=today,
+                end_date__gte=today
+            ).select_related('plan').first()
 
         calculated_amc_discount = Decimal('0.00')
-        if active_amc:
+        amc_eligible_labour = Decimal('0.00')
+        amc_discount_pct = Decimal('0.00')
+
+        if active_amc and active_amc.computed_status in ['active', 'expiring_soon']:
             discount_pct = getattr(active_amc.plan, 'discount_percentage', Decimal('100.00')) or Decimal('100.00')
+            amc_discount_pct = discount_pct
+            amc_eligible_labour = job.labour_cost
             calculated_amc_discount = (job.labour_cost * discount_pct / Decimal('100.00')).quantize(Decimal('0.01'))
 
         if request.method != 'POST':
-            initial_data = {}
-            if active_amc:
-                initial_data['amc_discount'] = calculated_amc_discount
-            form = InvoiceForm(initial=initial_data)
+            initial_data = {
+                'amc_discount': calculated_amc_discount
+            }
+            form = InvoiceForm(initial=initial_data, max_allowed_amc_discount=calculated_amc_discount)
         else:
-            form = InvoiceForm(request.POST)
+            form = InvoiceForm(request.POST, max_allowed_amc_discount=calculated_amc_discount)
 
         if request.method == 'POST' and form.is_valid():
-            inv = form.save(commit=False)
-            inv.job_card = job
-            if active_amc and not inv.amc_policy:
-                inv.amc_policy = active_amc
-            inv.save()
-            messages.success(request, f"Invoice {inv.invoice_number} created successfully for Job Card {job.job_number}.")
-            return redirect('invoice_detail', pk=inv.pk)
+            from django.db import transaction
+            with transaction.atomic():
+                inv = form.save(commit=False)
+                inv.job_card = job
+                if active_amc:
+                    inv.amc_policy = active_amc
+                    inv.amc_discount = calculated_amc_discount
+                else:
+                    inv.amc_discount = Decimal('0.00')
+                inv.save()
+                messages.success(request, f"Invoice {inv.invoice_number} created successfully for Job Card {job.job_number}.")
+                return redirect('invoice_detail', pk=inv.pk)
         
         return render(request, 'core/invoice_form.html', {
             'form': form,
@@ -1337,6 +1380,9 @@ def invoice_create(request, job_pk=None):
             'parts_used': parts_used,
             'parts_total': parts_total,
             'active_amc': active_amc,
+            'amc_service': amc_service,
+            'amc_eligible_labour': amc_eligible_labour,
+            'amc_discount_pct': amc_discount_pct,
             'calculated_amc_discount': calculated_amc_discount,
             'title': f'Create Invoice for {job.job_number}'
         })
@@ -1376,24 +1422,53 @@ def invoice_detail(request, pk):
 @login_required
 @role_required('owner', 'advisor')
 def invoice_edit(request, pk):
-    invoice = get_object_or_404(Invoice, pk=pk)
-    active_amc = invoice.amc_policy or CustomerAMC.objects.filter(
-        vehicle=invoice.job_card.vehicle,
-        status='active',
-        start_date__lte=timezone.now().date(),
-        end_date__gte=timezone.now().date()
-    ).select_related('plan').first()
+    invoice = get_object_or_404(Invoice.objects.select_related('job_card__vehicle__customer', 'amc_policy__plan'), pk=pk)
+    job = invoice.job_card
+    amc_service = getattr(job, 'amc_service', None)
+    active_amc = invoice.amc_policy or (amc_service.amc if amc_service else None)
 
-    form = InvoiceForm(request.POST or None, instance=invoice)
+    if not active_amc:
+        today = date.today()
+        active_amc = CustomerAMC.objects.filter(
+            vehicle=job.vehicle,
+            status='active',
+            start_date__lte=today,
+            end_date__gte=today
+        ).select_related('plan').first()
+
+    calculated_amc_discount = Decimal('0.00')
+    amc_eligible_labour = Decimal('0.00')
+    amc_discount_pct = Decimal('0.00')
+
+    if active_amc and active_amc.computed_status in ['active', 'expiring_soon']:
+        discount_pct = getattr(active_amc.plan, 'discount_percentage', Decimal('100.00')) or Decimal('100.00')
+        amc_discount_pct = discount_pct
+        amc_eligible_labour = job.labour_cost
+        calculated_amc_discount = (job.labour_cost * discount_pct / Decimal('100.00')).quantize(Decimal('0.01'))
+
+    form = InvoiceForm(request.POST or None, instance=invoice, max_allowed_amc_discount=calculated_amc_discount)
     if request.method == 'POST' and form.is_valid():
-        inv = form.save(commit=False)
-        if active_amc and not inv.amc_policy:
-            inv.amc_policy = active_amc
-        inv.save()
-        messages.success(request, "Invoice updated.")
-        return redirect('invoice_detail', pk=pk)
+        from django.db import transaction
+        with transaction.atomic():
+            inv = form.save(commit=False)
+            if active_amc:
+                inv.amc_policy = active_amc
+                inv.amc_discount = calculated_amc_discount
+            else:
+                inv.amc_discount = Decimal('0.00')
+            inv.save()
+            messages.success(request, "Invoice updated successfully.")
+            return redirect('invoice_detail', pk=pk)
     return render(request, 'core/invoice_form.html', {
-        'form': form, 'job': invoice.job_card, 'invoice': invoice, 'active_amc': active_amc, 'title': 'Edit Invoice'
+        'form': form,
+        'job': job,
+        'invoice': invoice,
+        'active_amc': active_amc,
+        'amc_service': amc_service,
+        'amc_eligible_labour': amc_eligible_labour,
+        'amc_discount_pct': amc_discount_pct,
+        'calculated_amc_discount': calculated_amc_discount,
+        'title': 'Edit Invoice'
     })
 
 
@@ -1553,23 +1628,50 @@ def expense_delete(request, pk):
 
 # ─── AMC Management ───────────────────────────────────────────────────────────
 
+def add_months(sourcedate, months):
+    import calendar
+    month = sourcedate.month - 1 + months
+    year = sourcedate.year + month // 12
+    month = month % 12 + 1
+    day = min(sourcedate.day, calendar.monthrange(year, month)[1])
+    return date(year, month, day)
+
+
 @login_required
 @role_required('owner', 'advisor')
 def amc_list(request):
-    amcs = CustomerAMC.objects.select_related('vehicle__customer', 'plan').all().order_by('-created_at')
-    plans = AMCPlan.objects.all()
-    
-    # Upcoming services in next 15 days or overdue
     today = date.today()
-    upcoming_services = AMCServiceSchedule.objects.filter(
-        status='scheduled',
+    
+    # Auto-update status for expired contracts
+    CustomerAMC.objects.filter(status='active', end_date__lt=today).update(status='expired')
+    
+    amcs = CustomerAMC.objects.select_related('vehicle__customer', 'plan').all().order_by('-created_at')
+    plans = AMCPlan.objects.all().order_by('-created_at')
+    
+    # Summary Cards
+    active_amc_count = sum(1 for a in amcs if a.computed_status == 'active')
+    expiring_soon_count = sum(1 for a in amcs if a.computed_status == 'expiring_soon')
+    expired_count = sum(1 for a in amcs if a.computed_status == 'expired')
+    
+    # Upcoming & Due AMC Services (Next 15 days or overdue)
+    notification_schedules = AMCServiceSchedule.objects.filter(
+        status__in=['upcoming', 'due', 'overdue', 'scheduled'],
         scheduled_date__lte=today + timedelta(days=15)
-    ).select_related('amc__vehicle__customer').order_by('scheduled_date')
+    ).select_related('amc__vehicle__customer', 'amc__plan', 'amc__vehicle').order_by('scheduled_date')
+
+    services_due_count = notification_schedules.count()
+    services_completed_count = AMCServiceSchedule.objects.filter(status='completed').count()
 
     return render(request, 'core/amc_list.html', {
         'amcs': amcs,
         'plans': plans,
-        'upcoming_services': upcoming_services
+        'upcoming_services': notification_schedules,
+        'active_amc_count': active_amc_count,
+        'expiring_soon_count': expiring_soon_count,
+        'expired_count': expired_count,
+        'services_due_count': services_due_count,
+        'services_completed_count': services_completed_count,
+        'today': today,
     })
 
 
@@ -1578,8 +1680,8 @@ def amc_list(request):
 def amc_plan_create(request):
     form = AMCPlanForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
-        form.save()
-        messages.success(request, "AMC Plan created successfully.")
+        plan = form.save()
+        messages.success(request, f"AMC Package '{plan.name}' created successfully.")
         return redirect('amc_list')
     return render(request, 'core/amc_plan_form.html', {'form': form, 'title': 'Create AMC Plan'})
 
@@ -1589,34 +1691,82 @@ def amc_plan_create(request):
 def amc_create(request):
     form = CustomerAMCForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
-        amc = form.save(commit=False)
-        start = amc.start_date
-        plan = amc.plan
-        
-        # Calculate end date
-        end = start + timedelta(days=plan.duration_months * 30)
-        amc.end_date = end
-        amc.save()
+        from django.db import transaction
+        with transaction.atomic():
+            amc = form.save(commit=False)
+            plan = amc.plan
+            start = amc.start_date
+            
+            # End Date Calculation: start_date + duration_months - 1 day
+            end_date = add_months(start, plan.duration_months) - timedelta(days=1)
+            amc.end_date = end_date
+            amc.save()
 
-        # Generate service schedule
-        interval_days = (plan.duration_months * 30) // plan.services_included
-        for i in range(1, plan.services_included + 1):
-            scheduled_d = start + timedelta(days=interval_days * i)
-            AMCServiceSchedule.objects.create(
-                amc=amc,
-                service_number=i,
-                scheduled_date=scheduled_d,
-                status='scheduled'
-            )
+            # Service Schedule generation:
+            # Service 1: start_date
+            # Service 2: add_months(start, service_interval_months * 1)
+            # Service 3: add_months(start, service_interval_months * 2)
+            interval_m = plan.service_interval_months or 3
+            for i in range(1, plan.services_included + 1):
+                sched_date = start if i == 1 else add_months(start, interval_m * (i - 1))
+                if sched_date > end_date:
+                    sched_date = end_date
+                AMCServiceSchedule.objects.create(
+                    amc=amc,
+                    service_number=i,
+                    scheduled_date=sched_date,
+                    status='upcoming'
+                )
 
-        messages.success(request, f"AMC Contract {amc.contract_number} created with {plan.services_included} scheduled services.")
-        return redirect('amc_detail', pk=amc.pk)
+            messages.success(request, f"Customer AMC Contract {amc.contract_number} created with {plan.services_included} scheduled services.")
+            return redirect('amc_detail', pk=amc.pk)
     return render(request, 'core/amc_form.html', {'form': form, 'title': 'Create Customer AMC'})
 
 
 @login_required
+@role_required('owner', 'advisor')
+def amc_renew(request, pk):
+    old_amc = get_object_or_404(CustomerAMC, pk=pk)
+    new_start = old_amc.end_date + timedelta(days=1)
+    initial_data = {
+        'vehicle': old_amc.vehicle.id,
+        'plan': old_amc.plan.id,
+        'start_date': new_start.strftime('%Y-%m-%d'),
+        'amount_paid': old_amc.plan.price,
+    }
+    form = CustomerAMCForm(request.POST or None, initial=initial_data)
+    if request.method == 'POST' and form.is_valid():
+        from django.db import transaction
+        with transaction.atomic():
+            new_amc = form.save(commit=False)
+            new_amc.previous_contract = old_amc
+            plan = new_amc.plan
+            start = new_amc.start_date
+            
+            end_date = add_months(start, plan.duration_months) - timedelta(days=1)
+            new_amc.end_date = end_date
+            new_amc.save()
+
+            interval_m = plan.service_interval_months or 3
+            for i in range(1, plan.services_included + 1):
+                sched_date = start if i == 1 else add_months(start, interval_m * (i - 1))
+                if sched_date > end_date:
+                    sched_date = end_date
+                AMCServiceSchedule.objects.create(
+                    amc=new_amc,
+                    service_number=i,
+                    scheduled_date=sched_date,
+                    status='upcoming'
+                )
+
+            messages.success(request, f"AMC Contract renewed! New Contract Number: {new_amc.contract_number}.")
+            return redirect('amc_detail', pk=new_amc.pk)
+    return render(request, 'core/amc_form.html', {'form': form, 'title': f'Renew AMC Contract ({old_amc.contract_number})'})
+
+
+@login_required
 def amc_detail(request, pk):
-    amc = get_object_or_404(CustomerAMC, pk=pk)
+    amc = get_object_or_404(CustomerAMC.objects.select_related('vehicle__customer', 'plan', 'previous_contract'), pk=pk)
     schedules = amc.schedules.all().order_by('service_number')
     return render(request, 'core/amc_detail.html', {'amc': amc, 'schedules': schedules})
 

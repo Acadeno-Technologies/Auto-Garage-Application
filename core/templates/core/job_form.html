@@ -871,6 +871,34 @@
       </div>
     </div>
 
+    <!-- AMC ACTIVE BANNER CONTAINER -->
+    <div id="amc-active-banner-container" style="display:none; margin-bottom: 1.5rem; background:#f0fdf4; border:1.5px solid #16a34a; border-radius:14px; padding:1.25rem; box-shadow:0 4px 16px rgba(22,163,74,0.1);">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem;">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span style="font-size:1.4rem;">🛡️</span>
+          <div>
+            <h4 style="margin:0; font-weight:800; color:#14532d; font-size:1rem;">AMC ACTIVE CONTRACT FOUND</h4>
+            <div style="font-size:0.82rem; color:#166534; font-weight:600;" id="amc-contract-title">Contract: AMC-2026-0001 (Basic AMC)</div>
+          </div>
+        </div>
+        <div class="badge-status-pill badge-success-green" id="amc-services-count-badge" style="font-size:0.82rem; font-weight:700;">
+          0 / 4 Used (4 Remaining)
+        </div>
+      </div>
+
+      <div style="font-size:0.82rem; color:#166534; margin-bottom:0.75rem; display:flex; gap:1.25rem; flex-wrap:wrap;">
+        <div>🏷️ Discount: <strong id="amc-discount-info">100% Off Labour</strong></div>
+        <div>🗓️ Valid Until: <strong id="amc-expiry-date">18-08-2027</strong></div>
+      </div>
+
+      <div class="custom-form-group" style="margin-bottom:0;">
+        <label style="font-weight:700; color:#14532d; margin-bottom:0.35rem;">Select Applicable AMC Service for this Job Card:</label>
+        <select name="amc_schedule_id" id="id_amc_schedule_select" class="form-input" style="border-color:#86efac; background:#ffffff; font-weight:600;">
+          <option value="">-- Standard Job Card (Do not apply AMC service usage) --</option>
+        </select>
+      </div>
+    </div>
+
     <!-- SECTION 3: SERVICE & JOB DETAILS -->
     <div class="form-section-card section-accent-blue">
       <div class="section-header">
@@ -961,7 +989,10 @@
       <!-- PHOTO UPLOAD DRAG & DROP BOX -->
       <div class="custom-form-group">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
-          <label style="margin:0;">Vehicle Photos</label>
+          <label style="margin:0; display:flex; align-items:center;">
+            Vehicle Photos
+            <span id="photo-count-badge" class="badge-status-pill badge-info-blue" style="font-size:0.75rem; padding:0.15rem 0.55rem; margin-left:0.4rem; display:inline-flex; align-items:center; gap:0.25rem;">📸 (0 selected)</span>
+          </label>
           <button type="button" onclick="openCameraModal('id_photos')" class="btn btn-sm" style="background:#0284c7; color:#fff; font-weight:700; border:none; padding:0.35rem 0.85rem; border-radius:8px; display:inline-flex; align-items:center; gap:0.4rem; cursor:pointer; font-size:0.8rem; box-shadow:0 2px 6px rgba(2,132,199,0.3);">
             📷 Live Camera Snap
           </button>
@@ -1423,10 +1454,45 @@
       });
     }
 
+    function updateAMCBanner(active_amc) {
+      const banner = document.getElementById('amc-active-banner-container');
+      if (!banner) return;
+
+      if (active_amc) {
+        document.getElementById('amc-contract-title').textContent = `Contract: ${active_amc.contract_number} (${active_amc.plan_name})`;
+        document.getElementById('amc-services-count-badge').textContent = `${active_amc.used_services} / ${active_amc.total_services} Used (${active_amc.remaining_services} Remaining)`;
+        document.getElementById('amc-discount-info').textContent = `${active_amc.discount_percentage}% Off Labour`;
+        document.getElementById('amc-expiry-date').textContent = active_amc.end_date;
+
+        const selectEl = document.getElementById('id_amc_schedule_select');
+        if (selectEl) {
+          selectEl.innerHTML = '<option value="">-- Standard Job Card (Do not apply AMC service usage) --</option>';
+          if (active_amc.schedules && active_amc.schedules.length > 0) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const preselectedScheduleId = urlParams.get('amc_schedule_id');
+
+            active_amc.schedules.forEach(s => {
+              const opt = document.createElement('option');
+              opt.value = s.id;
+              opt.textContent = s.label;
+              if (preselectedScheduleId && String(s.id) === String(preselectedScheduleId)) {
+                opt.selected = true;
+              }
+              selectEl.appendChild(opt);
+            });
+          }
+        }
+        banner.style.display = 'block';
+      } else {
+        banner.style.display = 'none';
+      }
+    }
+
     // Helper function for Vehicle search
     function triggerVehicleSearch(vehicleNum) {
       if (!vehicleNum || vehicleNum.trim().length < 5) {
         vehicleBadge.style.display = 'none';
+        updateAMCBanner(null);
         return;
       }
       fetch(`{% url 'job_search_records' %}?vehicle_number=${encodeURIComponent(vehicleNum)}`)
@@ -1436,6 +1502,8 @@
             const v = data.vehicle;
             if (modelInput) modelInput.value = v.vehicle_model || '';
             if (colorInput) colorInput.value = v.vehicle_color || '';
+
+            updateAMCBanner(v.active_amc);
 
             // Check relationship with current phone
             const currentPhone = phoneInput ? phoneInput.value.trim() : '';
@@ -1463,9 +1531,10 @@
             vehicleBadge.className = 'badge-status-pill badge-info-blue';
             vehicleBadge.style.display = 'inline-flex';
             vehicleBadge.innerHTML = `ℹ️ New Vehicle (Enter vehicle details manually)`;
+            updateAMCBanner(null);
           }
         })
-        .catch(() => { });
+        .catch(() => { updateAMCBanner(null); });
     }
 
     // Search vehicle logic when user finishes typing / blurs input
@@ -1489,11 +1558,16 @@
       });
     }
 
-    // Initialize state
-    const initialName = nameInput ? nameInput.value.trim() : '';
-    const initialPhone = phoneInput ? phoneInput.value.trim() : '';
-    const initialEmail = emailInput ? emailInput.value.trim() : '';
-    const initialAddress = addressInput ? addressInput.value.trim() : '';
+    if (numInput && numInput.value.trim().length >= 5) {
+      triggerVehicleSearch(numInput.value.trim());
+    } else {
+      const urlParams = new URLSearchParams(window.location.search);
+      const vNumParam = urlParams.get('vehicle_number');
+      if (vNumParam && numInput) {
+        numInput.value = vNumParam;
+        triggerVehicleSearch(vNumParam);
+      }
+    }
 
     if (initialName || initialPhone) {
       switchCustomerState('selected', {
@@ -1506,54 +1580,100 @@
       switchCustomerState('new');
     }
 
-    // Drag & Drop Photo Upload Preview logic
+    // Drag & Drop Photo Upload Accumulation & Preview logic
     const photoInput = document.getElementById('id_photos') || document.querySelector('input[type="file"][name="photos"]');
     const previewContainer = document.getElementById('photo-preview-container');
     const dragDropBox = document.getElementById('drag-drop-trigger');
 
+    let accumulatedFiles = [];
+
+    function updatePhotoPreviewsAndInput() {
+      if (!photoInput || !previewContainer) return;
+
+      // Update DataTransfer on native input element so all accumulated files are submitted
+      const dt = new DataTransfer();
+      accumulatedFiles.forEach(f => dt.items.add(f));
+      photoInput.files = dt.files;
+
+      // Update Count Badge
+      const countBadge = document.getElementById('photo-count-badge');
+      if (countBadge) {
+        if (accumulatedFiles.length > 0) {
+          countBadge.className = 'badge-status-pill badge-success-green';
+          countBadge.innerHTML = `📸 (${accumulatedFiles.length} photo${accumulatedFiles.length > 1 ? 's' : ''} selected)`;
+        } else {
+          countBadge.className = 'badge-status-pill badge-info-blue';
+          countBadge.innerHTML = `📸 (0 selected)`;
+        }
+      }
+
+      // Render Thumbnails
+      previewContainer.innerHTML = '';
+      accumulatedFiles.forEach((file, index) => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = function (evt) {
+            const div = document.createElement('div');
+            div.style.position = 'relative';
+            div.style.borderRadius = '10px';
+            div.style.overflow = 'hidden';
+            div.style.border = '1px solid #cbd5e1';
+            div.style.aspectRatio = '1 / 1';
+            div.style.boxShadow = '0 2px 6px rgba(0,0,0,0.05)';
+
+            const img = document.createElement('img');
+            img.src = evt.target.result;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.innerHTML = '&times;';
+            removeBtn.title = 'Remove photo';
+            removeBtn.style.cssText = 'position:absolute; top:4px; right:4px; background:rgba(220,38,38,0.9); color:#fff; width:22px; height:22px; border-radius:50%; border:none; display:grid; place-items:center; cursor:pointer; font-size:14px; font-weight:bold; z-index:10; box-shadow:0 1px 4px rgba(0,0,0,0.3);';
+            removeBtn.onclick = function(event) {
+              event.preventDefault();
+              event.stopPropagation();
+              accumulatedFiles.splice(index, 1);
+              updatePhotoPreviewsAndInput();
+            };
+
+            const badge = document.createElement('span');
+            badge.textContent = file.name;
+            badge.style.position = 'absolute';
+            badge.style.bottom = '0';
+            badge.style.left = '0';
+            badge.style.right = '0';
+            badge.style.background = 'rgba(15, 23, 42, 0.75)';
+            badge.style.color = '#fff';
+            badge.style.fontSize = '0.68rem';
+            badge.style.padding = '3px 5px';
+            badge.style.textOverflow = 'ellipsis';
+            badge.style.whiteSpace = 'nowrap';
+            badge.style.overflow = 'hidden';
+
+            div.appendChild(img);
+            div.appendChild(removeBtn);
+            div.appendChild(badge);
+            previewContainer.appendChild(div);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
     if (photoInput && previewContainer) {
       photoInput.addEventListener('change', function (e) {
-        previewContainer.innerHTML = '';
-        const files = Array.from(e.target.files);
-        files.forEach((file) => {
-          if (file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = function (evt) {
-              const div = document.createElement('div');
-              div.style.position = 'relative';
-              div.style.borderRadius = '10px';
-              div.style.overflow = 'hidden';
-              div.style.border = '1px solid #cbd5e1';
-              div.style.aspectRatio = '1 / 1';
-              div.style.boxShadow = '0 2px 6px rgba(0,0,0,0.05)';
-
-              const img = document.createElement('img');
-              img.src = evt.target.result;
-              img.style.width = '100%';
-              img.style.height = '100%';
-              img.style.objectFit = 'cover';
-
-              const badge = document.createElement('span');
-              badge.textContent = file.name;
-              badge.style.position = 'absolute';
-              badge.style.bottom = '0';
-              badge.style.left = '0';
-              badge.style.right = '0';
-              badge.style.background = 'rgba(15, 23, 42, 0.75)';
-              badge.style.color = '#fff';
-              badge.style.fontSize = '0.68rem';
-              badge.style.padding = '3px 5px';
-              badge.style.textOverflow = 'ellipsis';
-              badge.style.whiteSpace = 'nowrap';
-              badge.style.overflow = 'hidden';
-
-              div.appendChild(img);
-              div.appendChild(badge);
-              previewContainer.appendChild(div);
-            };
-            reader.readAsDataURL(file);
+        const newlySelected = Array.from(e.target.files);
+        newlySelected.forEach(newFile => {
+          // Prevent duplicates by checking name and size
+          const exists = accumulatedFiles.some(f => f.name === newFile.name && f.size === newFile.size);
+          if (!exists) {
+            accumulatedFiles.push(newFile);
           }
         });
+        updatePhotoPreviewsAndInput();
       });
     }
 
@@ -1577,8 +1697,12 @@
       dragDropBox.addEventListener('drop', (e) => {
         const dt = e.dataTransfer;
         if (dt && dt.files && dt.files.length > 0) {
-          photoInput.files = dt.files;
-          photoInput.dispatchEvent(new Event('change'));
+          const droppedFiles = Array.from(dt.files);
+          droppedFiles.forEach(f => {
+            const exists = accumulatedFiles.some(af => af.name === f.name && af.size === f.size);
+            if (!exists) accumulatedFiles.push(f);
+          });
+          updatePhotoPreviewsAndInput();
         }
       });
     }

@@ -196,8 +196,16 @@
         <td>₹{{ invoice.tax_amount|floatformat:2 }}</td>
       </tr>
       <tr class="total-row">
-        <td>Total (INR)</td>
+        <td>Total Amount</td>
         <td>₹{{ invoice.grand_total|floatformat:2 }}</td>
+      </tr>
+      <tr>
+        <td>Amount Paid</td>
+        <td style="color:#16a34a; font-weight:700;">₹{{ invoice.amount_paid|floatformat:2 }}</td>
+      </tr>
+      <tr style="font-size:1.05rem; font-weight:800; color:#dc2626;">
+        <td>Balance Due</td>
+        <td>₹{{ invoice.balance_due|floatformat:2 }}</td>
       </tr>
     </table>
   </div>

@@ -673,13 +673,22 @@ textarea.input-style-saas {
         {% csrf_token %}
 
         {% if active_amc %}
-        <div style="background:#ecfdf5; border:1px solid #a7f3d0; border-radius:12px; padding:1rem 1.25rem; margin-bottom:1.25rem; color:#065f46; font-size:0.88rem;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
-            <div><strong>🛡️ Active AMC Policy Detected:</strong> {{ active_amc.plan.name }} ({{ active_amc.contract_number }})</div>
-            <span class="badge" style="background:#059669; color:#fff; font-weight:700;">Active Policy</span>
+        <!-- AMC DETAILS BOX -->
+        <div style="background:#f0fdf4; border:1.5px solid #16a34a; border-radius:14px; padding:1.25rem; margin-bottom:1.5rem; color:#14532d; box-shadow:0 4px 14px rgba(22,163,74,0.08);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; border-bottom:1px solid #bbf7d0; padding-bottom:0.75rem; margin-bottom:0.75rem;">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <span style="font-size:1.3rem;">🛡️</span>
+              <h4 style="margin:0; font-size:1rem; font-weight:800; color:#14532d;">AMC DETAILS</h4>
+            </div>
+            <span class="badge-status-pill badge-success-green" style="font-weight:700;">Active Policy</span>
           </div>
-          <div style="margin-top:0.4rem; color:#047857; font-size:0.82rem;">
-            Labour Discount ({{ active_amc.plan.discount_percentage|floatformat:0 }}%): <strong>₹{{ calculated_amc_discount|floatformat:2 }}</strong> auto-applied below.
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:0.75rem; font-size:0.84rem;">
+            <div><span style="color:#166534; font-weight:600; display:block; font-size:0.75rem;">PLAN</span> <strong style="color:#14532d;">{{ active_amc.plan.name }}</strong></div>
+            <div><span style="color:#166534; font-weight:600; display:block; font-size:0.75rem;">CONTRACT</span> <strong style="color:#14532d;">{{ active_amc.contract_number }}</strong></div>
+            <div><span style="color:#166534; font-weight:600; display:block; font-size:0.75rem;">SERVICE</span> <strong style="color:#14532d;">{% if amc_service %}Service #{{ amc_service.service_number }}{% else %}Covered Service{% endif %}</strong></div>
+            <div><span style="color:#166534; font-weight:600; display:block; font-size:0.75rem;">COVERAGE</span> <strong style="color:#14532d;">Labour / Service</strong></div>
+            <div><span style="color:#166534; font-weight:600; display:block; font-size:0.75rem;">DISCOUNT</span> <strong style="color:#16a34a;">{{ amc_discount_pct|floatformat:0 }}% Off</strong></div>
+            <div><span style="color:#166534; font-weight:600; display:block; font-size:0.75rem;">AMC DISCOUNT</span> <strong style="color:#16a34a;">₹{{ calculated_amc_discount|floatformat:2 }}</strong></div>
           </div>
         </div>
         {% endif %}
@@ -696,7 +705,11 @@ textarea.input-style-saas {
             <label class="custom-form-label" for="{{ form.amc_discount.id_for_label }}">AMC POLICY DISCOUNT</label>
             <div class="input-icon-wrapper">
               <span class="input-prefix-icon">₹</span>
-              {{ form.amc_discount }}
+              {% if active_amc %}
+                <input type="number" name="amc_discount" value="{{ calculated_amc_discount|floatformat:2 }}" step="0.01" class="form-input" id="id_amc_discount" readonly style="background:#f8fafc; font-weight:700; color:#16a34a; cursor:not-allowed;" title="AMC Discount is automatically controlled by AMC policy rules.">
+              {% else %}
+                {{ form.amc_discount }}
+              {% endif %}
             </div>
             {% if form.amc_discount.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ form.amc_discount.errors.0 }}</span>{% endif %}
           </div>
@@ -911,6 +924,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const pickupCheck = document.getElementById('id_is_pickup_service');
   const pickupGroup = document.getElementById('group_pickup_charge');
   const pickupInput = document.getElementById('id_pickup_charge');
+  const amcDiscountInput = document.getElementById('id_amc_discount');
   const statusSelect = document.querySelector('[name="status"]');
   const amountPaidInput = document.querySelector('[name="amount_paid"]');
   const paymentMethodInput = document.querySelector('[name="payment_method"]');
@@ -948,26 +962,47 @@ document.addEventListener('DOMContentLoaded', function() {
       summaryPickupCharge.textContent = '₹' + pickupChargeVal.toFixed(2);
     }
 
-    // 2. Status badge
-    if (statusSelect && summaryStatusBadge) {
-      const selectedOpt = statusSelect.options[statusSelect.selectedIndex];
-      const text = selectedOpt ? selectedOpt.text : 'Unpaid';
-      const val = statusSelect.value;
-      summaryStatusBadge.textContent = text;
-      
-      if (val === 'paid') {
-        summaryStatusBadge.className = 'pill-badge pill-paid';
-      } else if (val === 'partial') {
-        summaryStatusBadge.className = 'pill-badge pill-partial';
-      } else {
-        summaryStatusBadge.className = 'pill-badge pill-unpaid';
-      }
-    }
-
-    // 3. Amount Paid
+    // 2. Amount Paid & AMC Discount
+    const amcDiscountVal = amcDiscountInput ? (parseFloat(amcDiscountInput.value) || 0) : 0;
     const amountPaidVal = amountPaidInput ? (parseFloat(amountPaidInput.value) || 0) : 0;
     if (summaryAmountPaid) {
       summaryAmountPaid.textContent = '₹' + amountPaidVal.toFixed(2);
+    }
+
+    // 3. Balance Due & Status Calculation
+    const subtotalAfterDiscount = Math.max(0, baseTotalCost - amcDiscountVal);
+    const totalTaxable = subtotalAfterDiscount + pickupChargeVal;
+    const taxAmount = totalTaxable * 0.05;
+    const grandTotal = totalTaxable + taxAmount;
+    const balanceDue = Math.max(0, grandTotal - amountPaidVal);
+
+    if (summaryBalanceDue) {
+      summaryBalanceDue.textContent = '₹' + balanceDue.toFixed(2);
+    }
+
+    // Auto update status select & badge
+    if (statusSelect) {
+      if (grandTotal === 0 || amountPaidVal >= grandTotal) {
+        statusSelect.value = 'paid';
+      } else if (amountPaidVal > 0) {
+        statusSelect.value = 'partial';
+      } else {
+        statusSelect.value = 'unpaid';
+      }
+
+      if (summaryStatusBadge) {
+        const val = statusSelect.value;
+        if (val === 'paid') {
+          summaryStatusBadge.textContent = 'Paid';
+          summaryStatusBadge.className = 'pill-badge pill-paid';
+        } else if (val === 'partial') {
+          summaryStatusBadge.textContent = 'Partial';
+          summaryStatusBadge.className = 'pill-badge pill-partial';
+        } else {
+          summaryStatusBadge.textContent = 'Unpaid';
+          summaryStatusBadge.className = 'pill-badge pill-unpaid';
+        }
+      }
     }
 
     // 4. Payment Method
@@ -980,13 +1015,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (dueDateInput && summaryDueDate) {
       const dateVal = dueDateInput.value;
       summaryDueDate.textContent = dateVal ? dateVal : '-';
-    }
-
-    // 6. Balance Due Calculation
-    const grandTotal = baseTotalCost + pickupChargeVal;
-    const balanceDue = Math.max(0, grandTotal - amountPaidVal);
-    if (summaryBalanceDue) {
-      summaryBalanceDue.textContent = '₹' + balanceDue.toFixed(2);
     }
   }
 

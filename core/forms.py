@@ -597,19 +597,73 @@ class InvoiceForm(forms.ModelForm):
             'notes': forms.Textarea(attrs={'class': 'form-input', 'rows': 2}),
         }
 
+    def __init__(self, *args, **kwargs):
+        self.max_allowed_amc_discount = kwargs.pop('max_allowed_amc_discount', None)
+        super().__init__(*args, **kwargs)
+        self.fields['pickup_charge'].required = False
+        self.fields['amc_discount'].required = False
+
+    def clean_amc_discount(self):
+        amount = self.cleaned_data.get('amc_discount')
+        if amount is None or amount < 0:
+            raise forms.ValidationError("AMC Discount cannot be negative.")
+        if self.max_allowed_amc_discount is not None and amount > self.max_allowed_amc_discount:
+            raise forms.ValidationError(
+                f"AMC Discount (₹{amount:.2f}) cannot exceed the eligible AMC discount of ₹{self.max_allowed_amc_discount:.2f}."
+            )
+        return amount
+
+    def clean_amount_paid(self):
+        amount = self.cleaned_data.get('amount_paid')
+        if amount is None or amount < 0:
+            raise forms.ValidationError("Amount Paid cannot be negative.")
+        return amount
+
 
 class AMCPlanForm(forms.ModelForm):
     class Meta:
         model = AMCPlan
-        fields = ['name', 'description', 'price', 'duration_months', 'services_included', 'discount_percentage']
+        fields = ['name', 'description', 'price', 'duration_months', 'services_included', 'service_interval_months', 'discount_percentage', 'is_active']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-input'}),
-            'description': forms.Textarea(attrs={'class': 'form-input', 'rows': 3}),
-            'price': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01'}),
-            'duration_months': forms.NumberInput(attrs={'class': 'form-input'}),
-            'services_included': forms.NumberInput(attrs={'class': 'form-input'}),
-            'discount_percentage': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01', 'placeholder': 'Discount % on service/labour (default 100)'}),
+            'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Basic AMC / Premium Care'}),
+            'description': forms.Textarea(attrs={'class': 'form-input', 'rows': 3, 'placeholder': 'Plan details and coverage description'}),
+            'price': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01', 'placeholder': 'Price in ₹'}),
+            'duration_months': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': 'e.g. 12'}),
+            'services_included': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': 'e.g. 4'}),
+            'service_interval_months': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': 'e.g. 3'}),
+            'discount_percentage': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01', 'placeholder': 'Labour/Service Discount % (0 - 100)'}),
+            'is_active': forms.CheckboxInput(attrs={'style': 'width:auto;'}),
         }
+
+    def clean_duration_months(self):
+        val = self.cleaned_data.get('duration_months')
+        if not val or val <= 0:
+            raise forms.ValidationError("Duration must be greater than 0 months.")
+        return val
+
+    def clean_services_included(self):
+        val = self.cleaned_data.get('services_included')
+        if not val or val <= 0:
+            raise forms.ValidationError("Services included must be greater than 0.")
+        return val
+
+    def clean_service_interval_months(self):
+        val = self.cleaned_data.get('service_interval_months')
+        if not val or val <= 0:
+            raise forms.ValidationError("Service interval must be greater than 0 months.")
+        return val
+
+    def clean_price(self):
+        val = self.cleaned_data.get('price')
+        if val is None or val < 0:
+            raise forms.ValidationError("Price cannot be negative.")
+        return val
+
+    def clean_discount_percentage(self):
+        val = self.cleaned_data.get('discount_percentage')
+        if val is None or val < 0 or val > 100:
+            raise forms.ValidationError("Discount percentage must be between 0% and 100%.")
+        return val
 
 
 class CustomerAMCForm(forms.ModelForm):
@@ -620,9 +674,58 @@ class CustomerAMCForm(forms.ModelForm):
             'vehicle': forms.Select(attrs={'class': 'form-input'}),
             'plan': forms.Select(attrs={'class': 'form-input'}),
             'start_date': forms.DateInput(attrs={'class': 'form-input', 'type': 'date'}),
-            'amount_paid': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01'}),
-            'notes': forms.Textarea(attrs={'class': 'form-input', 'rows': 2}),
+            'amount_paid': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01', 'placeholder': 'Amount Paid'}),
+            'notes': forms.Textarea(attrs={'class': 'form-input', 'rows': 2, 'placeholder': 'Optional contract notes'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['plan'].queryset = AMCPlan.objects.filter(is_active=True)
+        # Custom display for vehicles in dropdown
+        self.fields['vehicle'].label_from_instance = lambda v: f"{v.license_plate} | {v.make} {v.model} | {v.customer.name}"
+
+    def clean_amount_paid(self):
+        amount = self.cleaned_data.get('amount_paid')
+        if amount is None or amount < 0:
+            raise forms.ValidationError("Amount paid cannot be negative.")
+        plan = self.cleaned_data.get('plan')
+        if plan and amount > plan.price:
+            raise forms.ValidationError(f"Amount paid (₹{amount}) cannot exceed the plan price (₹{plan.price}).")
+        return amount
+
+    def clean(self):
+        cleaned_data = super().clean()
+        vehicle = cleaned_data.get('vehicle')
+        plan = cleaned_data.get('plan')
+        start_date = cleaned_data.get('start_date')
+
+        if vehicle and plan and start_date:
+            import calendar
+            from datetime import date
+            # Calculate end date automatically
+            month = start_date.month - 1 + plan.duration_months
+            year = start_date.year + month // 12
+            month = month % 12 + 1
+            day = min(start_date.day, calendar.monthrange(year, month)[1])
+            end_date = date(year, month, day)
+
+            # Check for overlapping active contracts for this vehicle
+            qs = CustomerAMC.objects.filter(
+                vehicle=vehicle,
+                status='active',
+                start_date__lte=end_date,
+                end_date__gte=start_date
+            )
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+
+            if qs.exists():
+                existing = qs.first()
+                raise forms.ValidationError(
+                    f"This vehicle already has an active AMC contract ({existing.contract_number}) "
+                    f"covering the period {existing.start_date.strftime('%d-%m-%Y')} to {existing.end_date.strftime('%d-%m-%Y')}."
+                )
+        return cleaned_data
 
 
 class ExpenseForm(forms.ModelForm):

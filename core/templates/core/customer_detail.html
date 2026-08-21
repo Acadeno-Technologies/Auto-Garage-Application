@@ -28,16 +28,40 @@
     </div>
   </div>
   <div class="card">
-    <div class="card-header"><span class="card-title">🚗 Vehicles ({{ vehicles.count }})</span></div>
+    <div class="card-header"><span class="card-title">🚗 Vehicles & AMC Status ({{ vehicles.count }})</span></div>
     <div class="table-wrap"><table>
-      <thead><tr><th>Vehicle</th><th>Plate</th><th>Year</th><th></th></tr></thead>
+      <thead><tr><th>Vehicle</th><th>Plate</th><th>AMC Status</th><th>Actions</th></tr></thead>
       <tbody>
         {% for v in vehicles %}
         <tr>
-          <td>{{ v.make }} {{ v.model }}</td>
-          <td class="text-mono text-accent">{{ v.license_plate }}</td>
-          <td>{{ v.year }}</td>
-          <td><a href="{% url 'vehicle_detail' v.pk %}" class="btn btn-secondary btn-sm">View</a></td>
+          <td>
+            <div style="font-weight:700;">{{ v.make }} {{ v.model }}</div>
+            <small class="text-muted">{{ v.year }}</small>
+          </td>
+          <td class="text-mono text-accent" style="font-weight:700;">{{ v.license_plate }}</td>
+          <td>
+            {% with active_amc=v.amc_contracts.first %}
+              {% if active_amc and active_amc.computed_status == 'active' %}
+                <span class="badge-status-pill badge-success-green">Active ({{ active_amc.plan.name }})</span>
+              {% elif active_amc and active_amc.computed_status == 'expiring_soon' %}
+                <span class="badge-status-pill badge-warning-amber">Expiring Soon</span>
+              {% elif active_amc and active_amc.computed_status == 'expired' %}
+                <span class="badge-status-pill badge-danger-red">Expired</span>
+              {% else %}
+                <span class="badge-status-pill badge-secondary">No Active AMC</span>
+              {% endif %}
+            {% endwith %}
+          </td>
+          <td style="display:flex; gap:0.35rem; align-items:center;">
+            <a href="{% url 'vehicle_detail' v.pk %}" class="btn btn-secondary btn-sm">Vehicle</a>
+            {% with active_amc=v.amc_contracts.first %}
+              {% if active_amc %}
+                <a href="{% url 'amc_detail' active_amc.pk %}" class="btn btn-primary btn-sm" style="padding:0.25rem 0.5rem;">View AMC</a>
+              {% else %}
+                <a href="{% url 'amc_create' %}?vehicle={{ v.pk }}" class="btn btn-sm btn-outline-success" style="padding:0.25rem 0.5rem; border:1px solid #16a34a; color:#16a34a; font-weight:700;">+ AMC</a>
+              {% endif %}
+            {% endwith %}
+          </td>
         </tr>
         {% empty %}<tr><td colspan="4" class="text-center text-muted">No vehicles registered</td></tr>
         {% endfor %}
